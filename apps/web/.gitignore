@@ -1,0 +1,16 @@
+# dependensi
+node_modules/
+
+# hasil build Next.js
+.next/
+out/
+
+# berkas lingkungan (berisi nilai asli — jangan pernah di-commit)
+.env
+.env.local
+.env*.local
+
+# lain-lain
+.DS_Store
+*.tsbuildinfo
+next-env.d.ts

@@ -1,0 +1,325 @@
+/* ============================================================
+   Aplikasi Santri — gaya dasar (Tahap Scaffold)
+   Palet mengikuti kop surat Ponpes Minhajus Sunnah Magelang:
+   hijau #006B4F–#1E6B00, aksen emas #F0B000, aksen biru buku.
+   Mobile-first, ringkas ala Maktabah Al-'Ilmiyyah terbaru:
+   target sentuh ±44px, navigasi bawah di HP, sidebar ≥768px.
+   ============================================================ */
+
+:root {
+  /* Warna kop surat */
+  --hijau-kop: #006b4f;
+  --hijau-logo: #1e6b00;
+  --hijau-gelap: #0b4d36;
+  --hijau-muda: #e6f2ec;
+  --emas: #f0b000;
+  --biru-buku: #1d6fb8;
+
+  /* Netral */
+  --latar: #f7f8f6;
+  --permukaan: #ffffff;
+  --teks: #17211b;
+  --teks-redup: #5b6a60;
+  --garis: #dce4dd;
+
+  /* Ukuran ringkas */
+  --jari: 12px;
+  --tinggi-sentuh: 44px;
+  --lebar-sidebar: 232px;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  background: var(--latar);
+  color: var(--teks);
+  font-family:
+    system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial,
+    sans-serif;
+  font-size: 15px;
+  line-height: 1.45;
+  -webkit-font-smoothing: antialiased;
+}
+
+a {
+  color: var(--hijau-kop);
+}
+
+/* ---------- Kerangka ---------- */
+
+.kerangka {
+  min-height: 100dvh;
+}
+
+.sidebar {
+  display: none;
+}
+
+.kolom-utama {
+  display: flex;
+  flex-direction: column;
+  min-height: 100dvh;
+}
+
+.kepala {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 16px;
+  background: var(--hijau-kop);
+  color: #fff;
+}
+
+.kepala-nama {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.kepala-sub {
+  margin: 0;
+  font-size: 12px;
+  opacity: 0.85;
+}
+
+.konten {
+  flex: 1;
+  width: 100%;
+  max-width: 960px;
+  margin: 0 auto;
+  padding: 16px 16px 88px; /* ruang untuk navigasi bawah di HP */
+}
+
+.nav-bawah {
+  position: fixed;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  z-index: 10;
+  display: flex;
+  justify-content: space-around;
+  background: var(--permukaan);
+  border-top: 1px solid var(--garis);
+}
+
+.nav-bawah .nav-tautan {
+  flex: 1;
+  flex-direction: column;
+  gap: 2px;
+  min-height: 56px;
+  padding: 6px 2px;
+  font-size: 11px;
+}
+
+.nav-tautan {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: var(--tinggi-sentuh);
+  padding: 8px 10px;
+  color: var(--teks);
+  text-decoration: none;
+  border-radius: 8px;
+}
+
+.nav-ikon {
+  font-size: 16px;
+  line-height: 1;
+}
+
+/* Tablet & PC: sidebar menggantikan navigasi bawah */
+@media (min-width: 768px) {
+  .kerangka {
+    display: flex;
+  }
+
+  .sidebar {
+    position: sticky;
+    top: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    width: var(--lebar-sidebar);
+    height: 100dvh;
+    padding: 20px 14px;
+    background: var(--hijau-gelap);
+    color: #fff;
+  }
+
+  .merek-nama {
+    margin: 0;
+    font-size: 17px;
+    font-weight: 700;
+  }
+
+  .merek-sub {
+    margin: 4px 0 0;
+    font-size: 12px;
+    opacity: 0.85;
+  }
+
+  .nav-samping {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .sidebar .nav-tautan {
+    justify-content: flex-start;
+    color: #fff;
+  }
+
+  .sidebar .nav-tautan:hover {
+    background: rgba(255, 255, 255, 0.12);
+  }
+
+  .nav-masuk {
+    margin-top: auto;
+  }
+
+  .kolom-utama {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .kepala {
+    display: none;
+  }
+
+  .konten {
+    padding: 24px 24px 40px;
+  }
+
+  .nav-bawah {
+    display: none;
+  }
+}
+
+/* ---------- Komponen ---------- */
+
+.penanda-tahap {
+  display: inline-block;
+  margin: 0 0 12px;
+  padding: 4px 10px;
+  background: var(--emas);
+  color: #231a00;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  border-radius: 999px;
+}
+
+.kartu {
+  margin-bottom: 12px;
+  padding: 14px 16px;
+  background: var(--permukaan);
+  border: 1px solid var(--garis);
+  border-radius: var(--jari);
+}
+
+.kartu h2 {
+  margin: 0 0 6px;
+  font-size: 16px;
+}
+
+.kartu p {
+  margin: 0 0 8px;
+  color: var(--teks-redup);
+}
+
+h1.judul-halaman {
+  margin: 0 0 4px;
+  font-size: 20px;
+}
+
+.subjudul {
+  margin: 0 0 14px;
+  color: var(--teks-redup);
+  font-size: 14px;
+}
+
+.kisi-peran {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 12px;
+}
+
+@media (min-width: 768px) {
+  .kisi-peran {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+.kartu-peran {
+  border-top: 4px solid var(--hijau-kop);
+}
+
+.kartu-peran .label-peran {
+  margin: 0 0 6px;
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--hijau-gelap);
+}
+
+.tombol {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: var(--tinggi-sentuh);
+  padding: 10px 18px;
+  background: var(--hijau-kop);
+  color: #fff;
+  font-size: 15px;
+  font-weight: 600;
+  text-decoration: none;
+  border: none;
+  border-radius: 10px;
+  cursor: pointer;
+}
+
+.tombol-kecil {
+  min-height: 36px;
+  padding: 6px 14px;
+  background: #fff;
+  color: var(--hijau-kop);
+  font-size: 14px;
+}
+
+.formulir {
+  display: grid;
+  gap: 12px;
+  max-width: 420px;
+}
+
+.formulir label {
+  display: grid;
+  gap: 6px;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.formulir input {
+  min-height: var(--tinggi-sentuh);
+  padding: 10px 12px;
+  font-size: 15px;
+  border: 1px solid var(--garis);
+  border-radius: 10px;
+}
+
+.catatan-kaki {
+  font-size: 13px;
+  color: var(--teks-redup);
+}
