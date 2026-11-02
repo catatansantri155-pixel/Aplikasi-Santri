@@ -72,8 +72,9 @@ export interface ProfilPelapor {
 
 /**
  * Profil CONTOH (fiktif) selama env Supabase belum terisi: seorang
- * musyrif contoh. Ini BUKAN login asli — setelah Supabase Auth aktif,
- * nama & peran dibaca dari tabel profiles berdasarkan auth.uid().
+ * musyrif contoh. Ini BUKAN login asli — pada mode Supabase (login
+ * Supabase Auth sudah tersambung), nama & peran dibaca dari tabel
+ * profiles berdasarkan auth.uid().
  */
 export const PROFIL_PELAPOR_CONTOH: ProfilPelapor = {
   id: "profil-contoh-musyrif",

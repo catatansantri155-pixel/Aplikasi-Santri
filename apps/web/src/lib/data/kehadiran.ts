@@ -109,10 +109,10 @@ export interface ProfilSaya {
 /**
  * Profil pengguna saat ini.
  * MODE CONTOH: mengembalikan admin contoh ("Admin Contoh") agar bagian
- * revisi khusus admin di halaman kehadiran bisa dirender & diuji. Ini
- * BUKAN login asli — login Supabase Auth dikerjakan tahap berikutnya,
- * dan di database peran asli dibaca dari tabel profiles berdasarkan
- * auth.uid(), dengan RLS yang menolak revisi dari non-admin.
+ * revisi khusus admin di halaman kehadiran bisa dirender & diuji.
+ * MODE SUPABASE: login asli Supabase Auth sudah tersambung — peran
+ * dibaca dari tabel profiles berdasarkan auth.uid(), dan RLS di
+ * database menolak revisi dari non-admin.
  */
 export async function ambilProfilSaya(): Promise<HasilSantri<ProfilSaya>> {
   if (!supabaseTerhubung()) {

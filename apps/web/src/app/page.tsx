@@ -1,19 +1,28 @@
 "use client";
 
 /**
- * Beranda — scaffold peran (Jalur B) + Tampilan Wali contoh (Jalur F).
- * Bagian ringkasan peran di bawah TIDAK diubah dari scaffold; yang
- * ditambah Jalur F hanya bagian "Tampilan Wali (contoh)" di akhir:
- * pandangan SATU wali atas SATU anaknya, hanya-lihat. Pada aplikasi
- * asli, pembatasnya adalah RLS database (wali hanya lolos membaca
- * santri yang tertaut kepadanya di tabel wali_santri) — bukan sekadar
- * tampilan yang disembunyikan.
+ * Beranda — dua mode:
+ *
+ * MODE CONTOH (env Supabase kosong): tampilan scaffold peran (Jalur B)
+ * + "Tampilan Wali (contoh)" (Jalur F): pandangan SATU wali atas SATU
+ * anaknya, hanya-lihat, dari data contoh. Pembatas aslinya adalah RLS
+ * database (wali hanya lolos membaca santri yang tertaut kepadanya di
+ * tabel wali_santri) — bukan sekadar tampilan yang disembunyikan.
+ *
+ * MODE SUPABASE (login asli tersambung): sapaan sesuai profil pengguna
+ * yang login (nama + peran dari tabel profiles) dan tautan modul,
+ * tanpa penanda contoh dan tanpa mengarang data apa pun.
  */
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import PenandaTahap from "@/components/PenandaTahap";
 import { LABEL_PERAN, RINGKASAN_PERAN, SEMUA_PERAN } from "@/lib/peran";
-import { ambilDaftarSantri, type Santri } from "@/lib/data/santri";
+import {
+  ambilDaftarSantri,
+  supabaseTerhubung,
+  type Santri,
+} from "@/lib/data/santri";
+import { ambilProfilLogin, type ProfilLogin } from "@/lib/sesi";
 import {
   ambilRiwayatKehadiranSantri,
   LABEL_STATUS,
@@ -54,15 +63,68 @@ interface RingkasanKehadiranWali {
   persenHadir: number;
 }
 
+/** Tautan modul untuk beranda mode Supabase. */
+const TAUTAN_MODUL = [
+  { href: "/santri", label: "Santri", keterangan: "Daftar santri per kelas." },
+  {
+    href: "/kehadiran",
+    label: "Kehadiran",
+    keterangan: "Isi kehadiran sesi hifzh & diniyyah, revisi khusus admin.",
+  },
+  {
+    href: "/hifzh",
+    label: "Hifzh",
+    keterangan: "Setoran Buku Hafalan dan tes semester per juz.",
+  },
+  {
+    href: "/diniyyah",
+    label: "Diniyyah",
+    keterangan: "Nilai harian dan nilai ujian semester.",
+  },
+  {
+    href: "/catatan",
+    label: "Catatan",
+    keterangan: "Catatan keseharian santri oleh pengajar & musyrif.",
+  },
+  {
+    href: "/rekap",
+    label: "Rekap",
+    keterangan: "Rekap kehadiran pekanan & semesteran serta grafik hifzh.",
+  },
+] as const;
+
 export default function HalamanBeranda() {
+  const modeContoh = !supabaseTerhubung();
   const [anakWali, setAnakWali] = useState<Santri | null>(null);
   const [ringkasanWali, setRingkasanWali] =
     useState<RingkasanKehadiranWali | null>(null);
   const [setoranTerakhirWali, setSetoranTerakhirWali] =
     useState<SetoranHifzh | null>(null);
   const [memuatWali, setMemuatWali] = useState(true);
+  const [profilLogin, setProfilLogin] = useState<ProfilLogin | null>(null);
+  const [memuatProfil, setMemuatProfil] = useState(!modeContoh);
+
+  // MODE SUPABASE: muat profil pengguna yang login untuk sapaan beranda.
+  useEffect(() => {
+    if (modeContoh) return;
+    let aktif = true;
+    (async () => {
+      const profil = await ambilProfilLogin();
+      if (!aktif) return;
+      setProfilLogin(profil);
+      setMemuatProfil(false);
+    })();
+    return () => {
+      aktif = false;
+    };
+  }, [modeContoh]);
 
   useEffect(() => {
+    // Tampilan wali contoh hanya berjalan pada mode contoh.
+    if (!modeContoh) {
+      setMemuatWali(false);
+      return;
+    }
     let aktif = true;
     (async () => {
       try {
@@ -106,7 +168,48 @@ export default function HalamanBeranda() {
     return () => {
       aktif = false;
     };
-  }, []);
+  }, [modeContoh]);
+
+  // ===== Beranda MODE SUPABASE: sapaan sesuai profil login =====
+  if (!modeContoh) {
+    return (
+      <>
+        <h1 className="judul-halaman">
+          Selamat datang{profilLogin ? `, ${profilLogin.nama}` : ""}
+        </h1>
+        <p className="subjudul">
+          {memuatProfil ? (
+            "Memuat profil pengguna…"
+          ) : profilLogin ? (
+            <>
+              Anda masuk sebagai{" "}
+              <strong>{LABEL_PERAN[profilLogin.peran]}</strong>. Pilih modul
+              di bawah untuk mulai bekerja.
+            </>
+          ) : (
+            "Profil pengguna belum ditemukan di tabel profiles. Hubungi admin agar akun Anda didaftarkan profil dan perannya."
+          )}
+        </p>
+
+        {profilLogin && (
+          <section className="kartu kartu-peran">
+            <p className="label-peran">{LABEL_PERAN[profilLogin.peran]}</p>
+            <p>{RINGKASAN_PERAN[profilLogin.peran]}</p>
+          </section>
+        )}
+
+        <div className="kisi-peran">
+          {TAUTAN_MODUL.map((modul) => (
+            <section key={modul.href} className="kartu kartu-peran">
+              <p className="label-peran">{modul.label}</p>
+              <p>{modul.keterangan}</p>
+              <Link href={modul.href}>Buka modul →</Link>
+            </section>
+          ))}
+        </div>
+      </>
+    );
+  }
 
   return (
     <>

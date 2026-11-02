@@ -23,14 +23,16 @@ import {
   type SetoranHifzh,
   type SumberData,
 } from "@/lib/data/hifzh";
+import { ambilProfilLogin } from "@/lib/sesi";
 import FormSetoran from "./FormSetoran";
 import BagianUjian from "./BagianUjian";
 import { gayaLencanaNilai, gayaPetunjuk } from "./gaya";
 
 /**
- * Akun login CONTOH untuk paraf terkunci, selama login Supabase Auth
- * belum disambungkan (Tahap 3). Setelah login asli aktif, nama & peran
- * ini diganti dari sesi pengguna — paraf tetap terkunci pada akun masuk.
+ * Akun paraf terkunci pada MODE CONTOH (env Supabase kosong). Pada mode
+ * Supabase, nama & peran diganti dari profil pengguna yang login
+ * (lib/sesi.ts) — paraf tetap terkunci pada akun yang masuk, dan lapisan
+ * data menulis penyimak_id dari sesi (auth.uid()), bukan dari tampilan.
  */
 const PENGGUNA_MASUK_CONTOH = {
   nama: NAMA_PENYIMAK_CONTOH,
@@ -63,19 +65,29 @@ export default function HalamanHifzh() {
   const [setoran, setSetoran] = useState<SetoranHifzh[]>([]);
   const [sumber, setSumber] = useState<SumberData>("contoh");
   const [memuat, setMemuat] = useState(true);
+  const [penggunaMasuk, setPenggunaMasuk] = useState(PENGGUNA_MASUK_CONTOH);
 
   useEffect(() => {
     let batal = false;
     Promise.all([ambilDaftarSantri(), ambilSetoranTerakhir(10)])
-      .then(([hasilSantri, hasilSetoran]) => {
+      .then(async ([hasilSantri, hasilSetoran]) => {
         if (batal) return;
         setDaftarSantri(hasilSantri.data);
         setSetoran(hasilSetoran.data);
-        setSumber(
-          hasilSantri.sumber === "supabase" && hasilSetoran.sumber === "supabase"
-            ? "supabase"
-            : "contoh",
-        );
+        const dariSupabase =
+          hasilSantri.sumber === "supabase" &&
+          hasilSetoran.sumber === "supabase";
+        setSumber(dariSupabase ? "supabase" : "contoh");
+        if (dariSupabase) {
+          // Paraf penyimak = profil pengguna yang login (mode Supabase).
+          const profil = await ambilProfilLogin();
+          if (!batal && profil) {
+            setPenggunaMasuk({
+              nama: profil.nama,
+              labelPeran: LABEL_PERAN[profil.peran],
+            });
+          }
+        }
       })
       .finally(() => {
         if (!batal) setMemuat(false);
@@ -90,8 +102,8 @@ export default function HalamanHifzh() {
       <PenandaTahap
         teks={
           sumber === "contoh"
-            ? "DATA CONTOH · TAHAP 2 — env Supabase belum terisi"
-            : "TAHAP 2 — data dari Supabase"
+            ? "DATA CONTOH — env Supabase belum terisi"
+            : "DATA DARI SUPABASE · LOGIN ASLI"
         }
       />
       <h1 className="judul-halaman">Hifzh — Buku Hafalan</h1>
@@ -100,7 +112,7 @@ export default function HalamanHifzh() {
         Hijriah, jenis BC/BR/TS/LM, halaman, surat dan ayat, kesalahan
         RG/KK/KB, nilai L/U otomatis, paraf penyimak, dan tugas berikutnya —
         serta tes semester per juz. Masuk sebagai{" "}
-        {PENGGUNA_MASUK_CONTOH.nama} ({PENGGUNA_MASUK_CONTOH.labelPeran}).
+        {penggunaMasuk.nama} ({penggunaMasuk.labelPeran}).
       </p>
 
       <section className="kartu">
@@ -114,8 +126,8 @@ export default function HalamanHifzh() {
         ) : (
           <FormSetoran
             daftarSantri={daftarSantri}
-            namaPenyimak={PENGGUNA_MASUK_CONTOH.nama}
-            labelPeranPenyimak={PENGGUNA_MASUK_CONTOH.labelPeran}
+            namaPenyimak={penggunaMasuk.nama}
+            labelPeranPenyimak={penggunaMasuk.labelPeran}
             sumber={sumber}
             onTerkirim={(baru) =>
               setSetoran((lama) => [baru, ...lama].slice(0, 15))

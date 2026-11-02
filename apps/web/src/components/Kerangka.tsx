@@ -1,5 +1,6 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
+import InfoPengguna from "@/components/InfoPengguna";
 
 export const TAUTAN_NAV = [
   { href: "/", label: "Beranda", ikon: "⌂" },
@@ -41,12 +42,7 @@ export default function Kerangka({ children }: { children: ReactNode }) {
         <nav className="nav-samping" aria-label="Navigasi utama">
           <DaftarTautan />
         </nav>
-        <Link href="/login" className="nav-tautan nav-masuk">
-          <span className="nav-ikon" aria-hidden="true">
-            ➜
-          </span>
-          <span>Masuk</span>
-        </Link>
+        <InfoPengguna varian="samping" />
       </aside>
 
       <div className="kolom-utama">
@@ -57,9 +53,7 @@ export default function Kerangka({ children }: { children: ReactNode }) {
               Ponpes Minhajus Sunnah · Marhalah Wustha
             </p>
           </div>
-          <Link href="/login" className="tombol tombol-kecil">
-            Masuk
-          </Link>
+          <InfoPengguna varian="kepala" />
         </header>
 
         <main className="konten">{children}</main>

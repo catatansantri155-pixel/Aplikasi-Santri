@@ -7,13 +7,16 @@ aksen emas `#F0B000`, aksen biru buku seperlunya.
 
 ## Status
 
-**Tahap 3 (akun & deploy), persiapan Cloudflare selesai.** Modul inti Tahap 2
-sudah jadi; proyek Supabase asli sudah dibuat dan migrasinya terverifikasi;
-adapter deploy Cloudflare (OpenNext) sudah terpasang dan build-nya teruji lokal.
-Yang tersisa: deploy pertama ke akun Cloudflare dan pengisian env di dashboard
-— lihat `../../docs/TAHAPAN.md`. Lapisan data membaca Supabase asli bila env
-terisi; bila env kosong/gagal dijangkau, halaman jatuh ke data CONTOH yang
-tertanda jelas (bukan data asli).
+**Tahap 3 (akun & deploy) selesai; berikutnya Tahap 4 (uji peran).** Modul
+inti Tahap 2 sudah jadi; proyek Supabase asli dibuat dan migrasinya
+terverifikasi; aplikasi live di Cloudflare Workers dengan env Supabase asli.
+Login ASLI sudah tersambung: `/login` memakai Supabase Auth
+(`signInWithPassword`), kerangka menampilkan nama + peran pengguna yang
+login (dari tabel `profiles`) dan tombol Keluar, halaman selain `/login`
+diarahkan ke `/login` bila tidak ada sesi, dan identitas pengisi/paraf/
+pelapor diambil dari profil login. Lapisan data membaca Supabase asli bila
+env terisi; bila env kosong, aplikasi berjalan dalam mode CONTOH yang
+tertanda jelas (bukan data asli) dengan perilaku contoh seperti semula.
 
 ## Deploy ke Cloudflare (OpenNext -> Workers)
 

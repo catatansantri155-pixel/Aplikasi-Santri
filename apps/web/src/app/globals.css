@@ -222,6 +222,55 @@ a {
   border-radius: 999px;
 }
 
+.pesan-galat {
+  margin: 0;
+  padding: 10px 12px;
+  background: #fdecea;
+  color: #8c1d18;
+  border: 1px solid #f0b8b3;
+  border-radius: 10px;
+  font-size: 14px;
+}
+
+/* Info pengguna login pada kerangka (komponen InfoPengguna) */
+.info-pengguna-kepala {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.info-pengguna-kepala .info-pengguna-nama {
+  font-size: 14px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.info-pengguna-samping .info-pengguna-nama {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 700;
+}
+
+.info-pengguna-samping .info-pengguna-peran {
+  margin: 2px 0 8px;
+  font-size: 12px;
+  opacity: 0.85;
+}
+
+.nav-tombol {
+  width: 100%;
+  background: none;
+  border: none;
+  cursor: pointer;
+  font: inherit;
+  text-align: left;
+}
+
+.nav-tombol:disabled {
+  opacity: 0.6;
+  cursor: wait;
+}
+
 .kartu {
   margin-bottom: 12px;
   padding: 14px 16px;
