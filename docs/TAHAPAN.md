@@ -24,7 +24,13 @@ Patokan desain: prototipe `prototipe-aplikasi-monitoring-santri` (sudah disetuju
 6. Dashboard orang tua (hanya anaknya, hanya-lihat).
 
 ## Tahap 3 — Akun & Deploy (butuh user standby untuk verifikasi)
-Membuat proyek Supabase baru, repo GitHub baru, menyambung Cloudflare Pages, menjalankan migrasi ke Supabase, seed akun ADMIN pertama + data kelas. WAJIB kabari user sebelum langkah apa pun yang memicu kode/verifikasi di perangkat user.
+Membuat proyek Supabase baru, repo GitHub baru, menyambung Cloudflare, menjalankan migrasi ke Supabase, seed akun ADMIN pertama + data kelas. WAJIB kabari user sebelum langkah apa pun yang memicu kode/verifikasi di perangkat user.
+
+Status per 2 Nov 2026:
+- **Repo GitHub: SELESAI** — repo privat `Aplikasi-Santri` dibuat dan seluruh kode Tahap 1–2 ter-push serta terverifikasi.
+- **Proyek Supabase: SELESAI** — proyek baru terpisah `aplikasi-santri` (Singapura, Free) Healthy; migrasi 0001–0003 sukses via SQL Editor dan terverifikasi langsung dari database (15 tabel + 4 view, RLS aktif di semua tabel, 3 kelas terisi). Seed contoh SENGAJA tidak dijalankan di produksi.
+- **Adapter Cloudflare: SIAP** — aplikasi disiapkan dengan adapter **OpenNext** (`@opennextjs/cloudflare`) dan build lokal + uji asap server pratinjau (Wrangler) LULUS. Satu penyesuaian dari rencana awal: targetnya **Cloudflare Workers**, bukan Pages klasik, karena adapter Pages (`@cloudflare/next-on-pages`) sudah deprecated dan tidak mendukung Next 16; OpenNext adalah jalur yang kini direkomendasikan Cloudflare dan pola yang sama seperti dicatat di dokumen deploy Pustaka Ilmu. Rincian perintah & env ada di `apps/web/README.md`.
+- **Masih MENUNGGU (penyambungan akun):** deploy pertama ke akun Cloudflare (login Wrangler / sambungkan repo di dashboard), mengisi env `NEXT_PUBLIC_SUPABASE_URL` + `NEXT_PUBLIC_SUPABASE_ANON_KEY` di dashboard Cloudflare, membuat akun ADMIN pertama, lalu verifikasi live (cek REST dari deployment, karena egress VM lokal ke supabase.co tidak langsung).
 
 ## Tahap 4 — Uji & Serah Terima Bertahap
 Uji per peran termasuk uji negatif (akun orang tua A tidak bisa membuka data anak orang tua B lewat URL langsung), uji rekap & grafik terhadap hitungan manual Buku Hafalan, lalu serah terima per modul ke user untuk dicek sebelum modul berikutnya dinyatakan selesai.

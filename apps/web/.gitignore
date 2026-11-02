@@ -5,6 +5,15 @@ node_modules/
 .next/
 out/
 
+# hasil build OpenNext / status lokal Wrangler (Cloudflare)
+.open-next/
+.wrangler/
+cloudflare-env.d.ts
+
+# variabel lokal Wrangler (setara .env.local — jangan pernah di-commit)
+.dev.vars
+.dev.vars.*
+
 # berkas lingkungan (berisi nilai asli — jangan pernah di-commit)
 .env
 .env.local

@@ -1,0 +1,26 @@
+{
+	// Konfigurasi Cloudflare Worker untuk aplikasi web Aplikasi Santri.
+	// Entry point dan aset statis dihasilkan oleh `opennextjs-cloudflare build`
+	// ke folder .open-next/ (tidak masuk Git).
+	"$schema": "node_modules/wrangler/config-schema.json",
+	"main": ".open-next/worker.js",
+	"name": "aplikasi-santri",
+	"compatibility_date": "2025-08-16",
+	"compatibility_flags": ["nodejs_compat", "global_fetch_strictly_public"],
+	"assets": {
+		"directory": ".open-next/assets",
+		"binding": "ASSETS",
+	},
+	"services": [
+		{
+			// Binding referensi-diri (diwajibkan pola OpenNext untuk fitur
+			// revalidasi); nama service harus sama dengan nama worker.
+			"binding": "WORKER_SELF_REFERENCE",
+			"service": "aplikasi-santri",
+		},
+	],
+	// CATATAN env produksi: variabel NEXT_PUBLIC_SUPABASE_URL dan
+	// NEXT_PUBLIC_SUPABASE_ANON_KEY diisi di dashboard Cloudflare
+	// (Workers & Pages -> aplikasi-santri -> Settings -> Variables and Secrets),
+	// BUKAN di berkas ini dan bukan di Git.
+}
