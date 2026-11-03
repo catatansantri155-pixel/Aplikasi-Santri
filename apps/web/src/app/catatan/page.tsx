@@ -55,7 +55,7 @@ const GAYA_TERKUNCI: CSSProperties = {
   minHeight: 48,
   padding: "11px 14px",
   fontSize: 15,
-  border: "1.5px dashed #bfd4c6",
+  border: "1.5px dashed #bcd3ea",
   borderRadius: 12,
   background: "var(--hijau-muda)",
   color: "var(--hijau-gelap)",

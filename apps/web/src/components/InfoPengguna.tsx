@@ -8,8 +8,12 @@
  * berbasis data contoh tidak berubah.
  *
  * MODE SUPABASE:
- * - Menampilkan nama + label peran pengguna yang login (dari tabel
- *   profiles lewat lib/sesi.ts) dan tombol Keluar (signOut → /login).
+ * - Menampilkan IDENTITAS pengguna yang login (avatar inisial + nama
+ *   + label peran, dari tabel profiles lewat lib/sesi.ts) sebagai
+ *   blok paling atas kepala & sidebar, menggantikan teks merek
+ *   aplikasi (revisi biru 3 Nov 2026). Blok ini menaut ke /akun;
+ *   tombol Keluar HANYA ada di halaman Akun — tidak ada tombol
+ *   keluar di kerangka.
  * - Penjaga halaman sisi klien: halaman selain /login yang dibuka
  *   tanpa sesi aktif diarahkan ke /login; sebaliknya, /login yang
  *   dibuka dengan sesi aktif diarahkan ke beranda. Data sendiri sudah
@@ -18,7 +22,6 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { buatKlienBrowser } from "@/lib/supabase/client";
 import { supabaseTerhubung } from "@/lib/data/santri";
 import { LABEL_PERAN } from "@/lib/peran";
 import { ambilProfilLogin, type ProfilLogin } from "@/lib/sesi";
@@ -34,7 +37,7 @@ function TautanMasuk({ varian }: { varian: "samping" | "kepala" }) {
     );
   }
   return (
-    <Link href="/login" className="nav-tautan nav-masuk">
+    <Link href="/login" className="nav-tautan">
       <span className="nav-ikon" aria-hidden="true">
         <Ikon nama="masuk" ukuran={20} />
       </span>
@@ -53,7 +56,6 @@ export default function InfoPengguna({
   const router = useRouter();
   const [profil, setProfil] = useState<ProfilLogin | null>(null);
   const [cekSelesai, setCekSelesai] = useState(false);
-  const [prosesKeluar, setProsesKeluar] = useState(false);
 
   useEffect(() => {
     if (!modeSupabase) return;
@@ -76,19 +78,6 @@ export default function InfoPengguna({
     };
   }, [modeSupabase, pathname, router]);
 
-  async function tanganiKeluar() {
-    setProsesKeluar(true);
-    try {
-      await buatKlienBrowser().auth.signOut();
-    } catch {
-      // Sesi di sisi tampilan tetap dianggap selesai; pengguna diarahkan
-      // ke /login dan penjaga akan memeriksa ulang sesi di sana.
-    }
-    setProfil(null);
-    router.replace("/login");
-    router.refresh();
-  }
-
   // Mode contoh: perilaku lama persis (tautan Masuk).
   if (!modeSupabase) return <TautanMasuk varian={varian} />;
   // Mode Supabase: tunggu hasil cek sesi agar tidak berkedip.
@@ -96,8 +85,14 @@ export default function InfoPengguna({
   if (!profil) return <TautanMasuk varian={varian} />;
 
   if (varian === "kepala") {
+    // Kepala HP: identitas pengguna (avatar + nama tebal + peran
+    // kecil) sebagai tautan ke /akun — tanpa tombol keluar.
     return (
-      <div className="info-pengguna-kepala">
+      <Link
+        href="/akun"
+        className="info-pengguna-kepala"
+        aria-current={pathname === "/akun" ? "page" : undefined}
+      >
         <AvatarInisial nama={profil.nama} ukuran="kecil" />
         <span className="info-pengguna-teks">
           <span className="info-pengguna-nama">{profil.nama}</span>
@@ -105,27 +100,18 @@ export default function InfoPengguna({
             {LABEL_PERAN[profil.peran]}
           </span>
         </span>
-        <button
-          type="button"
-          className="tombol-ikon"
-          onClick={tanganiKeluar}
-          disabled={prosesKeluar}
-          aria-label="Keluar"
-          title="Keluar"
-        >
-          <Ikon nama="keluar" ukuran={19} />
-        </button>
-      </div>
+      </Link>
     );
   }
 
-  // Sidebar (desktop): ringkasan profil menjadi tautan ke halaman
-  // Akun — profil lengkap, penjelasan hak akses, dan tombol Keluar
-  // kini terpusat di /akun agar kerangka ringkas.
+  // Sidebar (desktop): blok identitas di PALING ATAS sidebar
+  // (menggantikan blok merek), tetap tautan ke halaman Akun —
+  // profil lengkap, penjelasan hak akses, dan tombol Keluar
+  // terpusat di /akun agar kerangka ringkas.
   return (
     <Link
       href="/akun"
-      className="info-pengguna-samping nav-masuk"
+      className="info-pengguna-samping"
       aria-current={pathname === "/akun" ? "page" : undefined}
     >
       <span className="info-pengguna-baris">

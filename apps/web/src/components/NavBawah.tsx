@@ -4,17 +4,18 @@
  * Navigasi bawah HP — TEPAT 5 slot (arah UI user 3 Nov 2026,
  * referensi UNPIX Mobile):
  *
- *   [Beranda] [Santri] [TENGAH MENONJOL] [Menu] [Akun]
+ *   [Beranda] [Santri] [TENGAH MENONJOL] [Grafik] [Akun]
  *
- * Slot tengah adalah lingkaran besar gradien hijau terangkat, berisi
+ * Slot tengah adalah lingkaran besar gradien biru terangkat, berisi
  * AKSI INTI peran yang login:
  * - admin, pengajar hifzh, pengajar diniyyah → Kehadiran
  * - musyrif → Catatan
  * - wali → detail anak pertamanya (daftar santri untuk wali memang
  *   hanya berisi anaknya sendiri dari RLS; belum termuat/gagal →
  *   tautan /santri)
- * Menu membuka /menu (kisi Fast Menu semua modul peran itu); Akun
- * membuka /akun (profil + keluar).
+ * Grafik membuka /grafik (enam grafik dari data yang ada; slot ini
+ * menggantikan Menu pada revisi biru 3 Nov 2026 malam — halaman
+ * /menu sendiri tetap ada); Akun membuka /akun (profil + keluar).
  *
  * Penyaringan peran mengikuti pola NavTautan: sesi DIPERIKSA ULANG
  * tiap perpindahan halaman & peristiwa auth (kerangka hidup di layout
@@ -211,10 +212,10 @@ export default function NavBawah() {
       {profilDiketahui ? (
         <>
           <SlotTautan
-            href="/menu"
-            label="Menu"
-            ikon="menu"
-            aktif={pathname === "/menu"}
+            href="/grafik"
+            label="Grafik"
+            ikon="grafik"
+            aktif={pathname === "/grafik"}
           />
           <SlotTautan
             href="/akun"

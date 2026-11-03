@@ -74,9 +74,11 @@ export default function HalamanLogin() {
 
   return (
     <div className="login-bungkus">
-      {/* Hero (arah UI UNPIX): pita gradien hijau kop berisi logo,
-          judul, sapaan, dan ilustrasi santri mengaji; formulir masuk
-          berada di lembar putih melengkung yang menimpa hero. */}
+      {/* Hero (arah UI UNPIX, revisi biru): pita gradien biru
+          BERSIH tanpa ornamen berisi logo, judul aplikasi, sapaan,
+          dan ilustrasi santri mengaji; formulir masuk berada di
+          lembar putih melengkung yang menimpa hero. Judul aplikasi
+          tetap tampil di sini karena pengguna belum masuk. */}
       <div className="login-hero">
         <span className="logo-login logo-login--hero">
           <Ikon nama="hifzh" ukuran={38} />

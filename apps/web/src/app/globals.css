@@ -2,24 +2,32 @@
    Aplikasi Santri — SISTEM DESAIN (Panduan Desain 3 Nov 2026,
    diadaptasi dari referensi prototipe Finora ke identitas pondok)
 
-   Token: hijau kop #006B4F / gelap #0B4D36, emas #F0B000, biru
-   #1D6FB8; huruf Plus Jakarta Sans; kartu putih radius 20–24px
-   bayangan halus di atas latar gradien lembut; chip & tab pill;
-   tombol radius 14px target sentuh ≥44px; ikon SVG garis dalam
-   lingkaran tint 40px; lencana status & hasil berwarna.
+   Token warna (REVISI 3 Nov 2026 malam, referensi UNPIX Mobile):
+   palet utama kini BIRU — primer #1565C0, gelap #0D47A1, terang
+   #42A5F5 — dengan latar gradasi biru sangat muda ke putih; emas
+   #F0B000 dipertahankan sebagai aksen kecil. Nama variabel lama
+   (--hijau-kop, --hijau-gelap, --hijau-muda, --biru-buku,
+   --tinggi-sentuh, dst.) SENGAJA dipertahankan (nilainya yang
+   berubah) karena gaya sebaris di banyak halaman merujuknya:
+   --hijau-kop = biru primer, --hijau-gelap = biru gelap,
+   --hijau-muda = tint biru muda, --hijau-logo = biru terang.
+   Warna STATUS (hadir/sakit/izin/alpa) & hasil hifzh adalah warna
+   semantik dan tidak ikut berubah. Huruf Plus Jakarta Sans; kartu
+   putih radius 20–24px bayangan halus; chip & tab pill; tombol
+   radius 14px target sentuh ≥44px; ikon SVG garis dalam lingkaran
+   tint 40px; lencana status & hasil berwarna.
 
    Kelas bersama di berkas ini dipakai SEMUA halaman — perubahan
-   token cukup dilakukan di sini. Variabel lama (--hijau-muda,
-   --biru-buku, --tinggi-sentuh, dst.) dipertahankan karena gaya
-   sebaris di beberapa halaman masih merujuknya.
+   token cukup dilakukan di sini.
    ============================================================ */
 
 :root {
-  /* Warna kop surat pondok */
-  --hijau-kop: #006b4f;
-  --hijau-logo: #1e6b00;
-  --hijau-gelap: #0b4d36;
-  --hijau-muda: #e6f2ec;
+  /* Palet biru utama (nama variabel lama dipertahankan) */
+  --hijau-kop: #1565c0;
+  --hijau-logo: #42a5f5;
+  --hijau-gelap: #0d47a1;
+  --hijau-muda: #e3f0fa;
+  --biru-terang: #42a5f5;
   --emas: #f0b000;
   --biru-buku: #1d6fb8;
 
@@ -38,23 +46,23 @@
   --hasil-g: #d9534f;
 
   /* Netral */
-  --latar: #f2f7f3;
+  --latar: #eaf4fe;
   --permukaan: #ffffff;
-  --teks: #12211a;
-  /* Diperkuat dari #6b7a70 (3,99–4,52:1) agar kontras teks redup
-     ≥4,5:1 di latar aplikasi maupun kartu putih — Anti Slop.
-     #52625b memberi 5,69–6,45:1 (dihitung, lihat
-     docs/VERIFIKASI-UI-ANTISLOP.md). */
-  --teks-redup: #52625b;
-  --garis: #e3eae4;
+  --teks: #132433;
+  /* Teks redup menjaga kontras ≥4,5:1 di atas putih maupun latar
+     biru muda — Anti Slop. #52677a (abu-biru, selaras palet baru)
+     memberi ±5,8:1 di putih dan ±5,0:1 di #eaf4fe (dihitung, lihat
+     docs/VERIFIKASI-UI-BIRU.md). */
+  --teks-redup: #52677a;
+  --garis: #dde8f2;
 
   /* Bentuk & bayangan */
   --jari: 20px;
   --jari-besar: 24px;
   --jari-tombol: 14px;
   --jari-masukan: 12px;
-  --bayang: 0 6px 20px rgba(11, 77, 54, 0.08);
-  --bayang-halus: 0 2px 10px rgba(11, 77, 54, 0.06);
+  --bayang: 0 6px 20px rgba(13, 71, 161, 0.1);
+  --bayang-halus: 0 2px 10px rgba(13, 71, 161, 0.07);
 
   /* Ukuran */
   --tinggi-sentuh: 44px;
@@ -77,8 +85,9 @@ body {
 }
 
 body {
-  /* Latar gradien sangat lembut, tetap dari atas ke bawah halaman. */
-  background: linear-gradient(180deg, #f2f7f3 0%, #eaf3ec 100%) fixed;
+  /* Latar gradien biru sangat muda ke putih (arah UNPIX), tetap
+     dari atas ke bawah halaman. */
+  background: linear-gradient(180deg, #eaf4fe 0%, #ffffff 100%) fixed;
   color: var(--teks);
   font-family:
     "Plus Jakarta Sans", system-ui, -apple-system, "Segoe UI", Roboto,
@@ -92,9 +101,10 @@ a {
   color: var(--hijau-kop);
 }
 
-/* Fokus keyboard: garis hijau gelap (9,86:1 di putih) + halo emas
-   agar tetap terlihat di atas sidebar/banner hijau gelap — emas
-   sendirian hanya 1,92:1 di putih, terlalu lemah sebagai penanda. */
+/* Fokus keyboard: garis biru gelap (kontras tinggi di putih) +
+   halo emas agar tetap terlihat di atas sidebar/banner biru
+   gelap — emas sendirian hanya 1,92:1 di putih, terlalu lemah
+   sebagai penanda. */
 :focus-visible {
   outline: 2px solid var(--hijau-gelap);
   outline-offset: 2px;
@@ -150,39 +160,29 @@ a {
   min-height: 100dvh;
 }
 
-/* Kepala HP: pita warna gradien hijau kop (arah UI UNPIX) berisi
-   merek ringkas + info pengguna beravatar; sapaan personal lengkap
-   ada di pita beranda. */
+/* Kepala HP: pita gradien biru (arah UI UNPIX, revisi biru)
+   berisi IDENTITAS pengguna yang masuk (avatar + nama + peran,
+   menaut ke /akun) — tanpa teks merek aplikasi/pondok dan tanpa
+   ornamen, bersih seperti halaman referensi. Sapaan personal
+   lengkap ada di pita beranda. */
 .kepala {
   position: sticky;
   top: 0;
   z-index: 10;
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: flex-start;
   gap: 12px;
   padding: 10px 16px;
   background: linear-gradient(
     135deg,
     var(--hijau-gelap),
-    var(--hijau-kop)
+    var(--hijau-kop) 55%,
+    var(--biru-terang)
   );
   border-bottom: none;
-  box-shadow: 0 4px 14px rgba(11, 77, 54, 0.18);
+  box-shadow: 0 4px 14px rgba(13, 71, 161, 0.2);
   color: #fff;
-}
-
-.kepala-nama {
-  margin: 0;
-  font-size: 15px;
-  font-weight: 800;
-  color: #fff;
-}
-
-.kepala-sub {
-  margin: 0;
-  font-size: 11px;
-  color: rgba(255, 255, 255, 0.85);
 }
 
 .kepala .info-pengguna-nama {
@@ -191,12 +191,6 @@ a {
 
 .kepala .info-pengguna-peran {
   color: rgba(255, 255, 255, 0.85);
-}
-
-.kepala .tombol-ikon {
-  background: rgba(255, 255, 255, 0.14);
-  border-color: rgba(255, 255, 255, 0.35);
-  color: #fff;
 }
 
 .kepala .tombol-kecil {
@@ -213,8 +207,8 @@ a {
 }
 
 /* Navigasi bawah: TEPAT 5 slot (arah UI UNPIX) — Beranda, Santri,
-   slot tengah menonjol, Menu, Akun. Putih, bayangan ke atas, slot
-   aktif hijau dengan penanda emas di tepi atas. */
+   slot tengah menonjol, Grafik, Akun. Putih, bayangan ke atas,
+   slot aktif biru dengan penanda emas di tepi atas. */
 .nav-bawah {
   position: fixed;
   right: 0;
@@ -225,7 +219,7 @@ a {
   justify-content: space-around;
   background: var(--permukaan);
   border-top: 1px solid var(--garis);
-  box-shadow: 0 -4px 16px rgba(11, 77, 54, 0.06);
+  box-shadow: 0 -4px 16px rgba(13, 71, 161, 0.08);
   padding-bottom: env(safe-area-inset-bottom);
 }
 
@@ -269,7 +263,7 @@ a {
   pointer-events: none;
 }
 
-/* Slot tengah menonjol: lingkaran gradien hijau terangkat di atas
+/* Slot tengah menonjol: lingkaran gradien biru terangkat di atas
    bilah, berisi ikon aksi inti peran (Kehadiran/Catatan/Anak Saya). */
 .nav-slot--tengah {
   justify-content: flex-end;
@@ -287,11 +281,11 @@ a {
   border: 3px solid #fff;
   background: linear-gradient(
     135deg,
-    var(--hijau-kop),
-    var(--hijau-gelap)
+    var(--biru-terang),
+    var(--hijau-kop)
   );
   color: #fff;
-  box-shadow: 0 8px 18px rgba(11, 77, 54, 0.35);
+  box-shadow: 0 8px 18px rgba(21, 101, 192, 0.35);
 }
 
 .nav-slot--tengah-aktif {
@@ -302,7 +296,7 @@ a {
 .nav-slot--tengah-aktif .nav-tengah-lingkaran {
   box-shadow:
     0 0 0 3px var(--emas),
-    0 8px 18px rgba(11, 77, 54, 0.35);
+    0 8px 18px rgba(21, 101, 192, 0.35);
 }
 
 .nav-tautan {
@@ -337,41 +331,14 @@ a {
     width: var(--lebar-sidebar);
     height: 100dvh;
     padding: 22px 14px;
-    background: linear-gradient(180deg, var(--hijau-gelap), #073626);
+    background: linear-gradient(180deg, var(--hijau-gelap), #082a5e);
     color: #fff;
   }
 
-  .merek {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    padding: 0 6px;
-  }
-
-  .merek-logo {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    width: 40px;
-    height: 40px;
-    border-radius: 12px;
-    background: rgba(255, 255, 255, 0.14);
-    color: #fff;
-    flex-shrink: 0;
-  }
-
-  .merek-nama {
-    margin: 0;
-    font-size: 16px;
-    font-weight: 800;
-  }
-
-  .merek-sub {
-    margin: 2px 0 0;
-    font-size: 11px;
-    opacity: 0.85;
-    line-height: 1.35;
-  }
+  /* Blok paling atas sidebar kini IDENTITAS pengguna (avatar +
+     nama + peran, menaut ke /akun) — menggantikan blok merek
+     aplikasi/pondok (revisi biru). Gayanya memakai kelas
+     .info-pengguna-samping di bagian Info pengguna. */
 
   .nav-samping {
     display: flex;
@@ -397,10 +364,6 @@ a {
     color: #fff;
     font-weight: 700;
     box-shadow: inset 3px 0 0 var(--emas);
-  }
-
-  .nav-masuk {
-    margin-top: auto;
   }
 
   .kolom-utama {
@@ -450,7 +413,7 @@ a {
   margin: 0;
   padding: 10px 14px;
   background: #e2f4ea;
-  color: var(--hijau-gelap);
+  color: #0e6b3c;
   border: 1px solid #a9ddbe;
   border-radius: var(--jari-masukan);
   font-size: 14px;
@@ -464,10 +427,25 @@ a {
   gap: 10px;
 }
 
+/* Di kepala HP, blok identitas adalah tautan ke halaman Akun
+   (ketuk nama/avatar) — tombol Keluar hanya ada di /akun. */
+a.info-pengguna-kepala {
+  min-height: var(--tinggi-sentuh);
+  padding: 2px 8px 2px 2px;
+  margin-left: -2px;
+  border-radius: 12px;
+  color: #fff;
+  text-decoration: none;
+}
+
+a.info-pengguna-kepala:hover {
+  background: rgba(255, 255, 255, 0.12);
+}
+
 .info-pengguna-kepala .info-pengguna-teks {
   display: grid;
   line-height: 1.25;
-  text-align: right;
+  text-align: left;
 }
 
 .info-pengguna-kepala .info-pengguna-nama {
@@ -638,9 +616,10 @@ a.info-pengguna-samping .info-pengguna-baris {
   flex-shrink: 0;
 }
 
+/* Tint "hijau" kini biru muda (nama kelas dipertahankan). */
 .ikon-lingkaran--hijau {
-  background: #e2f1e8;
-  color: #0b6b4a;
+  background: #e3f0fa;
+  color: #1565c0;
 }
 
 .ikon-lingkaran--emas {
@@ -693,8 +672,9 @@ a.info-pengguna-samping .info-pengguna-baris {
   border-top: 4px solid var(--emas);
 }
 
-/* Banner gradien hijau kop dengan ornamen geometris Islami
-   (bintang segi delapan dari dua persegi) — TANPA foto manusia. */
+/* Banner gradien biru BERSIH tanpa ornamen (revisi biru: ornamen
+   geometris bintang segi delapan dihapus atas arahan user —
+   bagian atas halaman dibuat kosong seperti referensi UNPIX). */
 .banner {
   position: relative;
   overflow: hidden;
@@ -704,36 +684,11 @@ a.info-pengguna-samping .info-pengguna-baris {
   background: linear-gradient(
     135deg,
     var(--hijau-gelap) 0%,
-    var(--hijau-kop) 68%,
-    #0a7a5c 100%
+    var(--hijau-kop) 58%,
+    var(--biru-terang) 100%
   );
   color: #fff;
-  box-shadow: 0 10px 24px rgba(11, 77, 54, 0.22);
-}
-
-.banner::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='72' height='72' viewBox='0 0 72 72'%3E%3Cg fill='none' stroke='%23ffffff' stroke-opacity='0.12'%3E%3Crect x='24' y='24' width='24' height='24'/%3E%3Crect x='24' y='24' width='24' height='24' transform='rotate(45 36 36)'/%3E%3C/g%3E%3C/svg%3E");
-  pointer-events: none;
-}
-
-.banner::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  background: radial-gradient(
-    circle at 88% -10%,
-    rgba(240, 176, 0, 0.35),
-    transparent 55%
-  );
-  pointer-events: none;
-}
-
-.banner > * {
-  position: relative;
-  z-index: 1;
+  box-shadow: 0 10px 24px rgba(13, 71, 161, 0.22);
 }
 
 .banner--kecil {
@@ -1008,7 +963,7 @@ h1.judul-halaman {
   gap: 4px;
   padding: 4px;
   border-radius: 999px;
-  background: #e7efe9;
+  background: #e3f0fa;
 }
 
 .segmen button {
@@ -1028,7 +983,7 @@ h1.judul-halaman {
 .segmen button[data-aktif="true"] {
   background: linear-gradient(135deg, var(--hijau-kop), var(--hijau-gelap));
   color: #fff;
-  box-shadow: 0 3px 8px rgba(11, 77, 54, 0.25);
+  box-shadow: 0 3px 8px rgba(13, 71, 161, 0.25);
 }
 
 .tab-pil {
@@ -1063,7 +1018,7 @@ h1.judul-halaman {
   font-weight: 700;
   box-shadow:
     inset 0 -3px 0 var(--emas),
-    0 3px 8px rgba(11, 77, 54, 0.25);
+    0 3px 8px rgba(13, 71, 161, 0.25);
 }
 
 /* ---------- Lencana status & hasil ---------- */
@@ -1113,7 +1068,7 @@ h1.judul-halaman {
 
 .lencana--l {
   background: #e2f4ea;
-  color: var(--hijau-gelap);
+  color: #0e6b3c;
   border-color: var(--status-hadir);
 }
 
@@ -1162,7 +1117,7 @@ h1.judul-halaman {
 .lencana--netral {
   background: var(--hijau-muda);
   color: var(--hijau-gelap);
-  border-color: #c4ddd0;
+  border-color: #bcd6ee;
 }
 
 /* ---------- Tombol pilihan status kehadiran ---------- */
@@ -1216,7 +1171,7 @@ h1.judul-halaman {
   background: var(--st);
   border-color: var(--st);
   color: #fff;
-  box-shadow: 0 4px 10px rgba(11, 77, 54, 0.18);
+  box-shadow: 0 4px 10px rgba(13, 71, 161, 0.18);
 }
 
 .pil-status[aria-pressed="true"] .pil-status-label {
@@ -1240,7 +1195,7 @@ h1.judul-halaman {
   border: none;
   border-radius: var(--jari-tombol);
   cursor: pointer;
-  box-shadow: 0 4px 12px rgba(0, 107, 79, 0.25);
+  box-shadow: 0 4px 12px rgba(21, 101, 192, 0.28);
 }
 
 .tombol:hover {
@@ -1357,7 +1312,7 @@ textarea.masukan {
 .formulir textarea:focus,
 .masukan:focus {
   border-color: var(--hijau-kop);
-  box-shadow: 0 0 0 3px rgba(0, 107, 79, 0.15);
+  box-shadow: 0 0 0 3px rgba(21, 101, 192, 0.16);
   outline: none;
 }
 
@@ -1367,7 +1322,7 @@ textarea.masukan {
   align-items: center;
   min-height: 48px;
   padding: 11px 14px;
-  border: 1.5px dashed #bfd4c6;
+  border: 1.5px dashed #b8d2ec;
   border-radius: var(--jari-masukan);
   background: var(--hijau-muda);
   color: var(--hijau-gelap);
@@ -1405,7 +1360,7 @@ textarea.masukan {
 
 .pencarian input:focus {
   border-color: var(--hijau-kop);
-  box-shadow: 0 0 0 3px rgba(0, 107, 79, 0.15);
+  box-shadow: 0 0 0 3px rgba(21, 101, 192, 0.16);
   outline: none;
 }
 
@@ -1476,7 +1431,7 @@ textarea.masukan {
 .bilah {
   height: 8px;
   border-radius: 999px;
-  background: #e7efe9;
+  background: #e3f0fa;
   overflow: hidden;
 }
 
@@ -1521,12 +1476,13 @@ textarea.masukan {
   background: linear-gradient(135deg, var(--hijau-kop), var(--hijau-gelap));
   color: #fff;
   box-shadow:
-    0 10px 24px rgba(11, 77, 54, 0.28),
+    0 10px 24px rgba(13, 71, 161, 0.28),
     0 0 0 5px rgba(240, 176, 0, 0.35);
 }
 
-/* Hero login: pita gradien hijau kop berornamen (pola banner) berisi
-   logo, judul, sapaan, dan ilustrasi; formulir di lembar di bawahnya. */
+/* Hero login: pita gradien biru BERSIH tanpa ornamen (revisi biru)
+   berisi logo, judul, sapaan, dan ilustrasi; formulir di lembar
+   putih melengkung di bawahnya. */
 .login-hero {
   position: relative;
   overflow: hidden;
@@ -1535,37 +1491,12 @@ textarea.masukan {
   background: linear-gradient(
     150deg,
     var(--hijau-gelap) 0%,
-    var(--hijau-kop) 68%,
-    #0a7a5c 100%
+    var(--hijau-kop) 58%,
+    var(--biru-terang) 100%
   );
   color: #fff;
   text-align: center;
-  box-shadow: 0 10px 24px rgba(11, 77, 54, 0.22);
-}
-
-.login-hero::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='72' height='72' viewBox='0 0 72 72'%3E%3Cg fill='none' stroke='%23ffffff' stroke-opacity='0.12'%3E%3Crect x='24' y='24' width='24' height='24'/%3E%3Crect x='24' y='24' width='24' height='24' transform='rotate(45 36 36)'/%3E%3C/g%3E%3C/svg%3E");
-  pointer-events: none;
-}
-
-.login-hero::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  background: radial-gradient(
-    circle at 88% -10%,
-    rgba(240, 176, 0, 0.35),
-    transparent 55%
-  );
-  pointer-events: none;
-}
-
-.login-hero > * {
-  position: relative;
-  z-index: 1;
+  box-shadow: 0 10px 24px rgba(13, 71, 161, 0.22);
 }
 
 .logo-login--hero {

@@ -14,6 +14,7 @@ import type { ReactNode } from "react";
 export type NamaIkon =
   | "beranda"
   | "menu"
+  | "grafik"
   | "akun"
   | "santri"
   | "kehadiran"
@@ -52,6 +53,14 @@ const JALUR: Record<NamaIkon, ReactNode> = {
       <rect x="13.5" y="3.5" width="7" height="7" rx="2" />
       <rect x="3.5" y="13.5" width="7" height="7" rx="2" />
       <rect x="13.5" y="13.5" width="7" height="7" rx="2" />
+    </>
+  ),
+  grafik: (
+    <>
+      <path d="M3.5 3.5v17h17" />
+      <path d="M8 16.5v-4" strokeWidth={2.6} />
+      <path d="M12.5 16.5v-9" strokeWidth={2.6} />
+      <path d="M17 16.5v-6.5" strokeWidth={2.6} />
     </>
   ),
   akun: (

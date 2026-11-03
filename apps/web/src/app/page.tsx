@@ -28,19 +28,12 @@ import {
 import { bolehAksesModul } from "@/lib/akses";
 import { DAFTAR_MODUL } from "@/lib/modul";
 import IkonModul from "@/components/IkonModul";
-import {
-  LABEL_PERAN,
-  PERAN,
-  RINGKASAN_PERAN,
-  SEMUA_PERAN,
-} from "@/lib/peran";
+import { LABEL_PERAN, SEMUA_PERAN } from "@/lib/peran";
 import {
   ambilDaftarSantri,
   supabaseTerhubung,
   type Santri,
 } from "@/lib/data/santri";
-import { ambilDaftarSesi } from "@/lib/data/olahraga";
-import { ambilSemesterAdmin, statusSemester } from "@/lib/data/admin";
 import { ambilProfilLogin, type ProfilLogin } from "@/lib/sesi";
 import {
   ambilRiwayatKehadiranSantri,
@@ -124,11 +117,6 @@ export default function HalamanBeranda() {
   const [memuatWali, setMemuatWali] = useState(true);
   const [profilLogin, setProfilLogin] = useState<ProfilLogin | null>(null);
   const [memuatProfil, setMemuatProfil] = useState(!modeContoh);
-  const [ringkasan, setRingkasan] = useState<{
-    jumlahSantri: number;
-    jumlahSesiOlahraga: number | null;
-    semesterBerjalan: string | null;
-  } | null>(null);
 
   // MODE SUPABASE: muat profil pengguna yang login untuk sapaan beranda.
   useEffect(() => {
@@ -144,50 +132,6 @@ export default function HalamanBeranda() {
       aktif = false;
     };
   }, [modeContoh]);
-
-  // Ringkasan beranda dari fungsi data yang SUDAH ada: jumlah santri
-  // (untuk wali = jumlah anaknya, sesuai RLS), jumlah sesi olahraga
-  // (hanya peran yang berhak atas modulnya), dan semester yang sedang
-  // berjalan (diturunkan dari rentang tanggal). Bagian yang gagal
-  // dibaca peran ini dilewati diam-diam — tidak ada data yang dikarang.
-  useEffect(() => {
-    if (modeContoh || !profilLogin) return;
-    let aktif = true;
-    (async () => {
-      const hasil: {
-        jumlahSantri: number;
-        jumlahSesiOlahraga: number | null;
-        semesterBerjalan: string | null;
-      } = { jumlahSantri: 0, jumlahSesiOlahraga: null, semesterBerjalan: null };
-      try {
-        hasil.jumlahSantri = (await ambilDaftarSantri()).data.length;
-      } catch {
-        return;
-      }
-      if (bolehAksesModul(profilLogin.peran, "olahraga")) {
-        try {
-          hasil.jumlahSesiOlahraga = (await ambilDaftarSesi()).data.length;
-        } catch {
-          // Lewati kartu sesi olahraga saja.
-        }
-      }
-      try {
-        const semuaSemester = (await ambilSemesterAdmin()).data;
-        const berjalan = semuaSemester.find(
-          (s) => statusSemester(s) === "berjalan",
-        );
-        hasil.semesterBerjalan = berjalan
-          ? `${berjalan.nama} · ${berjalan.tahunAjaran}`
-          : null;
-      } catch {
-        // Semester tidak terbaca untuk peran ini — lewati kartunya.
-      }
-      if (aktif) setRingkasan(hasil);
-    })();
-    return () => {
-      aktif = false;
-    };
-  }, [modeContoh, profilLogin]);
 
   useEffect(() => {
     // Tampilan wali contoh hanya berjalan pada mode contoh.
@@ -245,7 +189,7 @@ export default function HalamanBeranda() {
     const hijriah = formatTanggalHijriahHariIni();
     return (
       <>
-        {/* Pita sapaan (arah UI UNPIX): pita gradien hijau kop selebar
+        {/* Pita sapaan (arah UI UNPIX): pita gradien biru selebar
             tepi konten; isi utama berada di lembar putih melengkung
             yang menimpanya. */}
         <div className="pita">
@@ -285,59 +229,11 @@ export default function HalamanBeranda() {
             </p>
           )}
 
-          {profilLogin && (
-            <p className="subjudul" style={{ marginBottom: 12 }}>
-              {RINGKASAN_PERAN[profilLogin.peran]}
-            </p>
-          )}
-
-          {/* Ringkasan hanya dirender SETELAH profil termuat, dari
-              fungsi lapisan data yang sudah ada. */}
-          {profilLogin && ringkasan && (
-            <div className="kisi-stat">
-              <div className="kartu-stat">
-                <LingkaranIkon nama="santri" warna="hijau" />
-                <span>
-                  <span className="stat-angka">
-                    {ringkasan.jumlahSantri}
-                  </span>
-                  <span className="stat-label">
-                    {profilLogin.peran === PERAN.WALI
-                      ? "Anak terdaftar"
-                      : "Santri terdaftar"}
-                  </span>
-                </span>
-              </div>
-              {ringkasan.jumlahSesiOlahraga !== null && (
-                <div className="kartu-stat">
-                  <LingkaranIkon nama="olahraga" warna="emas" />
-                  <span>
-                    <span className="stat-angka">
-                      {ringkasan.jumlahSesiOlahraga}
-                    </span>
-                    <span className="stat-label">Sesi olahraga</span>
-                  </span>
-                </div>
-              )}
-              {ringkasan.semesterBerjalan && (
-                <div
-                  className="kartu-stat"
-                  style={{ gridColumn: "1 / -1" }}
-                >
-                  <LingkaranIkon nama="kalender" warna="biru" />
-                  <span style={{ minWidth: 0 }}>
-                    <span
-                      className="stat-angka"
-                      style={{ fontSize: 17, overflowWrap: "break-word" }}
-                    >
-                      {ringkasan.semesterBerjalan}
-                    </span>
-                    <span className="stat-label">Semester berjalan</span>
-                  </span>
-                </div>
-              )}
-            </div>
-          )}
+          {/* Beranda mode Supabase kini ringkas (revisi biru): pita
+              sapaan + lembar berisi kisi Fast Menu saja — paragraf
+              ringkasan peran dan kartu ringkasan (santri terdaftar,
+              sesi olahraga, semester berjalan) DIHAPUS atas arahan
+              user; ringkasan angka tersedia di halaman Grafik. */}
 
           {/* Kisi Fast Menu: modul hanya dirender SETELAH profil
               termuat, disaring per peran dari peta terpusat
@@ -391,6 +287,10 @@ export default function HalamanBeranda() {
         peran pengguna yang masuk.
       </p>
 
+      {/* Kartu peran mode contoh: ikon + label saja (revisi biru —
+          paragraf ringkasan peran tidak lagi ditampilkan di beranda
+          pada mode apa pun; penjelasan hak akses lengkap ada di
+          halaman Akun pada mode Supabase). */}
       <div className="kisi-peran">
         {SEMUA_PERAN.map((peran) => (
           <section key={peran} className="kartu kartu-peran">
@@ -399,7 +299,6 @@ export default function HalamanBeranda() {
                 display: "flex",
                 alignItems: "center",
                 gap: 10,
-                marginBottom: 6,
               }}
             >
               <LingkaranIkon
@@ -410,7 +309,6 @@ export default function HalamanBeranda() {
                 {LABEL_PERAN[peran]}
               </p>
             </div>
-            <p>{RINGKASAN_PERAN[peran]}</p>
           </section>
         ))}
       </div>

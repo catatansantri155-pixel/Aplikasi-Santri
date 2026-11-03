@@ -38,7 +38,8 @@ export type KunciModul =
   | "olahraga"
   | "admin"
   | "menu"
-  | "akun";
+  | "akun"
+  | "grafik";
 
 /**
  * Peran yang BOLEH membuka tiap modul (mode Supabase).
@@ -90,6 +91,13 @@ export const PETA_AKSES_MODUL: Record<KunciModul, Peran[]> = {
   // penjaga kerangka mengarahkannya ke /login.
   menu: [...SEMUA_PERAN],
   akun: [...SEMUA_PERAN],
+  // grafik: halaman visualisasi untuk semua peran yang login
+  // (revisi biru 3 Nov 2026, menggantikan slot Menu di navigasi
+  // bawah). Semua angkanya berasal dari fungsi data yang sama
+  // dengan modul Rekap & modul-modul sumbernya, yang menghormati
+  // RLS: staf melihat agregat semua santri, wali hanya agregat
+  // anaknya sendiri (atau keadaan kosong yang sopan).
+  grafik: [...SEMUA_PERAN],
 };
 
 /**
@@ -144,5 +152,6 @@ export function modulDariPath(pathname: string): KunciModul | null {
   }
   if (pathname === "/menu") return "menu";
   if (pathname === "/akun") return "akun";
+  if (pathname === "/grafik") return "grafik";
   return null;
 }

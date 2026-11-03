@@ -30,7 +30,7 @@ export const gayaMasukan: CSSProperties = {
 
 export const gayaMasukanTerkunci: CSSProperties = {
   ...gayaMasukan,
-  border: "1.5px dashed #bfd4c6",
+  border: "1.5px dashed #bcd3ea",
   background: "var(--hijau-muda)",
   color: "var(--hijau-gelap)",
   fontWeight: 700,

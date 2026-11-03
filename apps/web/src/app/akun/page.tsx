@@ -4,7 +4,9 @@
  * Halaman Akun — profil pengguna yang login: avatar inisial besar,
  * nama, peran, surel, penjelasan hak akses peran dalam bahasa polos,
  * dan tombol Keluar (mekanisme sesi bersama lib/sesi.ts:
- * keluarDariSesi, sama seperti tombol keluar di kerangka).
+ * keluarDariSesi). Sejak revisi biru 3 Nov 2026, tombol Keluar
+ * HANYA ada di halaman ini — kerangka (kepala & sidebar) hanya
+ * menampilkan blok identitas yang menaut ke sini.
  *
  * Boleh dibuka semua peran yang login (modul "akun" di peta akses =
  * semua peran); isinya hanya data profil sendiri. MODE CONTOH tidak

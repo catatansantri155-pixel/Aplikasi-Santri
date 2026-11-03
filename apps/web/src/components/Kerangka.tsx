@@ -2,8 +2,15 @@ import type { ReactNode } from "react";
 import InfoPengguna from "@/components/InfoPengguna";
 import NavTautan from "@/components/NavTautan";
 import NavBawah from "@/components/NavBawah";
-import { Ikon } from "@/components/Ikon";
 
+/**
+ * Kerangka aplikasi (revisi biru 3 Nov 2026): TIDAK ada lagi teks
+ * merek "Aplikasi Santri / Ponpes Minhajus Sunnah" di header mobile
+ * maupun sidebar — blok paling atas keduanya kini IDENTITAS
+ * pengguna yang masuk (avatar + nama + peran dari InfoPengguna,
+ * menaut ke /akun), bersih seperti halaman referensi UNPIX.
+ * Tombol Keluar hanya ada di halaman Akun.
+ */
 export default function Kerangka({ children }: { children: ReactNode }) {
   return (
     <div className="kerangka">
@@ -11,31 +18,14 @@ export default function Kerangka({ children }: { children: ReactNode }) {
         Lewati ke konten
       </a>
       <aside className="sidebar">
-        <div className="merek">
-          <span className="merek-logo">
-            <Ikon nama="hifzh" ukuran={22} />
-          </span>
-          <div>
-            <p className="merek-nama">Aplikasi Santri</p>
-            <p className="merek-sub">
-              Ponpes Minhajus Sunnah Magelang · Marhalah Wustha
-            </p>
-          </div>
-        </div>
+        <InfoPengguna varian="samping" />
         <nav className="nav-samping" aria-label="Navigasi utama">
           <NavTautan />
         </nav>
-        <InfoPengguna varian="samping" />
       </aside>
 
       <div className="kolom-utama">
         <header className="kepala">
-          <div>
-            <p className="kepala-nama">Aplikasi Santri</p>
-            <p className="kepala-sub">
-              Ponpes Minhajus Sunnah · Marhalah Wustha
-            </p>
-          </div>
           <InfoPengguna varian="kepala" />
         </header>
 

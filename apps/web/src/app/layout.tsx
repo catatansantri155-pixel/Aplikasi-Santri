@@ -4,7 +4,7 @@ import Kerangka from "@/components/Kerangka";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Aplikasi Santri — Ponpes Minhajus Sunnah Magelang",
+  title: "Aplikasi Santri",
   description:
     "Aplikasi monitoring santri Marhalah Wustha: hifzh, diniyyah, kehadiran, dan catatan musyrif.",
 };
@@ -12,7 +12,7 @@ export const metadata: Metadata = {
 export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
-  themeColor: "#006b4f",
+  themeColor: "#1565c0",
 };
 
 export default function RootLayout({ children }: { children: ReactNode }) {
