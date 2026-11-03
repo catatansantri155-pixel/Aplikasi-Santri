@@ -39,7 +39,8 @@ export type KunciModul =
   | "admin"
   | "menu"
   | "akun"
-  | "grafik";
+  | "grafik"
+  | "laporan";
 
 /**
  * Peran yang BOLEH membuka tiap modul (mode Supabase).
@@ -50,7 +51,10 @@ export type KunciModul =
  * - diniyyah: admin + pengajar diniyyah.
  * - catatan: admin + kedua pengajar + musyrif (wali tidak).
  * - rekap: admin + kedua pengajar + musyrif (wali tidak; ringkasan
- *   anaknya tersedia di beranda & detail santri).
+ *   anaknya tersedia di beranda & detail santri). Kunci ini kini
+ *   ALIAS warisan: sejak Fase 2 audit (3 Nov 2026) Rekap & Grafik
+ *   dilebur menjadi modul "laporan"; halaman /rekap & /grafik hanya
+ *   mengalihkan ke /laporan.
  * - olahraga: admin + kedua pengajar + musyrif (semua staf; wali
  *   tidak membuka modulnya — kehadiran olahraga anaknya sendiri tetap
  *   terbaca lewat RLS di database, bukan lewat modul ini).
@@ -97,7 +101,17 @@ export const PETA_AKSES_MODUL: Record<KunciModul, Peran[]> = {
   // dengan modul Rekap & modul-modul sumbernya, yang menghormati
   // RLS: staf melihat agregat semua santri, wali hanya agregat
   // anaknya sendiri (atau keadaan kosong yang sopan).
+  // Kini ALIAS warisan dari "laporan" (Fase 2 audit).
   grafik: [...SEMUA_PERAN],
+  // laporan: peleburan Rekap + Grafik (Fase 2 audit, keputusan user
+  // 3 Nov 2026 21:03 mengikuti usulan audit). Satu pintu berisi dua
+  // tampilan: ringkasan visual (bekas Grafik) dan rincian tabel
+  // (bekas Rekap). Dibuka SEMUA peran yang login — termasuk wali,
+  // yang membukanya sebagai "Perkembangan" anaknya: semua angka
+  // berasal dari fungsi data yang menghormati RLS, jadi wali hanya
+  // menerima agregat anaknya sendiri (gerbang data tetap di RLS,
+  // bukan di peta tampilan ini).
+  laporan: [...SEMUA_PERAN],
 };
 
 /**
@@ -153,5 +167,8 @@ export function modulDariPath(pathname: string): KunciModul | null {
   if (pathname === "/menu") return "menu";
   if (pathname === "/akun") return "akun";
   if (pathname === "/grafik") return "grafik";
+  if (pathname === "/laporan" || pathname.startsWith("/laporan/")) {
+    return "laporan";
+  }
   return null;
 }

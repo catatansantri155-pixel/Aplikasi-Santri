@@ -1,31 +1,40 @@
 "use client";
 
 /**
- * Navigasi bawah HP — TEPAT 5 slot (arah UI user 3 Nov 2026,
- * referensi UNPIX Mobile):
+ * Navigasi bawah HP — susunan PER PERAN (Fase 2 audit, keputusan
+ * user 3 Nov 2026 21:03 mengikuti usulan audit; menggantikan
+ * susunan seragam revisi biru [Beranda·Santri·Tengah·Grafik·Akun]).
  *
- *   [Beranda] [Santri] [TENGAH MENONJOL] [Grafik] [Akun]
+ * Staf & admin: TEPAT 5 slot, slot tengah lingkaran besar gradien
+ * biru terangkat berisi AKSI INTI peran:
+ * - admin          : Beranda · Santri · [Kehadiran] · Laporan · Menu
+ * - pengajar hifzh : Beranda · Santri · [Setoran→/hifzh] ·
+ *                    Kehadiran · Menu
+ * - pengajar diniyyah: Beranda · Santri · [Nilai→/diniyyah] ·
+ *                      Kehadiran · Menu
+ * - musyrif        : Beranda · Santri · [Catatan] · Olahraga · Menu
+ * Menu membuka /menu (kisi semua modul yang boleh dibuka peran
+ * itu); akun staf dijangkau lewat avatar header (blok identitas
+ * menaut ke /akun), bukan slot bawah.
  *
- * Slot tengah adalah lingkaran besar gradien biru terangkat, berisi
- * AKSI INTI peran yang login:
- * - admin, pengajar hifzh, pengajar diniyyah → Kehadiran
- * - musyrif → Catatan
- * - wali → detail anak pertamanya (daftar santri untuk wali memang
- *   hanya berisi anaknya sendiri dari RLS; belum termuat/gagal →
- *   tautan /santri)
- * Grafik membuka /grafik (enam grafik dari data yang ada; slot ini
- * menggantikan Menu pada revisi biru 3 Nov 2026 malam — halaman
- * /menu sendiri tetap ada); Akun membuka /akun (profil + keluar).
+ * Wali: EMPAT slot datar tanpa lingkaran menonjol:
+ *   Beranda · Anak Saya · Perkembangan · Akun
+ * "Anak Saya": tepat 1 anak → detail anak itu (/santri/<id> dari
+ * ambilDaftarSantri — RLS memang hanya meloloskan anaknya sendiri);
+ * lebih dari 1 anak → /santri (daftar anak); selama memuat atau
+ * belum ada anak → /santri. "Perkembangan" membuka /laporan
+ * (agregat anaknya dari data ber-RLS). "Akun" tetap di nav bawah
+ * khusus wali.
  *
  * Penyaringan peran mengikuti pola NavTautan: sesi DIPERIKSA ULANG
- * tiap perpindahan halaman & peristiwa auth (kerangka hidup di layout
- * akar yang tidak di-remount). Selama profil belum diketahui — atau
- * tidak ada sesi — hanya Beranda & Santri yang menjadi tautan; tiga
- * slot lain dirender hampa (tanpa tautan) agar tidak ada tautan modul
- * yang berkedip tampil sebelum peran dipastikan.
+ * tiap perpindahan halaman & peristiwa auth (kerangka hidup di
+ * layout akar yang tidak di-remount). Selama profil belum diketahui
+ * — atau tidak ada sesi — hanya Beranda & Santri yang menjadi
+ * tautan; tiga slot lain dirender hampa (geometri staf 5 slot) agar
+ * tidak ada tautan modul yang berkedip tampil sebelum peran
+ * dipastikan.
  *
- * MODE CONTOH (env Supabase kosong): kelima slot tampil; slot tengah
- * menunjuk Kehadiran (mode contoh tidak punya satu peran pasti).
+ * MODE CONTOH (env Supabase kosong): memakai susunan admin.
  */
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
@@ -36,19 +45,69 @@ import { buatKlienBrowser } from "@/lib/supabase/client";
 import { ambilProfilLogin, type ProfilLogin } from "@/lib/sesi";
 import { Ikon, type NamaIkon } from "@/components/Ikon";
 
-interface TargetTengah {
+interface SlotNav {
   href: string;
   label: string;
   ikon: NamaIkon;
+  tengah?: boolean;
 }
 
-/** Aksi inti slot tengah untuk peran staf & musyrif (wali khusus). */
-function targetTengahPeran(peran: Peran): TargetTengah {
-  if (peran === PERAN.MUSYRIF) {
-    return { href: "/catatan", label: "Catatan", ikon: "pena" };
+const SLOT_BERANDA: SlotNav = { href: "/", label: "Beranda", ikon: "beranda" };
+const SLOT_SANTRI: SlotNav = { href: "/santri", label: "Santri", ikon: "santri" };
+const SLOT_MENU: SlotNav = { href: "/menu", label: "Menu", ikon: "menu" };
+const SLOT_KEHADIRAN: SlotNav = {
+  href: "/kehadiran",
+  label: "Kehadiran",
+  ikon: "kehadiran",
+};
+
+/** Susunan 5 slot untuk admin & staf (tengah = aksi inti peran). */
+function slotUntukStaf(peran: Peran): SlotNav[] {
+  switch (peran) {
+    case PERAN.PENGAJAR_HIFZH:
+      return [
+        SLOT_BERANDA,
+        SLOT_SANTRI,
+        { href: "/hifzh", label: "Setoran", ikon: "hifzh", tengah: true },
+        SLOT_KEHADIRAN,
+        SLOT_MENU,
+      ];
+    case PERAN.PENGAJAR_DINIYYAH:
+      return [
+        SLOT_BERANDA,
+        SLOT_SANTRI,
+        { href: "/diniyyah", label: "Nilai", ikon: "diniyyah", tengah: true },
+        SLOT_KEHADIRAN,
+        SLOT_MENU,
+      ];
+    case PERAN.MUSYRIF:
+      return [
+        SLOT_BERANDA,
+        SLOT_SANTRI,
+        { href: "/catatan", label: "Catatan", ikon: "pena", tengah: true },
+        { href: "/olahraga", label: "Olahraga", ikon: "olahraga" },
+        SLOT_MENU,
+      ];
+    default:
+      // admin (dan cadangan peran staf lain)
+      return [
+        SLOT_BERANDA,
+        SLOT_SANTRI,
+        { ...SLOT_KEHADIRAN, tengah: true },
+        { href: "/laporan", label: "Laporan", ikon: "rekap" },
+        SLOT_MENU,
+      ];
   }
-  // admin + kedua pengajar
-  return { href: "/kehadiran", label: "Kehadiran", ikon: "kehadiran" };
+}
+
+/** Susunan 4 slot datar untuk wali (tanpa lingkaran menonjol). */
+function slotUntukWali(hrefAnakSaya: string): SlotNav[] {
+  return [
+    SLOT_BERANDA,
+    { href: hrefAnakSaya, label: "Anak Saya", ikon: "santri" },
+    { href: "/laporan", label: "Perkembangan", ikon: "rekap" },
+    { href: "/akun", label: "Akun", ikon: "akun" },
+  ];
 }
 
 function SlotTautan({
@@ -82,8 +141,8 @@ export default function NavBawah() {
   const [profil, setProfil] = useState<ProfilLogin | null>(null);
   const [cekSelesai, setCekSelesai] = useState(modeContoh);
   const profilRef = useRef<ProfilLogin | null>(null);
-  // Untuk wali: href detail anak pertama; null selama belum termuat.
-  const [hrefAnakWali, setHrefAnakWali] = useState<string | null>(null);
+  // Untuk wali: id semua anaknya; null selama belum termuat/gagal.
+  const [idAnakWali, setIdAnakWali] = useState<string[] | null>(null);
 
   useEffect(() => {
     if (modeContoh) return;
@@ -135,11 +194,11 @@ export default function NavBawah() {
     };
   }, [modeContoh, pathname]);
 
-  // Wali: ambil anak pertama dari daftar santrinya (RLS hanya
-  // meloloskan anaknya sendiri) untuk target slot tengah.
+  // Wali: ambil id anak-anaknya (RLS hanya meloloskan anaknya
+  // sendiri) untuk menentukan target slot "Anak Saya".
   useEffect(() => {
     if (modeContoh || !profil || profil.peran !== PERAN.WALI) {
-      setHrefAnakWali(null);
+      setIdAnakWali(null);
       return;
     }
     let aktif = true;
@@ -147,10 +206,9 @@ export default function NavBawah() {
       try {
         const hasil = await ambilDaftarSantri();
         if (!aktif) return;
-        const anak = hasil.data[0];
-        setHrefAnakWali(anak ? `/santri/${anak.id}` : null);
+        setIdAnakWali(hasil.data.map((s) => s.id));
       } catch {
-        if (aktif) setHrefAnakWali(null);
+        if (aktif) setIdAnakWali(null);
       }
     })();
     return () => {
@@ -160,18 +218,21 @@ export default function NavBawah() {
 
   const profilDiketahui = modeContoh || (cekSelesai && profil !== null);
 
-  let tengah: TargetTengah | null = null;
+  // Tepat 1 anak → detailnya; selain itu (memuat, 0, atau >1) →
+  // daftar /santri yang untuk wali memang hanya berisi anaknya.
+  const hrefAnakSaya =
+    idAnakWali && idAnakWali.length === 1
+      ? `/santri/${idAnakWali[0]}`
+      : "/santri";
+
+  let slot: SlotNav[] | null = null;
   if (modeContoh) {
-    tengah = targetTengahPeran(PERAN.ADMIN);
+    slot = slotUntukStaf(PERAN.ADMIN);
   } else if (profil) {
-    tengah =
+    slot =
       profil.peran === PERAN.WALI
-        ? {
-            href: hrefAnakWali ?? "/santri",
-            label: "Anak Saya",
-            ikon: "santri",
-          }
-        : targetTengahPeran(profil.peran);
+        ? slotUntukWali(hrefAnakSaya)
+        : slotUntukStaf(profil.peran);
   }
 
   const aktifUntuk = (href: string) =>
@@ -179,56 +240,56 @@ export default function NavBawah() {
       ? pathname === "/"
       : pathname === href || pathname.startsWith(`${href}/`);
 
+  if (!profilDiketahui || !slot) {
+    // Profil belum dipastikan: geometri staf 5 slot, hanya Beranda
+    // & Santri yang menjadi tautan.
+    return (
+      <>
+        <SlotTautan
+          href="/"
+          label="Beranda"
+          ikon="beranda"
+          aktif={pathname === "/"}
+        />
+        <SlotTautan
+          href="/santri"
+          label="Santri"
+          ikon="santri"
+          aktif={aktifUntuk("/santri")}
+        />
+        <span className="nav-slot nav-slot--hampa" aria-hidden="true" />
+        <span className="nav-slot nav-slot--hampa" aria-hidden="true" />
+        <span className="nav-slot nav-slot--hampa" aria-hidden="true" />
+      </>
+    );
+  }
+
   return (
     <>
-      <SlotTautan
-        href="/"
-        label="Beranda"
-        ikon="beranda"
-        aktif={pathname === "/"}
-      />
-      <SlotTautan
-        href="/santri"
-        label="Santri"
-        ikon="santri"
-        aktif={aktifUntuk("/santri") && tengah?.href !== pathname}
-      />
-      {tengah ? (
-        <Link
-          href={tengah.href}
-          className={`nav-slot nav-slot--tengah${
-            aktifUntuk(tengah.href) ? " nav-slot--tengah-aktif" : ""
-          }`}
-          aria-current={aktifUntuk(tengah.href) ? "page" : undefined}
-        >
-          <span className="nav-tengah-lingkaran" aria-hidden="true">
-            <Ikon nama={tengah.ikon} ukuran={25} />
-          </span>
-          <span>{tengah.label}</span>
-        </Link>
-      ) : (
-        <span className="nav-slot nav-slot--hampa" aria-hidden="true" />
-      )}
-      {profilDiketahui ? (
-        <>
+      {slot.map((s) =>
+        s.tengah ? (
+          <Link
+            key={s.label}
+            href={s.href}
+            className={`nav-slot nav-slot--tengah${
+              aktifUntuk(s.href) ? " nav-slot--tengah-aktif" : ""
+            }`}
+            aria-current={aktifUntuk(s.href) ? "page" : undefined}
+          >
+            <span className="nav-tengah-lingkaran" aria-hidden="true">
+              <Ikon nama={s.ikon} ukuran={25} />
+            </span>
+            <span>{s.label}</span>
+          </Link>
+        ) : (
           <SlotTautan
-            href="/grafik"
-            label="Grafik"
-            ikon="grafik"
-            aktif={pathname === "/grafik"}
+            key={s.label}
+            href={s.href}
+            label={s.label}
+            ikon={s.ikon}
+            aktif={aktifUntuk(s.href)}
           />
-          <SlotTautan
-            href="/akun"
-            label="Akun"
-            ikon="akun"
-            aktif={pathname === "/akun"}
-          />
-        </>
-      ) : (
-        <>
-          <span className="nav-slot nav-slot--hampa" aria-hidden="true" />
-          <span className="nav-slot nav-slot--hampa" aria-hidden="true" />
-        </>
+        ),
       )}
     </>
   );

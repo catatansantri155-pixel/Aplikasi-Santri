@@ -50,8 +50,7 @@ export const TAUTAN_NAV: {
   { href: "/diniyyah", label: "Diniyyah", ikon: "diniyyah", modul: "diniyyah" },
   { href: "/olahraga", label: "Olahraga", ikon: "olahraga", modul: "olahraga" },
   { href: "/catatan", label: "Catatan", ikon: "catatan", modul: "catatan" },
-  { href: "/rekap", label: "Rekap", ikon: "rekap", modul: "rekap" },
-  { href: "/grafik", label: "Grafik", ikon: "grafik", modul: "grafik" },
+  { href: "/laporan", label: "Laporan", ikon: "rekap", modul: "laporan" },
   { href: "/admin", label: "Admin", ikon: "perisai", modul: "admin" },
 ];
 

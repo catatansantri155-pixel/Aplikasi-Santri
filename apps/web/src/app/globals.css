@@ -1004,7 +1004,8 @@ h1.judul-halaman {
   box-shadow: var(--bayang-halus);
 }
 
-.tab-pil button {
+.tab-pil button,
+.tab-pil a {
   flex: 1 1 30%;
   min-height: var(--tinggi-sentuh);
   padding: 9px 16px;
@@ -1019,7 +1020,17 @@ h1.judul-halaman {
   cursor: pointer;
 }
 
-.tab-pil button[aria-selected="true"] {
+/* Tab berupa tautan (halaman Laporan): samakan tampilannya dengan
+   tombol tab — tanpa garis bawah, teks di tengah vertikal. */
+.tab-pil a {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  text-decoration: none;
+}
+
+.tab-pil button[aria-selected="true"],
+.tab-pil a[aria-selected="true"] {
   background: linear-gradient(135deg, var(--hijau-kop), var(--hijau-gelap));
   color: #fff;
   font-weight: 700;

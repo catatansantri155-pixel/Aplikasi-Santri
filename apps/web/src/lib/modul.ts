@@ -68,10 +68,11 @@ export const DAFTAR_MODUL: InfoModul[] = [
     warna: "kuning",
   },
   {
-    href: "/rekap",
-    label: "Rekap",
-    keterangan: "Rekap kehadiran pekanan & semesteran serta grafik hifzh.",
-    modul: "rekap",
+    href: "/laporan",
+    label: "Laporan",
+    keterangan:
+      "Ringkasan visual dan rincian tabel kehadiran, hifzh, diniyyah, dan olahraga.",
+    modul: "laporan",
     ikon: "rekap",
     warna: "biru",
   },
