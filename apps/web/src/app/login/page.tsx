@@ -23,8 +23,20 @@
  *
  * MODE CONTOH (env Supabase kosong): formulir tetap tampil, tetapi
  * pengiriman ditolak dengan penjelasan bahwa login asli belum aktif.
+ *
+ * Perluasan 4 Nov 2026 (keputusan user):
+ * - Gerbang SAMBUTAN: pengunjung tanpa sesi yang belum menuntaskan
+ *   halaman sambutan di perangkat ini (penanda localStorage
+ *   `santri.sambutan.selesai`, lib/sesi.ts) dialihkan ke /sambutan.
+ * - Profil wali tertunda: wali yang mendaftar lewat /daftar dan baru
+ *   mengonfirmasi surel bisa masuk tanpa baris profiles — sebelum
+ *   menyatakan "profil belum disiapkan", halaman ini mencoba
+ *   melengkapi profil dari penanda pendaftaran (peran selalu 'wali').
+ * - Tautan: "Lupa kata sandi?" (/lupa-sandi), "Daftar" khusus wali
+ *   (/daftar), dan "Lihat perkenalan" (/sambutan).
  */
 import { useEffect, useState, type FormEvent } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import PenandaTahap from "@/components/PenandaTahap";
 import { Ikon } from "@/components/Ikon";
@@ -35,6 +47,8 @@ import {
   KUNCI_PENANDA_PROFIL_BELUM_DISIAPKAN,
   adaSesiAktif,
   ambilProfilLogin,
+  cobaLengkapiProfilWaliTertunda,
+  sambutanSudahSelesai,
 } from "@/lib/sesi";
 
 /** Ubah pesan galat Supabase menjadi pesan Indonesia yang jelas. */
@@ -67,11 +81,27 @@ export default function HalamanLogin() {
   /* Saat halaman dibuka: bila sudah ada sesi dengan profil → teruskan
      ke beranda; bila sesi ada tetapi profil belum disiapkan (termasuk
      pantulan dari penjaga kerangka yang menyetel penanda) → tampilkan
-     pesan khusus di sini. */
+     pesan khusus di sini; bila TIDAK ada sesi dan sambutan belum
+     dituntaskan di perangkat ini → alihkan ke /sambutan. Sebelum
+     menyatakan profil belum disiapkan, coba lengkapi profil wali
+     dari penanda pendaftaran tertunda (jalur konfirmasi surel). */
   useEffect(() => {
     if (!modeSupabase) return;
     let aktif = true;
     (async () => {
+      // Pesan dari callback auth (tautan surel tidak valid).
+      try {
+        if (
+          new URLSearchParams(window.location.search).get("auth") ===
+          "tautan-tidak-valid"
+        ) {
+          setGalat(
+            "Tautan dari surel tidak valid atau sudah kedaluwarsa. Minta tautan baru dari halaman lupa kata sandi.",
+          );
+        }
+      } catch {
+        // Abaikan — parameter URL bukan jalur kritis.
+      }
       let dariPenanda = false;
       try {
         dariPenanda =
@@ -89,8 +119,28 @@ export default function HalamanLogin() {
         router.replace("/");
         return;
       }
-      if (dariPenanda || (await adaSesiAktif())) {
+      if (dariPenanda) {
         if (aktif) setProfilBelumDisiapkan(true);
+        return;
+      }
+      if (await adaSesiAktif()) {
+        if (!aktif) return;
+        const dilengkapi = await cobaLengkapiProfilWaliTertunda();
+        if (!aktif) return;
+        if (dilengkapi) {
+          const profilBaru = await ambilProfilLogin();
+          if (!aktif) return;
+          if (profilBaru) {
+            router.replace("/");
+            return;
+          }
+        }
+        if (aktif) setProfilBelumDisiapkan(true);
+        return;
+      }
+      // Tanpa sesi sama sekali: gerbang sambutan sekali per perangkat.
+      if (!sambutanSudahSelesai()) {
+        router.replace("/sambutan");
       }
     })();
     return () => {
@@ -122,8 +172,16 @@ export default function HalamanLogin() {
       // Sesi Auth berhasil. Pastikan baris profilnya sudah disiapkan
       // admin SEBELUM meneruskan ke beranda — bila belum, tampilkan
       // pesan khusus di sini (audit Fase 1), jangan memantulkan
-      // pengguna tanpa penjelasan.
-      const profil = await ambilProfilLogin();
+      // pengguna tanpa penjelasan. Wali yang baru mendaftar dapat
+      // dilengkapi profilnya dari penanda pendaftaran tertunda
+      // (peran selalu 'wali'; staf tetap menunggu dibuatkan admin).
+      let profil = await ambilProfilLogin();
+      if (!profil) {
+        const dilengkapi = await cobaLengkapiProfilWaliTertunda();
+        if (dilengkapi) {
+          profil = await ambilProfilLogin();
+        }
+      }
       if (!profil) {
         setProfilBelumDisiapkan(true);
         return;
@@ -228,7 +286,14 @@ export default function HalamanLogin() {
         </form>
 
         <p className="catatan-kaki" style={{ textAlign: "center" }}>
-          Gunakan akun yang diberikan admin.
+          Pengajar dan musyrif menggunakan akun yang diberikan admin.{" "}
+          <Link href="/lupa-sandi">Lupa kata sandi?</Link>
+        </p>
+        <p className="catatan-kaki" style={{ textAlign: "center" }}>
+          Wali santri belum punya akun?{" "}
+          <Link href="/daftar">Daftar di sini</Link>
+          {" · "}
+          <Link href="/sambutan">Lihat perkenalan</Link>
         </p>
       </div>
     </div>

@@ -24,6 +24,11 @@
  * halaman menampilkan pesan jelas bahwa semester harus dibuat oleh
  * admin terlebih dahulu dan nilai ujian tidak bisa diisi — semester
  * tidak pernah dikarang di klien.
+ *
+ * Mode pantauan admin (keputusan user 4 Nov 2026): untuk ADMIN,
+ * formulir Harian & Ujian disembunyikan — tab Ringkasan tetap tampil
+ * beserta pemilih santri & mapel; input awal adalah tugas pengajar
+ * diniyyah (bolehInput di src/lib/akses.ts).
  */
 import {
   useCallback,
@@ -36,6 +41,9 @@ import Link from "next/link";
 import PenandaTahap from "@/components/PenandaTahap";
 import KartuGalat from "@/components/KartuGalat";
 import { ambilDaftarSantri, type Santri } from "@/lib/data/santri";
+import { bolehInput, pesanModePantauan } from "@/lib/akses";
+import { ambilProfilLogin } from "@/lib/sesi";
+import type { Peran } from "@/lib/peran";
 import {
   CATATAN_RUMUS_SEMENTARA,
   LABEL_MAPEL_CONTOH,
@@ -116,6 +124,7 @@ export default function IsiHalamanDiniyyah({ tab }: { tab: TabDiniyyah }) {
   const [semuaSantri, setSemuaSantri] = useState<Santri[]>([]);
   const [daftarSemester, setDaftarSemester] = useState<SemesterRef[]>([]);
   const [sumberContoh, setSumberContoh] = useState(false);
+  const [peranMasuk, setPeranMasuk] = useState<Peran | null>(null);
   const [galatMuat, setGalatMuat] = useState<string | null>(null);
   const [muatSelesai, setMuatSelesai] = useState(false);
 
@@ -144,10 +153,12 @@ export default function IsiHalamanDiniyyah({ tab }: { tab: TabDiniyyah }) {
   const muatAwal = useCallback(async () => {
     setGalatMuat(null);
     try {
-      const [santriHasil, semesterHasil] = await Promise.all([
+      const [santriHasil, semesterHasil, profilLogin] = await Promise.all([
         ambilDaftarSantri(),
         ambilSemester(),
+        ambilProfilLogin(),
       ]);
+      setPeranMasuk(profilLogin?.peran ?? null);
       setSemuaSantri(santriHasil.data);
       setDaftarSemester(semesterHasil.data);
       setSumberContoh(santriHasil.sumberContoh || semesterHasil.sumberContoh);
@@ -224,6 +235,14 @@ export default function IsiHalamanDiniyyah({ tab }: { tab: TabDiniyyah }) {
      nilai ujian belum bisa diisi sampai admin membuat semester. */
   const semesterBelumAda =
     muatSelesai && !sumberContoh && daftarSemester.length === 0;
+
+  /* Mode pantauan admin: hanya mode Supabase dengan peran admin
+     terkonfirmasi — formulir harian & ujian disembunyikan, tab
+     Ringkasan dan pemilih santri/mapel tetap tampil. */
+  const pantauanAdmin =
+    !sumberContoh &&
+    peranMasuk !== null &&
+    !bolehInput(peranMasuk, "diniyyah");
 
   const ringkasan = useMemo(
     () => hitungRingkasanMapel(harian, ujian),
@@ -459,6 +478,11 @@ export default function IsiHalamanDiniyyah({ tab }: { tab: TabDiniyyah }) {
           Satu nilai per santri per tanggal per mapel; mengisi ulang
           tanggal+mapel yang sama memperbarui nilainya.
         </p>
+        {pantauanAdmin ? (
+          <p className="catatan-pantauan" role="note">
+            {pesanModePantauan("pengajar diniyyah")}
+          </p>
+        ) : (
         <div className="formulir" style={{ maxWidth: "100%" }}>
           <label>
             Tanggal
@@ -514,6 +538,7 @@ export default function IsiHalamanDiniyyah({ tab }: { tab: TabDiniyyah }) {
                 : "Simpan nilai harian"}
           </button>
         </div>
+        )}
         {pesanHarian && (
           <p className="catatan-kaki" role="status" style={{ marginTop: 10 }}>
             {pesanHarian}
@@ -539,6 +564,11 @@ export default function IsiHalamanDiniyyah({ tab }: { tab: TabDiniyyah }) {
             diisi seperti biasa.
           </p>
         )}
+        {pantauanAdmin ? (
+          <p className="catatan-pantauan" role="note">
+            {pesanModePantauan("pengajar diniyyah")}
+          </p>
+        ) : (
         <div className="formulir" style={{ maxWidth: "100%" }}>
           <label>
             Semester
@@ -606,6 +636,7 @@ export default function IsiHalamanDiniyyah({ tab }: { tab: TabDiniyyah }) {
                 : "Simpan nilai ujian"}
           </button>
         </div>
+        )}
         {pesanUjian && (
           <p className="catatan-kaki" role="status" style={{ marginTop: 10 }}>
             {pesanUjian}

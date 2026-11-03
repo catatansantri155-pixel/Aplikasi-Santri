@@ -23,6 +23,9 @@
  *   memang hanya-lihat murni. Satu-satunya pengecualian di dalam
  *   halaman: REVISI kehadiran tetap khusus admin (lihat
  *   bolehRevisiKehadiran di bawah), sesuai aturan yang sudah ada.
+ * - Di dalam halaman modul, formulir INPUT AWAL mengikuti peta kedua
+ *   (bolehInput di bawah): sejak keputusan user 4 Nov 2026 admin
+ *   hanya memantau & mengoreksi, bukan mengisi dari nol.
  */
 import { PERAN, SEMUA_PERAN, type Peran } from "@/lib/peran";
 
@@ -143,6 +146,57 @@ export function bolehRevisiKehadiran(
   peran: Peran | null | undefined,
 ): boolean {
   return peran === PERAN.ADMIN;
+}
+
+/**
+ * MODE PANTAUAN ADMIN (keputusan user 4 Nov 2026): Admin Utama
+ * bertugas MEMANTAU dan MENGOREKSI/REVISI entri yang sudah ada —
+ * BUKAN mengisi/menilai dari nol. Formulir input awal hanya tampil
+ * untuk peran pemilik tugas tiap modul:
+ * - kehadiran: pengajar hifzh & pengajar diniyyah (per sesi masing-
+ *   masing; pengetatan per sesi tetap dijaga RLS 0005),
+ * - hifzh: pengajar hifzh,
+ * - diniyyah: pengajar diniyyah,
+ * - catatan: kedua pengajar & musyrif,
+ * - olahraga: kedua pengajar & musyrif.
+ * Admin TIDAK termasuk di modul mana pun di peta ini. Ini gerbang
+ * TAMPILAN di dalam halaman yang memang boleh dibuka admin (lewat
+ * PETA_AKSES_MODUL); RLS tidak berubah. MODE CONTOH tidak memakai
+ * peta ini (halaman memeriksa sumber datanya sendiri), sama seperti
+ * peta akses modul.
+ */
+export type KunciModulInput = Extract<
+  KunciModul,
+  "kehadiran" | "hifzh" | "diniyyah" | "catatan" | "olahraga"
+>;
+
+export const PETA_INPUT_MODUL: Record<KunciModulInput, Peran[]> = {
+  kehadiran: [PERAN.PENGAJAR_HIFZH, PERAN.PENGAJAR_DINIYYAH],
+  hifzh: [PERAN.PENGAJAR_HIFZH],
+  diniyyah: [PERAN.PENGAJAR_DINIYYAH],
+  catatan: [PERAN.PENGAJAR_HIFZH, PERAN.PENGAJAR_DINIYYAH, PERAN.MUSYRIF],
+  olahraga: [PERAN.PENGAJAR_HIFZH, PERAN.PENGAJAR_DINIYYAH, PERAN.MUSYRIF],
+};
+
+/** True bila peran adalah pemilik tugas yang boleh mengisi formulir awal modul. */
+export function bolehInput(
+  peran: Peran | null | undefined,
+  modul: KunciModulInput,
+): boolean {
+  if (!peran) return false;
+  return PETA_INPUT_MODUL[modul].includes(peran);
+}
+
+/**
+ * Catatan singkat yang tampil di tempat formulir yang disembunyikan
+ * dari admin (mode pantauan). `pemilik` menyebut peran pengisi awal,
+ * mis. "pengajar hifzh".
+ */
+export function pesanModePantauan(pemilik: string): string {
+  return (
+    `Mode pantauan admin — input awal dilakukan ${pemilik}; ` +
+    "admin mengoreksi entri yang sudah ada."
+  );
 }
 
 /** Pesan baku saat peran membuka modul yang tidak berhak dibukanya. */

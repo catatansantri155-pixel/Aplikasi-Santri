@@ -1750,3 +1750,152 @@ textarea.masukan {
     margin-bottom: 0;
   }
 }
+
+/* ---------- Sambutan & mode pantauan (4 Nov 2026) ---------- */
+
+/* Catatan mode pantauan admin: tampil di tempat formulir yang
+   disembunyikan dari admin (input awal tugas peran pemilik). */
+.catatan-pantauan {
+  margin: 0 0 12px;
+  padding: 10px 14px;
+  background: #eaf4fe;
+  color: var(--teks);
+  border: 1px solid #bcd8f5;
+  border-radius: var(--jari-masukan);
+  font-size: 14px;
+}
+
+/* Halaman Sambutan (/sambutan): halaman polos tanpa kerangka,
+   selebar halaman login di HP; PC dua kolom (visual kiri, teks dan
+   kendali kanan). Tanpa gulir horizontal: semua lebar relatif wadah. */
+.sambutan-bungkus {
+  max-width: 430px;
+  margin: 8px auto 0;
+  width: 100%;
+  padding: 18px 16px 40px;
+}
+
+.sambutan-kartu {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.sambutan-visual {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 18px;
+  min-height: 210px;
+  padding: 22px 18px;
+  border-radius: var(--jari-besar);
+  background: linear-gradient(
+    150deg,
+    var(--hijau-gelap) 0%,
+    var(--hijau-kop) 58%,
+    var(--biru-terang) 100%
+  );
+  box-shadow: 0 10px 24px rgba(13, 71, 161, 0.22);
+}
+
+.sambutan-visual .ikon-gambar {
+  width: 112px;
+  height: 112px;
+}
+
+.sambutan-ilustrasi {
+  display: block;
+  width: 100%;
+  height: auto;
+  border-radius: 16px;
+}
+
+.sambutan-isi {
+  display: flex;
+  flex-direction: column;
+}
+
+.sambutan-langkah {
+  margin: 0;
+  font-size: 12.5px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  color: var(--teks-redup);
+}
+
+.sambutan-judul {
+  margin: 8px 0 6px;
+  font-size: 24px;
+  font-weight: 800;
+  line-height: 1.25;
+}
+
+.sambutan-teks {
+  margin: 0;
+  font-size: 15px;
+  line-height: 1.55;
+}
+
+.sambutan-titik {
+  display: flex;
+  gap: 8px;
+  margin: 22px 0 16px;
+}
+
+.sambutan-titik-tombol {
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  background: none;
+  border: none;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.sambutan-titik-tombol::after {
+  content: "";
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: #c3d7ea;
+}
+
+.sambutan-titik-tombol[aria-current="true"]::after {
+  width: 26px;
+  border-radius: 999px;
+  background: var(--hijau-kop);
+}
+
+.sambutan-kendali {
+  display: flex;
+  gap: 10px;
+  margin-top: auto;
+}
+
+.sambutan-kendali .tombol-besar {
+  flex: 1;
+}
+
+@media (min-width: 1024px) {
+  .sambutan-bungkus {
+    max-width: 920px;
+    padding-top: 40px;
+  }
+
+  .sambutan-kartu {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 28px;
+    align-items: stretch;
+  }
+
+  .sambutan-visual {
+    min-height: 380px;
+  }
+
+  .sambutan-isi {
+    padding: 12px 0;
+  }
+}

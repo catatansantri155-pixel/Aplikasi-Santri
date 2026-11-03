@@ -14,6 +14,10 @@
  * mendapat ruang penuh. Pemeriksaan sesi untuk /login (sudah masuk →
  * ke beranda; sesi ada tetapi profil belum disiapkan → pesan khusus)
  * ditangani halaman login sendiri.
+ *
+ * Halaman polos diperluas (4 Nov 2026): /sambutan (onboarding),
+ * /daftar (sign up wali), /lupa-sandi, dan /atur-sandi memakai
+ * perlakuan yang sama — semuanya halaman pra/di luar sesi.
  */
 import { useEffect, useState, type ReactNode } from "react";
 import { usePathname } from "next/navigation";
@@ -22,6 +26,15 @@ import NavTautan from "@/components/NavTautan";
 import NavBawah from "@/components/NavBawah";
 import { supabaseTerhubung } from "@/lib/data/santri";
 import { ambilProfilLogin } from "@/lib/sesi";
+
+/** Pathname halaman polos tanpa kerangka (pra-sesi / alur akun). */
+const PATH_TANPA_KERANGKA = [
+  "/login",
+  "/sambutan",
+  "/daftar",
+  "/lupa-sandi",
+  "/atur-sandi",
+];
 
 export default function Kerangka({ children }: { children: ReactNode }) {
   const pathname = usePathname();
@@ -46,7 +59,7 @@ export default function Kerangka({ children }: { children: ReactNode }) {
     };
   }, [pathname]);
 
-  if (pathname === "/login") {
+  if (PATH_TANPA_KERANGKA.includes(pathname)) {
     return <>{children}</>;
   }
 

@@ -22,6 +22,12 @@
  * tombol Simpan menyebut cakupan yang benar-benar dikirim — semua
  * status terisi pada sesi ini, termasuk santri yang sedang
  * tersembunyi oleh filter kelas (dijelaskan di keterangan tombol).
+ *
+ * Mode pantauan admin (keputusan user 4 Nov 2026): untuk ADMIN,
+ * formulir "Buat sesi" disembunyikan dan penandaan kehadiran menjadi
+ * baca-saja — daftar sesi tetap tampil; membuat sesi & mengisi
+ * kehadiran adalah tugas pengajar & musyrif (bolehInput di
+ * src/lib/akses.ts).
  */
 import { useCallback, useEffect, useMemo, useState } from "react";
 import PenandaTahap from "@/components/PenandaTahap";
@@ -35,11 +41,13 @@ import {
   timpaSemuaJadiHadir,
 } from "@/lib/kehadiran-isi";
 import { ambilDaftarSantri, type Santri } from "@/lib/data/santri";
+import { bolehInput, pesanModePantauan } from "@/lib/akses";
 import {
   ambilProfilSaya,
   LABEL_STATUS,
   SINGKATAN_STATUS,
   STATUS_KEHADIRAN,
+  type ProfilSaya,
   type StatusKehadiran,
 } from "@/lib/data/kehadiran";
 import {
@@ -73,6 +81,7 @@ export default function HalamanOlahraga() {
 }
 
 function IsiHalamanOlahraga() {
+  const [profil, setProfil] = useState<ProfilSaya | null>(null);
   const [semuaSantri, setSemuaSantri] = useState<Santri[]>([]);
   const [daftarSesi, setDaftarSesi] = useState<SesiOlahraga[]>([]);
   const [sumberContoh, setSumberContoh] = useState(false);
@@ -116,6 +125,7 @@ function IsiHalamanOlahraga() {
         ambilDaftarSantri(),
         ambilDaftarSesi(),
       ]);
+      setProfil(profilHasil.data);
       setSemuaSantri(santriHasil.data);
       setDaftarSesi(sesiHasil.data);
       setSesiId(sesiHasil.data[0]?.id ?? null);
@@ -176,6 +186,14 @@ function IsiHalamanOlahraga() {
 
   const jumlahTerisi = Object.keys(pilihan).length;
   const hariBaru = tanggalBaru ? hariDariTanggal(tanggalBaru) : null;
+
+  /* Mode pantauan admin: hanya mode Supabase dengan peran admin
+     terkonfirmasi — buat sesi disembunyikan, kehadiran baca-saja.
+     Mode contoh (profil contoh admin) tidak diterapkan. */
+  const pantauanAdmin =
+    !sumberContoh &&
+    profil !== null &&
+    !bolehInput(profil.peran, "olahraga");
 
   async function tanganiBuatSesi() {
     setPesanBuat(null);
@@ -264,6 +282,11 @@ function IsiHalamanOlahraga() {
       {/* ------------ Buat sesi baru ------------ */}
       <section className="kartu">
         <h2>Buat sesi baru</h2>
+        {pantauanAdmin ? (
+          <p className="catatan-pantauan" role="note">
+            {pesanModePantauan("pengajar hifzh, pengajar diniyyah, dan musyrif")}
+          </p>
+        ) : (
         <div className="formulir" style={{ maxWidth: "100%" }}>
           <label>
             Tanggal sesi
@@ -310,6 +333,7 @@ function IsiHalamanOlahraga() {
             {sedangMembuat ? "Menyimpan…" : "Buat sesi"}
           </button>
         </div>
+        )}
         {pesanBuat && (
           <p className="catatan-kaki" role="status" style={{ marginTop: 10 }}>
             {pesanBuat}
@@ -440,6 +464,32 @@ function IsiHalamanOlahraga() {
                     </div>
                   </div>
                 </div>
+                {pantauanAdmin ? (
+                  <div
+                    style={{ display: "flex", alignItems: "center", gap: 8 }}
+                  >
+                    {pilihan[s.id] ? (
+                      <>
+                        <span
+                          className={`lencana lencana--besar lencana--${pilihan[s.id]}`}
+                        >
+                          {LABEL_STATUS[pilihan[s.id]]}
+                        </span>
+                        <span
+                          style={{ color: "var(--teks-redup)", fontSize: 13 }}
+                        >
+                          Tersimpan
+                        </span>
+                      </>
+                    ) : (
+                      <span
+                        style={{ color: "var(--teks-redup)", fontSize: 13 }}
+                      >
+                        Belum diisi
+                      </span>
+                    )}
+                  </div>
+                ) : (
                 <div
                   style={{ display: "flex", gap: 6 }}
                   role="group"
@@ -466,6 +516,7 @@ function IsiHalamanOlahraga() {
                     );
                   })}
                 </div>
+                )}
               </div>
             ))}
             {santriTampil.length === 0 && (
@@ -473,6 +524,8 @@ function IsiHalamanOlahraga() {
             )}
           </div>
 
+          {!pantauanAdmin && (
+          <>
           <div className="bilah-aksi">
             <button
               type="button"
@@ -523,6 +576,8 @@ function IsiHalamanOlahraga() {
               ? "Tombol Simpan mengirim semua status yang terisi pada sesi ini."
               : `Tombol Simpan mengirim semua status yang terisi pada sesi ini (${jumlahTerisi} santri), termasuk santri di luar filter kelas yang sedang tampil — filter hanya membatasi tampilan, bukan cakupan simpan.`}
           </p>
+          </>
+          )}
           {pesanSimpan && (
             <p className="catatan-kaki" role="status" style={{ marginTop: 10 }}>
               {pesanSimpan}

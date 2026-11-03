@@ -14,11 +14,17 @@
  * Sumber data lewat src/lib/data/hifzh.ts: selama env Supabase belum
  * terisi (Tahap 3), halaman menampilkan DATA CONTOH fiktif dan
  * menandainya dengan jujur lewat penanda di bawah judul.
+ *
+ * Mode pantauan admin (keputusan user 4 Nov 2026): untuk ADMIN,
+ * formulir Setoran dan formulir Ujian (BagianUjian) disembunyikan —
+ * yang tampil tab Riwayat dan catatan mode pantauan; input awal
+ * adalah tugas pengajar hifzh (bolehInput di src/lib/akses.ts).
  */
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import PenandaTahap from "@/components/PenandaTahap";
-import { LABEL_PERAN, PERAN } from "@/lib/peran";
+import { LABEL_PERAN, PERAN, type Peran } from "@/lib/peran";
+import { bolehInput, pesanModePantauan } from "@/lib/akses";
 import { LABEL_NILAI_SETORAN } from "@/lib/hifzh";
 import {
   NAMA_PENYIMAK_CONTOH,
@@ -84,6 +90,7 @@ export default function IsiHalamanHifzh({ tab }: { tab: TabHifzh }) {
   const [sumber, setSumber] = useState<SumberData>("contoh");
   const [memuat, setMemuat] = useState(true);
   const [penggunaMasuk, setPenggunaMasuk] = useState(PENGGUNA_MASUK_CONTOH);
+  const [peranMasuk, setPeranMasuk] = useState<Peran | null>(null);
 
   useEffect(() => {
     let batal = false;
@@ -104,6 +111,7 @@ export default function IsiHalamanHifzh({ tab }: { tab: TabHifzh }) {
               nama: profil.nama,
               labelPeran: LABEL_PERAN[profil.peran],
             });
+            setPeranMasuk(profil.peran);
           }
         }
       })
@@ -114,6 +122,14 @@ export default function IsiHalamanHifzh({ tab }: { tab: TabHifzh }) {
       batal = true;
     };
   }, []);
+
+  /* Mode pantauan admin: hanya pada mode Supabase dan peran admin
+     terkonfirmasi dari profil login — formulir setoran & ujian
+     disembunyikan (input awal tugas pengajar hifzh). */
+  const pantauanAdmin =
+    sumber === "supabase" &&
+    peranMasuk !== null &&
+    !bolehInput(peranMasuk, "hifzh");
 
   return (
     <>
@@ -163,6 +179,15 @@ export default function IsiHalamanHifzh({ tab }: { tab: TabHifzh }) {
         </p>
         {memuat ? (
           <p style={gayaPetunjuk}>Memuat daftar santri…</p>
+        ) : pantauanAdmin ? (
+          <>
+            <p className="catatan-pantauan" role="note">
+              {pesanModePantauan("pengajar hifzh")}
+            </p>
+            <p style={gayaPetunjuk}>
+              Setoran yang sudah tercatat dapat dipantau di tab Riwayat.
+            </p>
+          </>
         ) : (
           <FormSetoran
             daftarSantri={daftarSantri}
@@ -245,6 +270,10 @@ export default function IsiHalamanHifzh({ tab }: { tab: TabHifzh }) {
         </p>
         {memuat ? (
           <p style={gayaPetunjuk}>Memuat daftar santri…</p>
+        ) : pantauanAdmin ? (
+          <p className="catatan-pantauan" role="note">
+            {pesanModePantauan("pengajar hifzh")}
+          </p>
         ) : (
           <BagianUjian daftarSantri={daftarSantri} sumber={sumber} />
         )}

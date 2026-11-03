@@ -15,6 +15,11 @@
  *   pelapor_nama bersifat NOT NULL + diisi pemicu dari akun login.
  * Selama env Supabase belum terisi, profil pelapor adalah profil contoh
  * fiktif (musyrif contoh) dan halaman ini menandainya dengan jelas.
+ *
+ * Mode pantauan admin (keputusan user 4 Nov 2026): untuk ADMIN,
+ * formulir "Tulis catatan" disembunyikan — "Riwayat catatan" tetap
+ * tampil; menulis catatan adalah tugas pengajar & musyrif
+ * (bolehInput di src/lib/akses.ts).
  */
 import {
   useCallback,
@@ -32,6 +37,7 @@ import {
   type WarnaTint,
 } from "@/components/Ikon";
 import { ambilDaftarSantri, type Santri } from "@/lib/data/santri";
+import { bolehInput, pesanModePantauan } from "@/lib/akses";
 import {
   KATEGORI_CATATAN,
   LABEL_KATEGORI,
@@ -156,6 +162,15 @@ function IsiHalamanCatatan() {
 
   /** Pelapor siap bila profil termuat DAN namanya tidak kosong. */
   const pelaporSiap = profil !== null && profil.nama.trim().length > 0;
+
+  /* Mode pantauan admin: hanya mode Supabase dengan peran admin
+     terkonfirmasi dari profil pelapor — formulir tulis disembunyikan,
+     riwayat tetap tampil. Profil contoh adalah musyrif, jadi mode
+     contoh tidak tersentuh. */
+  const pantauanAdmin =
+    !sumberContoh &&
+    profil !== null &&
+    !bolehInput(profil.peran, "catatan");
   const formulirSiap = pelaporSiap && santriId !== "" && isi.trim().length > 0;
   /** Identitas santri terpilih, ditampilkan dekat tombol Simpan. */
   const santriTerpilih = semuaSantri.find((s) => s.id === santriId) ?? null;
@@ -234,6 +249,11 @@ function IsiHalamanCatatan() {
       {/* ------------ Tulis catatan ------------ */}
       <section className="kartu">
         <h2>Tulis catatan</h2>
+        {pantauanAdmin ? (
+          <p className="catatan-pantauan" role="note">
+            {pesanModePantauan("pengajar hifzh, pengajar diniyyah, dan musyrif")}
+          </p>
+        ) : (
         <div className="formulir" style={{ maxWidth: "100%" }}>
           {!pelaporSiap && profil !== null && (
             <p className="catatan-kaki" role="alert">
@@ -331,6 +351,7 @@ function IsiHalamanCatatan() {
             {sedangMenyimpan ? "Menyimpan…" : "Simpan catatan"}
           </button>
         </div>
+        )}
         {pesanGalatForm && (
           <p className="pesan-galat" role="alert" style={{ marginTop: 10 }}>
             {pesanGalatForm}

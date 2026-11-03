@@ -2,17 +2,24 @@
 
 /**
  * Isi Panel Admin (komponen klien) — kelola data induk, KHUSUS
- * admin. Dipecah menjadi tiga tab pada audit Fase 3: Santri ·
- * Semester · Wali. Tab aktif datang dari query URL (?tab=) yang
- * dibaca page.tsx (komponen server) — pola halaman Laporan.
+ * admin. Dipecah menjadi tab pada audit Fase 3 (Santri · Semester ·
+ * Wali) dan ditambah tab Akun pada 4 Nov 2026. Tab aktif datang dari
+ * query URL (?tab=) yang dibaca page.tsx (komponen server) — pola
+ * halaman Laporan.
  * 1) Santri: daftar semua santri per kelas (termasuk nonaktif),
  *    tambah, ubah nama / nama ayah-wali / kelas, aktif/nonaktifkan.
  * 2) Semester: daftar semester lengkap + buat baru. Skema TIDAK
  *    punya kolom penanda aktif — lencana keadaan semester di sini
  *    diturunkan dari rentang tanggalnya (lihat catatan di halaman).
  * 3) Tautan Wali: akun berperan wali dari tabel profiles, santri
- *    yang tertaut kepadanya, tambah & lepas tautan. Akun login wali
- *    sendiri dibuat lewat panel autentikasi Supabase, BUKAN di sini.
+ *    yang tertaut kepadanya, tambah & lepas tautan. Akun wali kini
+ *    dibuat lewat tab Akun di panel ini atau didaftarkan sendiri
+ *    oleh wali di halaman /daftar — bukan lagi panel Supabase.
+ * 4) Akun: pembuatan akun staf (pengajar hifzh/diniyyah, musyrif;
+ *    wali bila perlu) oleh admin lewat route server
+ *    /api/admin/buat-akun (kunci layanan Supabase di env server;
+ *    kata sandi sementara tampil sekali). Bila kunci layanan belum
+ *    dipasang, tab menampilkan pesan fitur belum aktif (501).
  *
  * Gerbang peran: PenjagaModul modul "admin" (src/lib/akses.ts) —
  * hanya admin yang melihat isi halaman ini, termasuk lewat URL
@@ -28,6 +35,9 @@ import PenandaTahap from "@/components/PenandaTahap";
 import KartuGalat from "@/components/KartuGalat";
 import AvatarInisial from "@/components/AvatarInisial";
 import { LingkaranIkon } from "@/components/Ikon";
+import { LABEL_PERAN } from "@/lib/peran";
+import { buatKlienBrowser } from "@/lib/supabase/client";
+import { supabaseTerhubung } from "@/lib/data/santri";
 import {
   ambilProfilSaya,
   type ProfilSaya,
@@ -64,13 +74,23 @@ function formatTanggalSingkat(iso: string): string {
   });
 }
 
-export type TabAdmin = "santri" | "semester" | "wali";
+export type TabAdmin = "santri" | "semester" | "wali" | "akun";
 
 const DAFTAR_TAB_ADMIN: { kunci: TabAdmin; label: string; href: string }[] = [
   { kunci: "santri", label: "Santri", href: "/admin" },
   { kunci: "semester", label: "Semester", href: "/admin?tab=semester" },
   { kunci: "wali", label: "Wali", href: "/admin?tab=wali" },
+  { kunci: "akun", label: "Akun", href: "/admin?tab=akun" },
 ];
+
+/** Peran yang dapat dibuatkan akun oleh admin dari tab Akun. */
+const PERAN_AKUN_BARU = [
+  "pengajar_hifzh",
+  "pengajar_diniyyah",
+  "musyrif",
+  "wali",
+] as const;
+type PeranAkunBaru = (typeof PERAN_AKUN_BARU)[number];
 
 export default function IsiHalamanAdmin({ tab }: { tab: TabAdmin }) {
   const [, setProfil] = useState<ProfilSaya | null>(null);
@@ -109,6 +129,18 @@ export default function IsiHalamanAdmin({ tab }: { tab: TabAdmin }) {
   const [santriPilih, setSantriPilih] = useState("");
   const [pesanTautan, setPesanTautan] = useState<string | null>(null);
   const [sedangSimpanTautan, setSedangSimpanTautan] = useState(false);
+
+  // Formulir buat akun (tab Akun)
+  const [namaAkun, setNamaAkun] = useState("");
+  const [emailAkun, setEmailAkun] = useState("");
+  const [peranAkun, setPeranAkun] = useState<PeranAkunBaru>("pengajar_hifzh");
+  const [pesanAkun, setPesanAkun] = useState<string | null>(null);
+  const [akunBelumAktif, setAkunBelumAktif] = useState(false);
+  const [hasilAkun, setHasilAkun] = useState<{
+    email: string;
+    kataSandiSementara: string;
+  } | null>(null);
+  const [sedangBuatAkun, setSedangBuatAkun] = useState(false);
 
   const muatSemua = useCallback(async () => {
     const [kelasHasil, santriHasil, semesterHasil, waliHasil, tautanHasil] =
@@ -361,6 +393,70 @@ export default function IsiHalamanAdmin({ tab }: { tab: TabAdmin }) {
     }
   }
 
+  /* ---------------- Buat akun pengguna (tab Akun) ---------------- */
+
+  async function tanganiBuatAkun() {
+    setPesanAkun(null);
+    setHasilAkun(null);
+    setAkunBelumAktif(false);
+    if (!supabaseTerhubung()) {
+      setPesanAkun(
+        "Fitur pembuatan akun memerlukan login asli (mode Supabase) dan kunci layanan yang dipasang di server.",
+      );
+      return;
+    }
+    setSedangBuatAkun(true);
+    try {
+      const supabase = buatKlienBrowser();
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
+      if (!session?.access_token) {
+        setPesanAkun(
+          "Sesi admin tidak ditemukan. Masuk kembali, lalu coba lagi.",
+        );
+        return;
+      }
+      const respons = await fetch("/api/admin/buat-akun", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${session.access_token}`,
+        },
+        body: JSON.stringify({
+          nama: namaAkun,
+          email: emailAkun,
+          peran: peranAkun,
+        }),
+      });
+      const data: { error?: unknown; email?: unknown; kataSandiSementara?: unknown } =
+        await respons.json().catch(() => ({}));
+      if (respons.status === 501) {
+        // Kunci layanan belum dipasang di server (langkah manual pemilik).
+        setAkunBelumAktif(true);
+        return;
+      }
+      if (!respons.ok) {
+        setPesanAkun(
+          typeof data.error === "string"
+            ? data.error
+            : "Gagal membuat akun. Coba lagi.",
+        );
+        return;
+      }
+      setHasilAkun({
+        email: String(data.email ?? emailAkun),
+        kataSandiSementara: String(data.kataSandiSementara ?? ""),
+      });
+      setNamaAkun("");
+      setEmailAkun("");
+    } catch {
+      setPesanAkun("Gagal menghubungi server. Coba lagi beberapa saat lagi.");
+    } finally {
+      setSedangBuatAkun(false);
+    }
+  }
+
   return (
     <>
       {sumberContoh && (
@@ -368,7 +464,8 @@ export default function IsiHalamanAdmin({ tab }: { tab: TabAdmin }) {
       )}
       <h1 className="judul-halaman">Panel Admin</h1>
       <p className="subjudul">
-        Kelola santri, semester, dan tautan akun wali ke anaknya.
+        Kelola santri, semester, tautan akun wali ke anaknya, dan
+        pembuatan akun pengguna.
       </p>
 
       {galatMuat && (
@@ -726,15 +823,16 @@ export default function IsiHalamanAdmin({ tab }: { tab: TabAdmin }) {
         <h2>Tautan akun wali</h2>
         <p>
           Wali hanya dapat melihat data santri yang tertaut ke akunnya.
-          Akun login wali dibuat terlebih dahulu lewat panel autentikasi
-          Supabase (Auth) beserta baris profil berperan wali; setelah itu
+          Akun wali dibuat lewat tab Akun di panel ini atau didaftarkan
+          sendiri oleh wali di halaman Daftar; setelah akunnya ada,
           tautkan akunnya ke anaknya di sini.
         </p>
 
         {daftarWali.length === 0 ? (
           <p>
             Belum ada akun berperan wali di tabel profiles. Buat akunnya
-            lewat panel autentikasi Supabase terlebih dahulu.
+            lewat tab Akun terlebih dahulu, atau minta wali mendaftar
+            sendiri di halaman Daftar.
           </p>
         ) : (
           <div style={{ display: "grid", gap: 14 }}>
@@ -870,6 +968,91 @@ export default function IsiHalamanAdmin({ tab }: { tab: TabAdmin }) {
           <p className="catatan-kaki" role="status" style={{ marginTop: 10 }}>
             {pesanTautan}
           </p>
+        )}
+      </section>
+      )}
+
+      {/* ------------ 4) Buat akun pengguna ------------ */}
+      {tab === "akun" && (
+      <section className="kartu">
+        <h2>Buat akun pengguna</h2>
+        <p>
+          Akun pengajar hifzh, pengajar diniyyah, dan musyrif dibuatkan
+          admin di sini (wali juga dapat dibuatkan bila perlu; wali
+          umumnya mendaftar sendiri di halaman Daftar). Sistem membuat
+          kata sandi sementara yang kuat — serahkan langsung ke pemilik
+          akun dan minta ia mengubahnya lewat halaman Akun setelah
+          masuk pertama kali.
+        </p>
+        {akunBelumAktif && (
+          <p className="pesan-galat" role="alert">
+            Fitur belum aktif: kunci layanan Supabase belum dipasang di
+            Cloudflare — langkah manual pemilik.
+          </p>
+        )}
+        <div className="formulir" style={{ maxWidth: "100%" }}>
+          <label>
+            Nama pemilik akun
+            <input
+              type="text"
+              className="masukan"
+              value={namaAkun}
+              onChange={(e) => setNamaAkun(e.target.value)}
+              placeholder="Mis. Ust. Ahmad Fauzi"
+            />
+          </label>
+          <label>
+            Alamat surel
+            <input
+              type="email"
+              className="masukan"
+              value={emailAkun}
+              onChange={(e) => setEmailAkun(e.target.value)}
+              placeholder="nama@contoh.id"
+            />
+          </label>
+          <label>
+            Peran
+            <select
+              className="masukan"
+              value={peranAkun}
+              onChange={(e) => setPeranAkun(e.target.value as PeranAkunBaru)}
+            >
+              {PERAN_AKUN_BARU.map((p) => (
+                <option key={p} value={p}>
+                  {LABEL_PERAN[p]}
+                </option>
+              ))}
+            </select>
+          </label>
+          <button
+            type="button"
+            className="tombol"
+            onClick={tanganiBuatAkun}
+            disabled={sedangBuatAkun || !namaAkun.trim() || !emailAkun.trim()}
+          >
+            {sedangBuatAkun ? "Membuat akun…" : "Buat akun"}
+          </button>
+        </div>
+        {pesanAkun && (
+          <p className="pesan-galat" role="alert" style={{ marginTop: 10 }}>
+            {pesanAkun}
+          </p>
+        )}
+        {hasilAkun && (
+          <div style={{ marginTop: 12 }}>
+            <p className="pesan-sukses" role="status">
+              Akun dibuat untuk <strong>{hasilAkun.email}</strong>.
+              Kata sandi sementara:{" "}
+              <strong>{hasilAkun.kataSandiSementara}</strong>
+            </p>
+            <p className="catatan-kaki" style={{ marginTop: 8 }}>
+              Kata sandi sementara hanya tampil sekali di sini dan
+              tidak disimpan di mana pun. Serahkan langsung ke pemilik
+              akun; setelah masuk, ia dapat mengubahnya di halaman
+              Akun.
+            </p>
+          </div>
         )}
       </section>
       )}

@@ -11,14 +11,20 @@
  * Boleh dibuka semua peran yang login (modul "akun" di peta akses =
  * semua peran); isinya hanya data profil sendiri. MODE CONTOH tidak
  * punya sesi asli, jadi yang tampil kartu penjelasan mode contoh.
+ *
+ * Bagian "Ubah kata sandi" (4 Nov 2026): semua peran yang masuk
+ * dapat mengganti sandinya sendiri lewat supabase.auth.updateUser —
+ * melengkapi alur lupa sandi untuk pengguna yang masih bisa masuk.
  */
-import { useEffect, useState } from "react";
+import { useEffect, useState, type FormEvent } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import PenandaTahap from "@/components/PenandaTahap";
 import PenjagaModul from "@/components/PenjagaModul";
 import AvatarInisial from "@/components/AvatarInisial";
+import KolomSandi from "@/components/KolomSandi";
 import { Ikon } from "@/components/Ikon";
+import { buatKlienBrowser } from "@/lib/supabase/client";
 import { LABEL_PERAN, RINGKASAN_PERAN } from "@/lib/peran";
 import { supabaseTerhubung } from "@/lib/data/santri";
 import {
@@ -42,6 +48,13 @@ function IsiAkun() {
   const [memuat, setMemuat] = useState(!modeContoh);
   const [prosesKeluar, setProsesKeluar] = useState(false);
 
+  // Ubah kata sandi
+  const [sandiBaru, setSandiBaru] = useState("");
+  const [konfirmasiBaru, setKonfirmasiBaru] = useState("");
+  const [pesanSandi, setPesanSandi] = useState<string | null>(null);
+  const [sandiSukses, setSandiSukses] = useState(false);
+  const [prosesSandi, setProsesSandi] = useState(false);
+
   useEffect(() => {
     if (modeContoh) return;
     let aktif = true;
@@ -61,6 +74,47 @@ function IsiAkun() {
     await keluarDariSesi();
     router.replace("/login");
     router.refresh();
+  }
+
+  async function tanganiUbahSandi(acara: FormEvent<HTMLFormElement>) {
+    acara.preventDefault();
+    setPesanSandi(null);
+    setSandiSukses(false);
+    if (sandiBaru.length < 6) {
+      setPesanSandi("Kata sandi baru minimal 6 karakter.");
+      return;
+    }
+    if (sandiBaru !== konfirmasiBaru) {
+      setPesanSandi("Konfirmasi kata sandi tidak sama. Periksa kembali.");
+      return;
+    }
+    setProsesSandi(true);
+    try {
+      const supabase = buatKlienBrowser();
+      const { error } = await supabase.auth.updateUser({
+        password: sandiBaru,
+      });
+      if (error) {
+        setPesanSandi(
+          /different from the old|same as/i.test(error.message)
+            ? "Kata sandi baru harus berbeda dari kata sandi lama."
+            : "Gagal menyimpan kata sandi baru. Coba lagi beberapa saat lagi.",
+        );
+        return;
+      }
+      setSandiBaru("");
+      setKonfirmasiBaru("");
+      setSandiSukses(true);
+      setPesanSandi(
+        "Kata sandi berhasil diubah. Gunakan kata sandi baru untuk masuk berikutnya.",
+      );
+    } catch {
+      setPesanSandi(
+        "Gagal menghubungi layanan. Coba lagi beberapa saat lagi.",
+      );
+    } finally {
+      setProsesSandi(false);
+    }
   }
 
   if (modeContoh) {
@@ -117,6 +171,45 @@ function IsiAkun() {
               akses ini; data yang bukan hak Anda tidak ditampilkan dan
               ditolak langsung oleh database.
             </p>
+          </section>
+
+          <section className="kartu">
+            <h2>Ubah kata sandi</h2>
+            <p>
+              Ganti kata sandi akun Anda. Kata sandi baru berlaku untuk
+              masuk berikutnya di semua perangkat.
+            </p>
+            <form className="formulir" onSubmit={tanganiUbahSandi}>
+              <KolomSandi
+                label="Kata sandi baru"
+                nama="kata-sandi-baru"
+                autoComplete="new-password"
+                nilai={sandiBaru}
+                onUbah={setSandiBaru}
+              />
+              <KolomSandi
+                label="Konfirmasi kata sandi baru"
+                nama="konfirmasi-kata-sandi-baru"
+                autoComplete="new-password"
+                nilai={konfirmasiBaru}
+                onUbah={setKonfirmasiBaru}
+              />
+              {pesanSandi && (
+                <p
+                  className={sandiSukses ? "pesan-sukses" : "pesan-galat"}
+                  role={sandiSukses ? "status" : "alert"}
+                >
+                  {pesanSandi}
+                </p>
+              )}
+              <button
+                type="submit"
+                className="tombol"
+                disabled={prosesSandi}
+              >
+                {prosesSandi ? "Menyimpan…" : "Simpan kata sandi baru"}
+              </button>
+            </form>
           </section>
 
           <button

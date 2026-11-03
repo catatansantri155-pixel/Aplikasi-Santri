@@ -23,13 +23,20 @@
  * - Baris yang statusnya SUDAH tersimpan tampil sebagai lencana
  *   baca-saja untuk non-admin (dan tidak ikut dikirim ulang saat
  *   menyimpan); perubahan status tersimpan hanya lewat revisi admin.
+ *
+ * Mode pantauan admin (keputusan user 4 Nov 2026): untuk ADMIN,
+ * formulir isian massal disembunyikan (baris tampil baca-saja dan
+ * tombol aksi massal hilang, catatan mode pantauan tampil) —
+ * daftar/ringkasan sesi dan formulir REVISI tetap tampil, karena
+ * memantau + mengoreksi memang tugas admin. Gerbangnya bolehInput
+ * di src/lib/akses.ts; mode contoh tidak berubah.
  */
 import { useCallback, useEffect, useMemo, useState } from "react";
 import PenandaTahap from "@/components/PenandaTahap";
 import KartuGalat from "@/components/KartuGalat";
 import PenjagaModul from "@/components/PenjagaModul";
 import AvatarInisial from "@/components/AvatarInisial";
-import { bolehRevisiKehadiran } from "@/lib/akses";
+import { bolehInput, bolehRevisiKehadiran, pesanModePantauan } from "@/lib/akses";
 import {
   hitungKosong,
   hitungTertimpa,
@@ -173,6 +180,15 @@ function IsiHalamanKehadiran() {
 
   // Revisi tetap khusus admin — aturan terpusat di src/lib/akses.ts.
   const adalahAdmin = bolehRevisiKehadiran(profil?.peran);
+
+  /* Mode pantauan admin: admin tidak mengisi kehadiran dari nol
+     (bolehInput); formulir massal disembunyikan, daftar sesi dan
+     revisi tetap tampil. Mode contoh (profil contoh admin) tidak
+     diterapkan — sejalan doktrin peta akses di lib/akses.ts. */
+  const pantauanAdmin =
+    !sumberContoh &&
+    profil !== null &&
+    !bolehInput(profil.peran, "kehadiran");
 
   /** Status yang sudah tersimpan di basis data, per santri. */
   const petaTersimpan = useMemo(
@@ -388,6 +404,11 @@ function IsiHalamanKehadiran() {
           Terisi {jumlahTerisi} dari {santriKelas.length} santri. Status yang
           sudah tersimpan untuk sesi ini terisi otomatis.
         </p>
+        {pantauanAdmin && (
+          <p className="catatan-pantauan" role="note">
+            {pesanModePantauan("pengajar hifzh dan pengajar diniyyah")}
+          </p>
+        )}
         {!adalahAdmin && barisTersimpan.length > 0 && (
           <p className="catatan-kaki" style={{ marginTop: -6 }}>
             Baris bertanda &ldquo;Tersimpan&rdquo; hanya tampil sebagai
@@ -398,8 +419,12 @@ function IsiHalamanKehadiran() {
           {santriKelas.map((s) => {
             // Non-admin: status yang sudah tersimpan di basis data
             // tampil baca-saja (bukan tombol aktif) — audit Fase 1.
+            // Admin (mode pantauan): SEMUA baris baca-saja — yang
+            // belum terisi pun tidak bisa diisi dari sini.
             const statusTersimpan = petaTersimpan.get(s.id);
-            const bacaSaja = !adalahAdmin && statusTersimpan !== undefined;
+            const bacaSaja =
+              pantauanAdmin ||
+              (!adalahAdmin && statusTersimpan !== undefined);
             return (
             <div
               key={s.id}
@@ -425,16 +450,26 @@ function IsiHalamanKehadiran() {
                 <div
                   style={{ display: "flex", alignItems: "center", gap: 8 }}
                 >
-                  <span
-                    className={`lencana lencana--besar lencana--${statusTersimpan}`}
-                  >
-                    {LABEL_STATUS[statusTersimpan as StatusKehadiran]}
-                  </span>
-                  <span
-                    style={{ color: "var(--teks-redup)", fontSize: 13 }}
-                  >
-                    Tersimpan
-                  </span>
+                  {statusTersimpan !== undefined ? (
+                    <>
+                      <span
+                        className={`lencana lencana--besar lencana--${statusTersimpan}`}
+                      >
+                        {LABEL_STATUS[statusTersimpan as StatusKehadiran]}
+                      </span>
+                      <span
+                        style={{ color: "var(--teks-redup)", fontSize: 13 }}
+                      >
+                        Tersimpan
+                      </span>
+                    </>
+                  ) : (
+                    <span
+                      style={{ color: "var(--teks-redup)", fontSize: 13 }}
+                    >
+                      Belum diisi
+                    </span>
+                  )}
                 </div>
               ) : (
               <div style={{ display: "flex", gap: 6 }} role="group" aria-label={`Status kehadiran ${s.nama}`}>
@@ -469,6 +504,7 @@ function IsiHalamanKehadiran() {
           )}
         </div>
 
+        {!pantauanAdmin && (
         <div className="bilah-aksi">
           <button
             type="button"
@@ -515,6 +551,7 @@ function IsiHalamanKehadiran() {
               : "Semua santri kelas ini sudah terisi"}
           </span>
         </div>
+        )}
         {pesanSimpan && (
           <p className="catatan-kaki" role="status" style={{ marginTop: 10 }}>
             {pesanSimpan}
