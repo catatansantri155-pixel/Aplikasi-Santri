@@ -7,9 +7,9 @@
  *
  * ATURAN KERAS yang dijaga halaman ini:
  * - Nama pelapor TERKUNCI dari profil pengguna yang sedang masuk
- *   (diambil lewat lib/data/catatan.ts) dan ditampilkan sebagai kolom
- *   baca-saja — tidak ada isian nama bebas, jadi tidak bisa mencatat
- *   atas nama orang lain.
+ *   (diambil lewat lib/data/catatan.ts) dan ditampilkan sebagai info
+ *   kecil di dekat tombol Simpan (audit Fase 3) — tidak ada isian
+ *   nama bebas, jadi tidak bisa mencatat atas nama orang lain.
  * - Tombol simpan NONAKTIF bila nama pelapor kosong. Lapisan data juga
  *   menolak menyimpan pada keadaan itu, dan di database kolom
  *   pelapor_nama bersifat NOT NULL + diisi pemicu dari akun login.
@@ -19,6 +19,7 @@
 import {
   useCallback,
   useEffect,
+  useMemo,
   useState,
   type CSSProperties,
 } from "react";
@@ -49,19 +50,6 @@ const GAYA_PILIH: CSSProperties = {
   border: "1.5px solid var(--garis)",
   borderRadius: 12,
   background: "var(--permukaan)",
-};
-
-const GAYA_TERKUNCI: CSSProperties = {
-  minHeight: 48,
-  padding: "11px 14px",
-  fontSize: 15,
-  border: "1.5px dashed #bcd3ea",
-  borderRadius: 12,
-  background: "var(--hijau-muda)",
-  color: "var(--hijau-gelap)",
-  fontWeight: 700,
-  display: "flex",
-  alignItems: "center",
 };
 
 const GAYA_AREA_TEKS: CSSProperties = {
@@ -116,8 +104,18 @@ function IsiHalamanCatatan() {
   const [kategori, setKategori] = useState<KategoriCatatan>("akhlaq");
   const [tanggal, setTanggal] = useState<string>(() => tanggalHariIni());
   const [isi, setIsi] = useState("");
-  const [pesanSimpan, setPesanSimpan] = useState<string | null>(null);
+  // Pesan hasil simpan dipisah sukses/gagal agar dibedakan visual
+  // dengan jelas (audit Fase 3): hijau .pesan-sukses, merah .pesan-galat.
+  const [pesanSukses, setPesanSukses] = useState<string | null>(null);
+  const [pesanGalatForm, setPesanGalatForm] = useState<string | null>(null);
   const [sedangMenyimpan, setSedangMenyimpan] = useState(false);
+
+  // Filter riwayat (klien, dari catatan yang sudah termuat)
+  const [filterSantriId, setFilterSantriId] = useState<string>("");
+  const [filterKategori, setFilterKategori] = useState<"" | KategoriCatatan>(
+    "",
+  );
+  const [filterTanggal, setFilterTanggal] = useState<string>("");
 
   const muatCatatan = useCallback(async () => {
     const hasil = await ambilCatatanTerbaru(20);
@@ -163,19 +161,20 @@ function IsiHalamanCatatan() {
   const santriTerpilih = semuaSantri.find((s) => s.id === santriId) ?? null;
 
   async function tanganiSimpan() {
-    setPesanSimpan(null);
+    setPesanSukses(null);
+    setPesanGalatForm(null);
     if (!pelaporSiap) {
-      setPesanSimpan(
+      setPesanGalatForm(
         "Nama pelapor belum terisi dari akun yang masuk; catatan tidak dapat disimpan.",
       );
       return;
     }
     if (!santriId) {
-      setPesanSimpan("Pilih santri dulu.");
+      setPesanGalatForm("Pilih santri dulu.");
       return;
     }
     if (!isi.trim()) {
-      setPesanSimpan("Isi catatan wajib diisi.");
+      setPesanGalatForm("Isi catatan wajib diisi.");
       return;
     }
     setSedangMenyimpan(true);
@@ -186,7 +185,7 @@ function IsiHalamanCatatan() {
         isi,
         tanggal,
       });
-      setPesanSimpan(
+      setPesanSukses(
         `Tersimpan: catatan ${LABEL_KATEGORI[hasil.data.kategori]} untuk ${hasil.data.santriNama}, pelapor ${hasil.data.pelaporNama}.` +
           (hasil.sumberContoh
             ? " (Data contoh — tersimpan sementara, hilang saat halaman dimuat ulang penuh.)"
@@ -195,13 +194,28 @@ function IsiHalamanCatatan() {
       setIsi("");
       await muatCatatan();
     } catch (e: unknown) {
-      setPesanSimpan(
+      setPesanGalatForm(
         e instanceof Error ? e.message : "Gagal menyimpan catatan.",
       );
     } finally {
       setSedangMenyimpan(false);
     }
   }
+
+  /* Riwayat tersaring: filter santri/kategori/tanggal diterapkan di
+     klien atas catatan yang sudah termuat (20 terbaru). */
+  const catatanTampil = useMemo(
+    () =>
+      daftarCatatan.filter(
+        (c) =>
+          (filterSantriId === "" || c.santriId === filterSantriId) &&
+          (filterKategori === "" || c.kategori === filterKategori) &&
+          (filterTanggal === "" || c.tanggal === filterTanggal),
+      ),
+    [daftarCatatan, filterSantriId, filterKategori, filterTanggal],
+  );
+  const filterAktif =
+    filterSantriId !== "" || filterKategori !== "" || filterTanggal !== "";
 
   return (
     <>
@@ -217,16 +231,10 @@ function IsiHalamanCatatan() {
         <KartuGalat pesan={galatMuat} onCobaLagi={() => void muatAwal()} />
       )}
 
-      {/* ------------ Form catatan ------------ */}
+      {/* ------------ Tulis catatan ------------ */}
       <section className="kartu">
-        <h2>Catatan baru</h2>
+        <h2>Tulis catatan</h2>
         <div className="formulir" style={{ maxWidth: "100%" }}>
-          <label>
-            Nama pelapor (terkunci dari akun yang masuk)
-            <span style={GAYA_TERKUNCI} aria-readonly="true">
-              {profil ? profil.nama : "Memuat profil…"}
-            </span>
-          </label>
           {!pelaporSiap && profil !== null && (
             <p className="catatan-kaki" role="alert">
               Nama pelapor kosong pada akun yang masuk, jadi penyimpanan
@@ -308,6 +316,12 @@ function IsiHalamanCatatan() {
               "Pilih santri terlebih dahulu — catatan tidak akan tersimpan sebelum santri dipilih."
             )}
           </p>
+          <p className="catatan-kaki" style={{ margin: 0 }}>
+            Pelapor:{" "}
+            <strong>{profil ? profil.nama : "Memuat profil…"}</strong> —
+            tercatat otomatis dari akun yang masuk dan tidak dapat
+            diganti di formulir ini.
+          </p>
           <button
             type="button"
             className="tombol"
@@ -317,26 +331,92 @@ function IsiHalamanCatatan() {
             {sedangMenyimpan ? "Menyimpan…" : "Simpan catatan"}
           </button>
         </div>
-        <p className="catatan-kaki" style={{ marginTop: 10 }}>
-          Nama pelapor tidak bisa diisi atau diganti di formulir ini —
-          selalu nama akun yang sedang masuk, sesuai aturan bahwa kolom
-          pelapor wajib terisi sebelum catatan disimpan.
-        </p>
-        {pesanSimpan && (
-          <p className="catatan-kaki" role="status" style={{ marginTop: 6 }}>
-            {pesanSimpan}
+        {pesanGalatForm && (
+          <p className="pesan-galat" role="alert" style={{ marginTop: 10 }}>
+            {pesanGalatForm}
+          </p>
+        )}
+        {pesanSukses && (
+          <p className="pesan-sukses" role="status" style={{ marginTop: 10 }}>
+            {pesanSukses}
           </p>
         )}
       </section>
 
-      {/* ------------ Daftar catatan terbaru ------------ */}
+      {/* ------------ Riwayat catatan ------------ */}
       <section className="kartu">
-        <h2>Catatan terbaru</h2>
+        <h2>Riwayat catatan</h2>
+        <div className="formulir" style={{ maxWidth: "100%", marginBottom: 14 }}>
+          <label>
+            Santri
+            <select
+              value={filterSantriId}
+              onChange={(e) => setFilterSantriId(e.target.value)}
+              style={GAYA_PILIH}
+            >
+              <option value="">Semua santri</option>
+              {semuaSantri.map((s) => (
+                <option key={s.id} value={s.id}>
+                  {s.nama} — Kelas {s.kelasTingkat}
+                </option>
+              ))}
+            </select>
+          </label>
+          <label>
+            Kategori
+            <select
+              value={filterKategori}
+              onChange={(e) =>
+                setFilterKategori(e.target.value as "" | KategoriCatatan)
+              }
+              style={GAYA_PILIH}
+            >
+              <option value="">Semua kategori</option>
+              {KATEGORI_CATATAN.map((k) => (
+                <option key={k} value={k}>
+                  {LABEL_KATEGORI[k]}
+                </option>
+              ))}
+            </select>
+          </label>
+          <label>
+            Tanggal
+            <input
+              type="date"
+              value={filterTanggal}
+              onChange={(e) => setFilterTanggal(e.target.value)}
+            />
+          </label>
+        </div>
+        {daftarCatatan.length > 0 && (
+          <p className="catatan-kaki" style={{ marginTop: 0 }}>
+            Menampilkan {catatanTampil.length} dari {daftarCatatan.length}{" "}
+            catatan terbaru.
+            {filterAktif && (
+              <>
+                {" "}
+                <button
+                  type="button"
+                  className="tombol tombol-kecil tombol-sekunder"
+                  onClick={() => {
+                    setFilterSantriId("");
+                    setFilterKategori("");
+                    setFilterTanggal("");
+                  }}
+                >
+                  Kosongkan filter
+                </button>
+              </>
+            )}
+          </p>
+        )}
         {daftarCatatan.length === 0 ? (
           <p>Belum ada catatan tercatat.</p>
+        ) : catatanTampil.length === 0 ? (
+          <p>Tidak ada catatan yang cocok dengan filter di atas.</p>
         ) : (
           <div style={{ display: "grid", gap: 14 }}>
-            {daftarCatatan.map((c) => {
+            {catatanTampil.map((c) => {
               const ikonKat = IKON_KATEGORI[c.kategori];
               return (
                 <article

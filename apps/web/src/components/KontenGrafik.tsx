@@ -754,6 +754,9 @@ export default function KontenGrafik() {
       {sumberContoh && (
         <PenandaTahap teks="DATA CONTOH · FIKSI — env Supabase belum terisi" />
       )}
+      {/* Kisi grafik: satu kolom di HP, dua kolom pada layar lebar
+          (audit Fase 3, aturan .kisi-grafik di globals.css). */}
+      <div className="kisi-grafik">
       {/* ------------ a. Kehadiran per pekan ------------ */}
       {galatPekanan ? (
         <KartuGalat
@@ -925,6 +928,7 @@ export default function KontenGrafik() {
           )}
         </section>
       )}
+      </div>
     </>
   );
 }

@@ -345,12 +345,22 @@ a {
   /* Blok paling atas sidebar kini IDENTITAS pengguna (avatar +
      nama + peran, menaut ke /akun) — menggantikan blok merek
      aplikasi/pondok (revisi biru). Gayanya memakai kelas
-     .info-pengguna-samping di bagian Info pengguna. */
+     .info-pengguna-samping di bagian Info pengguna. Blok identitas
+     tidak menyusut; yang bergulir hanya area navigasinya. */
+  .sidebar > :not(.nav-samping) {
+    flex-shrink: 0;
+  }
 
   .nav-samping {
     display: flex;
     flex-direction: column;
     gap: 4px;
+    /* Sidebar pendek: area navigasi bergulir sendiri sementara
+       blok identitas di atasnya tetap terlihat (audit Fase 3). */
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+    padding-bottom: 4px;
   }
 
   .sidebar .nav-tautan {
@@ -432,6 +442,10 @@ a {
   display: flex;
   align-items: center;
   gap: 10px;
+  /* Nama panjang tidak boleh melebar keluar layar (audit Fase 3):
+     wadah boleh menyusut dan nama dipotong ellipsis. */
+  min-width: 0;
+  max-width: 100%;
 }
 
 /* Di kepala HP, blok identitas adalah tautan ke halaman Akun
@@ -453,12 +467,15 @@ a.info-pengguna-kepala:hover {
   display: grid;
   line-height: 1.25;
   text-align: left;
+  min-width: 0;
 }
 
 .info-pengguna-kepala .info-pengguna-nama {
   font-size: 13.5px;
   font-weight: 700;
   white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .info-pengguna-kepala .info-pengguna-peran {
@@ -1668,4 +1685,68 @@ textarea.masukan {
 .tabel-bungkus th,
 .tabel-bungkus td {
   overflow-wrap: break-word;
+}
+
+/* ---------- Perapian audit Fase 3 ---------- */
+
+/* Pemberitahuan ringkas yang bisa dibuka-tutup (Diniyyah: rincian
+   konfigurasi belum final). Judulnya satu baris, target sentuh
+   penuh; isi rincian muncul di bawahnya saat dibuka. */
+.rincian {
+  margin-bottom: 14px;
+  padding: 6px 16px 10px;
+  background: var(--permukaan);
+  border-radius: var(--jari);
+  box-shadow: var(--bayang);
+}
+
+.rincian summary {
+  min-height: var(--tinggi-sentuh);
+  display: flex;
+  align-items: center;
+  font-weight: 700;
+  font-size: 14.5px;
+  cursor: pointer;
+}
+
+.rincian summary::marker {
+  color: var(--hijau-kop);
+}
+
+.rincian > div {
+  padding-bottom: 6px;
+}
+
+.rincian p {
+  margin: 0 0 8px;
+  font-size: 14px;
+}
+
+/* Input formulir 16px pada layar kecil: mencegah perbesaran
+   otomatis (auto-zoom) Safari iOS saat kolom disentuh. Berlaku
+   juga untuk input bergaya sebaris (inline) di dalam konten —
+   karena itu selektor elemen dengan !important terbatas pada
+   media ini saja. */
+@media (max-width: 767px) {
+  .konten input,
+  .konten select,
+  .konten textarea,
+  .login-lembar input {
+    font-size: 16px !important;
+  }
+}
+
+/* Tab visual Laporan di layar lebar: enam kartu grafik dua kolom
+   agar tidak memanjang ke bawah (audit Fase 3). */
+@media (min-width: 1024px) {
+  .kisi-grafik {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+    align-items: start;
+  }
+
+  .kisi-grafik > .kartu {
+    margin-bottom: 0;
+  }
 }

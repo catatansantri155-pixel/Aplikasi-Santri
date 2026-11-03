@@ -91,6 +91,16 @@ export default function BagianUjian({
   const hasilLive = hasilUjian(rgN, kkN, kbN);
   const kbKonversiLive = kbKonversi(rgN, kkN, kbN);
 
+  /* Baris juz yang sedang diketik nomornya, bila SUDAH ada untuk
+     santri terpilih (audit Fase 3): tombol berubah menjadi
+     "Perbarui Juz <n>" dan nilai lama ditampilkan, agar pengajar
+     sadar ia memperbarui — bukan menambah baris baru. */
+  const juzInput = keAngka(juz);
+  const barisJuzIni =
+    juzInput >= 1 && juzInput <= 30
+      ? (baris.find((b) => b.juz === juzInput) ?? null)
+      : null;
+
   const ringkasan = useMemo(() => {
     if (baris.length === 0) return null;
     const totalHalaman = baris.reduce((j, b) => j + b.halaman, 0);
@@ -123,6 +133,7 @@ export default function BagianUjian({
       kk: kkN,
       kb: kbN,
     };
+    const memperbarui = baris.some((b) => b.juz === juzN);
     setMengirim(true);
     try {
       const hasilSimpan = await simpanBarisUjian(masukan);
@@ -139,8 +150,10 @@ export default function BagianUjian({
       });
       setPesan(
         hasilSimpan.tersimpanKeDatabase
-          ? `Baris Juz ${juzN} tersimpan ke database.`
-          : `Baris Juz ${juzN} ditambahkan ke tabel di halaman ini sebagai CONTOH (belum masuk database).`,
+          ? `Baris Juz ${juzN} ${memperbarui ? "diperbarui" : "tersimpan"} ke database.`
+          : memperbarui
+            ? `Baris Juz ${juzN} diperbarui pada tabel di halaman ini sebagai CONTOH (belum masuk database).`
+            : `Baris Juz ${juzN} ditambahkan ke tabel di halaman ini sebagai CONTOH (belum masuk database).`,
       );
       setJuz("");
       setHalaman("");
@@ -345,12 +358,26 @@ export default function BagianUjian({
           )}
         </p>
 
+        {barisJuzIni && (
+          <p style={{ ...gayaPetunjuk, margin: 0 }} aria-live="polite">
+            Baris Juz {barisJuzIni.juz} sudah ada untuk santri ini:
+            halaman {barisJuzIni.halaman} · RG {barisJuzIni.rg} · KK{" "}
+            {barisJuzIni.kk} · KB {barisJuzIni.kb} · hasil{" "}
+            {barisJuzIni.hasil} ({LABEL_HASIL_UJIAN[barisJuzIni.hasil]}).
+            Menyimpan akan memperbarui baris tersebut.
+          </p>
+        )}
+
         <button
           type="submit"
           className="tombol"
           disabled={mengirim || !santriTerpilih}
         >
-          {mengirim ? "Menyimpan…" : "Tambah Baris Juz"}
+          {mengirim
+            ? "Menyimpan…"
+            : barisJuzIni
+              ? `Perbarui Juz ${barisJuzIni.juz}`
+              : "Tambah Baris Juz"}
         </button>
       </form>
     </div>

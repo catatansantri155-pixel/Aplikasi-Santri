@@ -15,18 +15,42 @@
  * ke beranda; sesi ada tetapi profil belum disiapkan → pesan khusus)
  * ditangani halaman login sendiri.
  */
-import type { ReactNode } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import { usePathname } from "next/navigation";
 import InfoPengguna from "@/components/InfoPengguna";
 import NavTautan from "@/components/NavTautan";
 import NavBawah from "@/components/NavBawah";
+import { supabaseTerhubung } from "@/lib/data/santri";
+import { ambilProfilLogin } from "@/lib/sesi";
 
 export default function Kerangka({ children }: { children: ReactNode }) {
   const pathname = usePathname();
 
+  /* Beranda (audit Fase 3): blok identitas di kepala HP disembunyikan
+     karena pita sapaan beranda sudah memuat identitas yang sama —
+     identitas tampil dua kali itu mubazir. Kepala hanya ada di HP
+     (di desktop digantikan sidebar). Kepala BARU disembunyikan
+     setelah profil login terkonfirmasi ada: bagi pengunjung yang
+     belum masuk, isi kepala adalah tautan "Masuk" — pintu masuk
+     utama — yang tidak boleh hilang. Mode contoh tidak pernah
+     menyembunyikan (tidak ada sesi; isinya selalu tautan "Masuk"). */
+  const [sudahMasuk, setSudahMasuk] = useState(false);
+  useEffect(() => {
+    if (!supabaseTerhubung() || pathname !== "/") return;
+    let batal = false;
+    ambilProfilLogin().then((p) => {
+      if (!batal) setSudahMasuk(Boolean(p));
+    });
+    return () => {
+      batal = true;
+    };
+  }, [pathname]);
+
   if (pathname === "/login") {
     return <>{children}</>;
   }
+
+  const sembunyikanKepala = pathname === "/" && sudahMasuk;
 
   return (
     <div className="kerangka">
@@ -41,9 +65,11 @@ export default function Kerangka({ children }: { children: ReactNode }) {
       </aside>
 
       <div className="kolom-utama">
-        <header className="kepala">
-          <InfoPengguna varian="kepala" />
-        </header>
+        {!sembunyikanKepala && (
+          <header className="kepala">
+            <InfoPengguna varian="kepala" />
+          </header>
+        )}
 
         <main className="konten" id="konten" tabIndex={-1}>
           {children}

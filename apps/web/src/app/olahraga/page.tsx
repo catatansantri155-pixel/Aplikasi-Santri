@@ -2,11 +2,12 @@
 
 /**
  * Halaman Olahraga.
- * 1) Daftar sesi olahraga (satu sesi per tanggal) berkartu: tanggal &
- *    hari, kegiatan, dan ringkasan jumlah Hadir.
- * 2) Buat sesi baru: pilih tanggal (hari diturunkan otomatis) + isi
- *    kegiatan. Jadwal rutin pondok: AHAD PAGI & KAMIS PAGI — tanggal
- *    lain tetap boleh dipilih.
+ * 1) Buat sesi baru di kepala halaman (audit Fase 3): pilih tanggal
+ *    (hari diturunkan otomatis) + isi kegiatan. Jadwal rutin pondok:
+ *    AHAD PAGI & KAMIS PAGI — tanggal lain tetap boleh dipilih.
+ * 2) Daftar sesi olahraga (satu sesi per tanggal) berkartu: tanggal &
+ *    hari, kegiatan, dan ringkasan jumlah Hadir; urut terbaru dulu,
+ *    tampil 10 pertama dengan tombol "Muat lebih banyak".
  * 3) Kehadiran per sesi: beri status H/S/I/A per santri dan simpan
  *    sekaligus, meniru pola halaman Kehadiran.
  * Selama env Supabase belum terisi, semua berjalan di atas DATA CONTOH
@@ -81,6 +82,8 @@ function IsiHalamanOlahraga() {
   const [sesiId, setSesiId] = useState<string | null>(null);
   const [pilihan, setPilihan] = useState<Record<string, StatusKehadiran>>({});
   const [filterKelas, setFilterKelas] = useState<string>("semua");
+  // Daftar sesi tampil bertahap: 10 pertama, +10 per ketuk (audit Fase 3).
+  const [batasSesi, setBatasSesi] = useState(10);
   const [pesanSimpan, setPesanSimpan] = useState<string | null>(null);
   const [sedangMenyimpan, setSedangMenyimpan] = useState(false);
 
@@ -152,6 +155,16 @@ function IsiHalamanOlahraga() {
     () => daftarSesi.find((s) => s.id === sesiId) ?? null,
     [daftarSesi, sesiId],
   );
+
+  /* Daftar sesi selalu urut tanggal terbaru dulu (audit Fase 3),
+     apa pun urutan dari lapisan data; yang dirender dibatasi
+     batasSesi dan diperluas lewat tombol "Muat lebih banyak". */
+  const sesiTerurut = useMemo(
+    () =>
+      [...daftarSesi].sort((a, b) => b.tanggal.localeCompare(a.tanggal)),
+    [daftarSesi],
+  );
+  const sesiTampil = sesiTerurut.slice(0, batasSesi);
 
   const santriTampil = useMemo(
     () =>
@@ -248,6 +261,62 @@ function IsiHalamanOlahraga() {
         <KartuGalat pesan={galatMuat} onCobaLagi={() => void muatAwal()} />
       )}
 
+      {/* ------------ Buat sesi baru ------------ */}
+      <section className="kartu">
+        <h2>Buat sesi baru</h2>
+        <div className="formulir" style={{ maxWidth: "100%" }}>
+          <label>
+            Tanggal sesi
+            <input
+              type="date"
+              value={tanggalBaru}
+              onChange={(e) => setTanggalBaru(e.target.value)}
+            />
+          </label>
+          {hariBaru && (
+            <p className="catatan-kaki" style={{ margin: 0 }}>
+              Hari: <strong>{hariBaru.label}</strong>
+              {apakahHariOlahragaRutin(tanggalBaru)
+                ? " — sesuai jadwal rutin olahraga (Ahad/Kamis pagi)."
+                : " — di luar jadwal rutin (Ahad/Kamis pagi), tetap boleh dibuat."}
+            </p>
+          )}
+          <label>
+            Kegiatan
+            <input
+              type="text"
+              className="masukan"
+              value={kegiatanBaru}
+              onChange={(e) => setKegiatanBaru(e.target.value)}
+              placeholder="Mis. Senam pagi & lari keliling lapangan"
+            />
+          </label>
+          <label>
+            Catatan (boleh kosong)
+            <input
+              type="text"
+              className="masukan"
+              value={catatanBaru}
+              onChange={(e) => setCatatanBaru(e.target.value)}
+              placeholder="Mis. Lapangan becek, pindah ke aula"
+            />
+          </label>
+          <button
+            type="button"
+            className="tombol"
+            onClick={tanganiBuatSesi}
+            disabled={sedangMembuat}
+          >
+            {sedangMembuat ? "Menyimpan…" : "Buat sesi"}
+          </button>
+        </div>
+        {pesanBuat && (
+          <p className="catatan-kaki" role="status" style={{ marginTop: 10 }}>
+            {pesanBuat}
+          </p>
+        )}
+      </section>
+
       {/* ------------ Daftar sesi ------------ */}
       <section className="kartu">
         <h2>Sesi olahraga</h2>
@@ -256,11 +325,11 @@ function IsiHalamanOlahraga() {
         ) : daftarSesi.length === 0 ? (
           <p>
             Belum ada sesi olahraga. Buat sesi pertama lewat formulir
-            &ldquo;Buat sesi baru&rdquo; di bawah.
+            &ldquo;Buat sesi baru&rdquo; di atas.
           </p>
         ) : (
           <div className="daftar-tumpuk">
-            {daftarSesi.map((s) => {
+            {sesiTampil.map((s) => {
               const terpilih = s.id === sesiId;
               return (
                 <button
@@ -302,6 +371,18 @@ function IsiHalamanOlahraga() {
               );
             })}
           </div>
+        )}
+        {sesiTerurut.length > batasSesi && (
+          <p style={{ marginTop: 12 }}>
+            <button
+              type="button"
+              className="tombol tombol-sekunder"
+              onClick={() => setBatasSesi((b) => b + 10)}
+            >
+              Muat lebih banyak ({sesiTerurut.length - batasSesi} sesi
+              lagi)
+            </button>
+          </p>
         )}
         <p className="catatan-kaki">
           Ketuk satu sesi untuk mengisi atau melihat kehadirannya di
@@ -450,61 +531,6 @@ function IsiHalamanOlahraga() {
         </section>
       )}
 
-      {/* ------------ Buat sesi baru ------------ */}
-      <section className="kartu">
-        <h2>Buat sesi baru</h2>
-        <div className="formulir" style={{ maxWidth: "100%" }}>
-          <label>
-            Tanggal sesi
-            <input
-              type="date"
-              value={tanggalBaru}
-              onChange={(e) => setTanggalBaru(e.target.value)}
-            />
-          </label>
-          {hariBaru && (
-            <p className="catatan-kaki" style={{ margin: 0 }}>
-              Hari: <strong>{hariBaru.label}</strong>
-              {apakahHariOlahragaRutin(tanggalBaru)
-                ? " — sesuai jadwal rutin olahraga (Ahad/Kamis pagi)."
-                : " — di luar jadwal rutin (Ahad/Kamis pagi), tetap boleh dibuat."}
-            </p>
-          )}
-          <label>
-            Kegiatan
-            <input
-              type="text"
-              className="masukan"
-              value={kegiatanBaru}
-              onChange={(e) => setKegiatanBaru(e.target.value)}
-              placeholder="Mis. Senam pagi & lari keliling lapangan"
-            />
-          </label>
-          <label>
-            Catatan (boleh kosong)
-            <input
-              type="text"
-              className="masukan"
-              value={catatanBaru}
-              onChange={(e) => setCatatanBaru(e.target.value)}
-              placeholder="Mis. Lapangan becek, pindah ke aula"
-            />
-          </label>
-          <button
-            type="button"
-            className="tombol"
-            onClick={tanganiBuatSesi}
-            disabled={sedangMembuat}
-          >
-            {sedangMembuat ? "Menyimpan…" : "Buat sesi"}
-          </button>
-        </div>
-        {pesanBuat && (
-          <p className="catatan-kaki" role="status" style={{ marginTop: 10 }}>
-            {pesanBuat}
-          </p>
-        )}
-      </section>
     </>
   );
 }
