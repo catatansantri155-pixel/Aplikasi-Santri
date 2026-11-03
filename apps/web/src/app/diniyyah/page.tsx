@@ -61,9 +61,9 @@ const GAYA_PILIH: CSSProperties = {
 };
 
 const GAYA_SEL: CSSProperties = {
-  padding: "8px 10px",
+  padding: "7px 6px",
   borderBottom: "1px solid var(--garis)",
-  fontSize: 14,
+  fontSize: 13,
   textAlign: "left",
   verticalAlign: "top",
 };
@@ -493,7 +493,7 @@ function IsiHalamanDiniyyah() {
         </p>
         <div className="tabel-bungkus">
           <table
-            style={{ width: "100%", borderCollapse: "collapse", minWidth: 520 }}
+            style={{ width: "100%", borderCollapse: "collapse" }}
           >
             <thead>
               <tr>

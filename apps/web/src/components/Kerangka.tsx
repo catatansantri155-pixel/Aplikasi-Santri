@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
 import InfoPengguna from "@/components/InfoPengguna";
 import NavTautan from "@/components/NavTautan";
+import NavBawah from "@/components/NavBawah";
 import { Ikon } from "@/components/Ikon";
 
 export default function Kerangka({ children }: { children: ReactNode }) {
@@ -43,7 +44,7 @@ export default function Kerangka({ children }: { children: ReactNode }) {
         </main>
 
         <nav className="nav-bawah" aria-label="Navigasi bawah">
-          <NavTautan />
+          <NavBawah />
         </nav>
       </div>
     </div>

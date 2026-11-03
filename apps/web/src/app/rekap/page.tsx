@@ -39,23 +39,24 @@ type ModeGrafik = "mingguan" | "bulanan";
 
 /* Gaya tabel setempat (globals.css belum punya kelas tabel; pola yang
    sama dipakai halaman Hifzh di src/app/hifzh/gaya.ts). */
+/* Tabel MUAT lebar layar (tanpa minWidth & tanpa gulir horizontal —
+   syarat keras arah UI UNPIX); sel dirampingkan agar kolom inti
+   muat di layar sempit dan teks keterangan membungkus. */
 const gayaTabel: CSSProperties = {
   width: "100%",
   borderCollapse: "collapse",
-  fontSize: 14,
-  minWidth: 560,
+  fontSize: 13,
 };
 const gayaSelKepala: CSSProperties = {
   textAlign: "left",
-  padding: "8px 10px",
+  padding: "7px 6px",
   borderBottom: "2px solid var(--garis)",
   color: "var(--teks-redup)",
-  fontSize: 13,
-  whiteSpace: "nowrap",
+  fontSize: 12,
 };
 const gayaSelKepalaAngka: CSSProperties = { ...gayaSelKepala, textAlign: "center" };
 const gayaSel: CSSProperties = {
-  padding: "8px 10px",
+  padding: "7px 6px",
   borderBottom: "1px solid var(--garis)",
   verticalAlign: "top",
 };
@@ -246,7 +247,7 @@ function TabelSantri({ baris }: { baris: RekapSantriInti[] }) {
                 {formatPersen(b.persenHadir)}
                 <div
                   className="bilah"
-                  style={{ marginTop: 5, minWidth: 64 }}
+                  style={{ marginTop: 5, width: "100%" }}
                   role="img"
                   aria-label={`Persentase hadir ${formatPersen(b.persenHadir)}`}
                 >

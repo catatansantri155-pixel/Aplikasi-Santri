@@ -36,7 +36,9 @@ export type KunciModul =
   | "catatan"
   | "rekap"
   | "olahraga"
-  | "admin";
+  | "admin"
+  | "menu"
+  | "akun";
 
 /**
  * Peran yang BOLEH membuka tiap modul (mode Supabase).
@@ -81,6 +83,13 @@ export const PETA_AKSES_MODUL: Record<KunciModul, Peran[]> = {
     PERAN.MUSYRIF,
   ],
   admin: [PERAN.ADMIN],
+  // menu & akun: halaman kerangka untuk pengguna yang SUDAH login
+  // (semua peran). Bukan modul data — isinya tersaring peran lagi
+  // (menu hanya memuat modul yang boleh dibuka peran itu; akun hanya
+  // menampilkan profil sendiri). Anonim tidak sampai ke sini karena
+  // penjaga kerangka mengarahkannya ke /login.
+  menu: [...SEMUA_PERAN],
+  akun: [...SEMUA_PERAN],
 };
 
 /**
@@ -133,5 +142,7 @@ export function modulDariPath(pathname: string): KunciModul | null {
   if (pathname === "/admin" || pathname.startsWith("/admin/")) {
     return "admin";
   }
+  if (pathname === "/menu") return "menu";
+  if (pathname === "/akun") return "akun";
   return null;
 }

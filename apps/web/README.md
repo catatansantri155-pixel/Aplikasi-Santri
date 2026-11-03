@@ -46,6 +46,17 @@ semester (daftar lengkap + buat baru; tabel semester tidak punya
 kolom penanda aktif, jadi keadaan semester diturunkan dari rentang
 tanggalnya), dan tautan akun wali ke santrinya (akun login wali tetap
 dibuat lewat panel autentikasi Supabase, panel ini hanya menautkan).
+Navigasi bawah HP (arah UI UNPIX Mobile) berisi tepat 5 slot:
+Beranda, Santri, slot tengah menonjol (aksi inti peran: Kehadiran
+untuk admin & pengajar, Catatan untuk musyrif, detail anak pertama
+untuk wali), Menu (halaman `/menu`: kisi Fast Menu ikon lingkaran +
+label + keterangan untuk semua modul peran itu), dan Akun (halaman
+`/akun`: profil, hak akses, tombol Keluar). Beranda memakai pita
+sapaan gradien + lembar putih melengkung berisi kisi Fast Menu dan
+ringkasan; halaman login memakai hero gradien berilustrasi
+(`public/ilustrasi-login.png`) dengan formulir di lembar putih.
+Halaman tidak pernah bergeser horizontal: tabel selalu muat lebar
+layar (tanpa gulir horizontal), dan komponen lain dibatasi wadahnya.
 
 ## Sistem desain
 
@@ -105,7 +116,8 @@ npm run dev                  # http://localhost:3000
 ## Struktur
 
 - `src/app/` — rute App Router: dashboard (`/`), `login/`, `santri/`, `santri/[id]/`,
-  `kehadiran/`, `hifzh/`, `diniyyah/`, `catatan/`, `rekap/`, `olahraga/`, `admin/`
+  `kehadiran/`, `hifzh/`, `diniyyah/`, `catatan/`, `rekap/`, `olahraga/`, `admin/`,
+  `menu/`, `akun/`
 - `src/components/` — kerangka tampilan (header, navigasi bawah HP, sidebar tablet/PC)
 - `src/lib/supabase/` — klien Supabase pola `@supabase/ssr` (browser & server)
 - `src/lib/peran.ts` — konstanta peran pengguna dan labelnya

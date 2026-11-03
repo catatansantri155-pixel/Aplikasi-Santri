@@ -26,12 +26,20 @@ import {
   type WarnaTint,
 } from "@/components/Ikon";
 import { bolehAksesModul } from "@/lib/akses";
-import { LABEL_PERAN, RINGKASAN_PERAN, SEMUA_PERAN } from "@/lib/peran";
+import { DAFTAR_MODUL } from "@/lib/modul";
+import {
+  LABEL_PERAN,
+  PERAN,
+  RINGKASAN_PERAN,
+  SEMUA_PERAN,
+} from "@/lib/peran";
 import {
   ambilDaftarSantri,
   supabaseTerhubung,
   type Santri,
 } from "@/lib/data/santri";
+import { ambilDaftarSesi } from "@/lib/data/olahraga";
+import { ambilSemesterAdmin, statusSemester } from "@/lib/data/admin";
 import { ambilProfilLogin, type ProfilLogin } from "@/lib/sesi";
 import {
   ambilRiwayatKehadiranSantri,
@@ -96,93 +104,6 @@ interface RingkasanKehadiranWali {
   persenHadir: number;
 }
 
-/**
- * Tautan modul untuk beranda mode Supabase. Kunci `modul` merujuk ke
- * peta terpusat src/lib/akses.ts: kartu hanya ditampilkan bila peran
- * pengguna yang login berhak membuka modul itu.
- */
-const TAUTAN_MODUL: {
-  href: string;
-  label: string;
-  keterangan: string;
-  modul:
-    | "santri"
-    | "kehadiran"
-    | "hifzh"
-    | "diniyyah"
-    | "catatan"
-    | "rekap"
-    | "olahraga"
-    | "admin";
-  ikon: NamaIkon;
-  warna: WarnaTint;
-}[] = [
-  {
-    href: "/santri",
-    label: "Santri",
-    keterangan: "Daftar santri per kelas.",
-    modul: "santri",
-    ikon: "santri",
-    warna: "hijau",
-  },
-  {
-    href: "/kehadiran",
-    label: "Kehadiran",
-    keterangan: "Isi kehadiran sesi hifzh & diniyyah, revisi khusus admin.",
-    modul: "kehadiran",
-    ikon: "kehadiran",
-    warna: "emas",
-  },
-  {
-    href: "/hifzh",
-    label: "Hifzh",
-    keterangan: "Setoran Buku Hafalan dan tes semester per juz.",
-    modul: "hifzh",
-    ikon: "hifzh",
-    warna: "biru",
-  },
-  {
-    href: "/diniyyah",
-    label: "Diniyyah",
-    keterangan: "Nilai harian dan nilai ujian semester.",
-    modul: "diniyyah",
-    ikon: "diniyyah",
-    warna: "hijau",
-  },
-  {
-    href: "/olahraga",
-    label: "Olahraga",
-    keterangan: "Sesi olahraga Ahad & Kamis pagi dan kehadiran per santri.",
-    modul: "olahraga",
-    ikon: "olahraga",
-    warna: "emas",
-  },
-  {
-    href: "/catatan",
-    label: "Catatan",
-    keterangan: "Catatan keseharian santri oleh pengajar & musyrif.",
-    modul: "catatan",
-    ikon: "catatan",
-    warna: "kuning",
-  },
-  {
-    href: "/rekap",
-    label: "Rekap",
-    keterangan: "Rekap kehadiran pekanan & semesteran serta grafik hifzh.",
-    modul: "rekap",
-    ikon: "rekap",
-    warna: "biru",
-  },
-  {
-    href: "/admin",
-    label: "Panel Admin",
-    keterangan: "Kelola santri, semester, dan tautan akun wali.",
-    modul: "admin",
-    ikon: "perisai",
-    warna: "emas",
-  },
-];
-
 /** Ikon & warna tint kartu peran pada beranda mode contoh. */
 const IKON_PERAN: Record<string, { ikon: NamaIkon; warna: WarnaTint }> = {
   admin: { ikon: "perisai", warna: "emas" },
@@ -202,6 +123,11 @@ export default function HalamanBeranda() {
   const [memuatWali, setMemuatWali] = useState(true);
   const [profilLogin, setProfilLogin] = useState<ProfilLogin | null>(null);
   const [memuatProfil, setMemuatProfil] = useState(!modeContoh);
+  const [ringkasan, setRingkasan] = useState<{
+    jumlahSantri: number;
+    jumlahSesiOlahraga: number | null;
+    semesterBerjalan: string | null;
+  } | null>(null);
 
   // MODE SUPABASE: muat profil pengguna yang login untuk sapaan beranda.
   useEffect(() => {
@@ -217,6 +143,50 @@ export default function HalamanBeranda() {
       aktif = false;
     };
   }, [modeContoh]);
+
+  // Ringkasan beranda dari fungsi data yang SUDAH ada: jumlah santri
+  // (untuk wali = jumlah anaknya, sesuai RLS), jumlah sesi olahraga
+  // (hanya peran yang berhak atas modulnya), dan semester yang sedang
+  // berjalan (diturunkan dari rentang tanggal). Bagian yang gagal
+  // dibaca peran ini dilewati diam-diam — tidak ada data yang dikarang.
+  useEffect(() => {
+    if (modeContoh || !profilLogin) return;
+    let aktif = true;
+    (async () => {
+      const hasil: {
+        jumlahSantri: number;
+        jumlahSesiOlahraga: number | null;
+        semesterBerjalan: string | null;
+      } = { jumlahSantri: 0, jumlahSesiOlahraga: null, semesterBerjalan: null };
+      try {
+        hasil.jumlahSantri = (await ambilDaftarSantri()).data.length;
+      } catch {
+        return;
+      }
+      if (bolehAksesModul(profilLogin.peran, "olahraga")) {
+        try {
+          hasil.jumlahSesiOlahraga = (await ambilDaftarSesi()).data.length;
+        } catch {
+          // Lewati kartu sesi olahraga saja.
+        }
+      }
+      try {
+        const semuaSemester = (await ambilSemesterAdmin()).data;
+        const berjalan = semuaSemester.find(
+          (s) => statusSemester(s) === "berjalan",
+        );
+        hasil.semesterBerjalan = berjalan
+          ? `${berjalan.nama} · ${berjalan.tahunAjaran}`
+          : null;
+      } catch {
+        // Semester tidak terbaca untuk peran ini — lewati kartunya.
+      }
+      if (aktif) setRingkasan(hasil);
+    })();
+    return () => {
+      aktif = false;
+    };
+  }, [modeContoh, profilLogin]);
 
   useEffect(() => {
     // Tampilan wali contoh hanya berjalan pada mode contoh.
@@ -274,71 +244,131 @@ export default function HalamanBeranda() {
     const hijriah = formatTanggalHijriahHariIni();
     return (
       <>
-        {/* Banner personal (Panduan Desain): sapaan + peran + tanggal. */}
-        <section className="banner">
-          <div className="banner-baris">
-            {profilLogin && (
-              <AvatarInisial nama={profilLogin.nama} ukuran="besar" diBanner />
-            )}
-            <div>
-              <p className="banner-sapaan">Assalamu&rsquo;alaikum,</p>
-              <p className="banner-nama">
-                {memuatProfil
-                  ? "Memuat profil…"
-                  : (profilLogin?.nama ?? "Pengguna")}
-              </p>
-              <p className="banner-sub">
-                {profilLogin
-                  ? `${LABEL_PERAN[profilLogin.peran]} · `
-                  : ""}
-                {formatTanggalHariIni()}
-                {hijriah ? ` · ${hijriah} H` : ""}
-              </p>
+        {/* Pita sapaan (arah UI UNPIX): pita gradien hijau kop selebar
+            tepi konten; isi utama berada di lembar putih melengkung
+            yang menimpanya. */}
+        <div className="pita">
+          <section className="banner banner--pita">
+            <div className="banner-baris">
+              {profilLogin && (
+                <AvatarInisial
+                  nama={profilLogin.nama}
+                  ukuran="besar"
+                  diBanner
+                />
+              )}
+              <div>
+                <p className="banner-sapaan">Assalamu&rsquo;alaikum,</p>
+                <p className="banner-nama">
+                  {memuatProfil
+                    ? "Memuat profil…"
+                    : (profilLogin?.nama ?? "Pengguna")}
+                </p>
+                <p className="banner-sub">
+                  {profilLogin
+                    ? `${LABEL_PERAN[profilLogin.peran]} · `
+                    : ""}
+                  {formatTanggalHariIni()}
+                  {hijriah ? ` · ${hijriah} H` : ""}
+                </p>
+              </div>
             </div>
-          </div>
-        </section>
+          </section>
+        </div>
 
-        {!memuatProfil && !profilLogin && (
-          <p className="pesan-galat" role="alert">
-            Profil pengguna belum ditemukan di tabel profiles. Hubungi
-            admin agar akun Anda didaftarkan profil dan perannya.
-          </p>
-        )}
+        <div className="lembar">
+          {!memuatProfil && !profilLogin && (
+            <p className="pesan-galat" role="alert">
+              Profil pengguna belum ditemukan di tabel profiles. Hubungi
+              admin agar akun Anda didaftarkan profil dan perannya.
+            </p>
+          )}
 
-        {profilLogin && (
-          <p className="subjudul">{RINGKASAN_PERAN[profilLogin.peran]}</p>
-        )}
+          {profilLogin && (
+            <p className="subjudul" style={{ marginBottom: 12 }}>
+              {RINGKASAN_PERAN[profilLogin.peran]}
+            </p>
+          )}
 
-        {/* Daftar modul hanya dirender SETELAH profil termuat, disaring
-            per peran dari peta terpusat src/lib/akses.ts — modul
-            terlarang tidak pernah tampil, juga tidak saat memuat. */}
-        {profilLogin && (
-          <>
-            <div className="kepala-seksi">
-              <h2 className="judul-seksi">Modul</h2>
-            </div>
-            <div className="daftar-tumpuk">
-              {TAUTAN_MODUL.filter((modul) =>
-                bolehAksesModul(profilLogin.peran, modul.modul),
-              ).map((modul) => (
-                <Link
-                  key={modul.href}
-                  href={modul.href}
-                  className="baris-daftar"
+          {/* Ringkasan hanya dirender SETELAH profil termuat, dari
+              fungsi lapisan data yang sudah ada. */}
+          {profilLogin && ringkasan && (
+            <div className="kisi-stat">
+              <div className="kartu-stat">
+                <LingkaranIkon nama="santri" warna="hijau" />
+                <span>
+                  <span className="stat-angka">
+                    {ringkasan.jumlahSantri}
+                  </span>
+                  <span className="stat-label">
+                    {profilLogin.peran === PERAN.WALI
+                      ? "Anak terdaftar"
+                      : "Santri terdaftar"}
+                  </span>
+                </span>
+              </div>
+              {ringkasan.jumlahSesiOlahraga !== null && (
+                <div className="kartu-stat">
+                  <LingkaranIkon nama="olahraga" warna="emas" />
+                  <span>
+                    <span className="stat-angka">
+                      {ringkasan.jumlahSesiOlahraga}
+                    </span>
+                    <span className="stat-label">Sesi olahraga</span>
+                  </span>
+                </div>
+              )}
+              {ringkasan.semesterBerjalan && (
+                <div
+                  className="kartu-stat"
+                  style={{ gridColumn: "1 / -1" }}
                 >
-                  <LingkaranIkon nama={modul.ikon} warna={modul.warna} />
-                  <span className="baris-teks">
-                    <span className="baris-judul">{modul.label}</span>
-                    <span className="baris-ket">{modul.keterangan}</span>
+                  <LingkaranIkon nama="kalender" warna="biru" />
+                  <span style={{ minWidth: 0 }}>
+                    <span
+                      className="stat-angka"
+                      style={{ fontSize: 17, overflowWrap: "break-word" }}
+                    >
+                      {ringkasan.semesterBerjalan}
+                    </span>
+                    <span className="stat-label">Semester berjalan</span>
                   </span>
-                  <span className="baris-kanan">
-                    <Ikon nama="chevron-kanan" ukuran={18} />
-                  </span>
-                </Link>
-              ))}
+                </div>
+              )}
             </div>
-          </>
-        )}
+          )}
+
+          {/* Kisi Fast Menu: modul hanya dirender SETELAH profil
+              termuat, disaring per peran dari peta terpusat
+              src/lib/akses.ts — modul terlarang tidak pernah tampil,
+              juga tidak saat memuat. */}
+          {profilLogin && (
+            <>
+              <div className="kepala-seksi" style={{ marginTop: 4 }}>
+                <h2 className="judul-seksi">Modul</h2>
+              </div>
+              <div className="kisi-menu">
+                {DAFTAR_MODUL.filter((modul) =>
+                  bolehAksesModul(profilLogin.peran, modul.modul),
+                ).map((modul) => (
+                  <Link
+                    key={modul.href}
+                    href={modul.href}
+                    className="item-menu"
+                  >
+                    <LingkaranIkon
+                      nama={modul.ikon}
+                      warna={modul.warna}
+                      ukuran={24}
+                      besar
+                    />
+                    <span className="item-menu-label">{modul.label}</span>
+                  </Link>
+                ))}
+              </div>
+            </>
+          )}
+        </div>
       </>
     );
   }

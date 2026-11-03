@@ -119,26 +119,27 @@ export default function InfoPengguna({
     );
   }
 
+  // Sidebar (desktop): ringkasan profil menjadi tautan ke halaman
+  // Akun — profil lengkap, penjelasan hak akses, dan tombol Keluar
+  // kini terpusat di /akun agar kerangka ringkas.
   return (
-    <div className="info-pengguna-samping nav-masuk">
-      <div className="info-pengguna-baris">
+    <Link
+      href="/akun"
+      className="info-pengguna-samping nav-masuk"
+      aria-current={pathname === "/akun" ? "page" : undefined}
+    >
+      <span className="info-pengguna-baris">
         <AvatarInisial nama={profil.nama} ukuran="kecil" />
-        <div>
-          <p className="info-pengguna-nama">{profil.nama}</p>
-          <p className="info-pengguna-peran">{LABEL_PERAN[profil.peran]}</p>
-        </div>
-      </div>
-      <button
-        type="button"
-        className="nav-tautan nav-tombol"
-        onClick={tanganiKeluar}
-        disabled={prosesKeluar}
-      >
-        <span className="nav-ikon" aria-hidden="true">
-          <Ikon nama="keluar" ukuran={20} />
+        <span>
+          <span className="info-pengguna-nama">{profil.nama}</span>
+          <span className="info-pengguna-peran">
+            {LABEL_PERAN[profil.peran]}
+          </span>
         </span>
-        <span>Keluar</span>
-      </button>
-    </div>
+        <span className="info-pengguna-chevron" aria-hidden="true">
+          <Ikon nama="chevron-kanan" ukuran={16} />
+        </span>
+      </span>
+    </Link>
   );
 }

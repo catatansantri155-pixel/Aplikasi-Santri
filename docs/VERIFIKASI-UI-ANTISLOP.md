@@ -122,6 +122,13 @@ lencana status 4,89–7,17:1. Token yang diubah hanya `--teks-redup`:
   hifzh, 2 tabel rekap) kini dibungkus kelas bersama `.tabel-bungkus`
   (gulir horizontal), menyatukan gaya `overflowX: "auto"` sebaris yang
   sebelumnya tersebar; konstanta gaya pembungkus setempat dihapus.
+- **Adendum 3 Nov 2026 (arah UI UNPIX, menggantikan strategi gulir
+  tabel di atas):** atas syarat keras user "tidak ada gulir horizontal",
+  `.tabel-bungkus` tidak lagi memakai `overflow-x: auto` dan seluruh
+  `minWidth` tabel dihapus — tabel kini selalu muat lebar layar dengan
+  sel yang membungkus (font 13px, padding 7px 6px). Rincian dan bukti
+  pemeriksaannya ada di `docs/VERIFIKASI-UI-UNPIX.md`. Catatan lebar
+  tetap di bawah ini adalah keadaan SEBELUM adendum tersebut.
 - Lebar tetap >320px pada sumber hanya `minWidth` tabel di dalam
   pembungkus gulir itu; tidak ada lebar tetap lain yang meluber.
   Kolom konten `max-width: 960px`, formulir `max-width: 420px`,

@@ -13,6 +13,8 @@ import type { ReactNode } from "react";
 
 export type NamaIkon =
   | "beranda"
+  | "menu"
+  | "akun"
   | "santri"
   | "kehadiran"
   | "hifzh"
@@ -42,6 +44,21 @@ const JALUR: Record<NamaIkon, ReactNode> = {
       <path d="M4 11.2 12 4l8 7.2" />
       <path d="M6 9.6V20h12V9.6" />
       <path d="M10 20v-5h4v5" />
+    </>
+  ),
+  menu: (
+    <>
+      <rect x="3.5" y="3.5" width="7" height="7" rx="2" />
+      <rect x="13.5" y="3.5" width="7" height="7" rx="2" />
+      <rect x="3.5" y="13.5" width="7" height="7" rx="2" />
+      <rect x="13.5" y="13.5" width="7" height="7" rx="2" />
+    </>
+  ),
+  akun: (
+    <>
+      <circle cx="12" cy="12" r="9" />
+      <circle cx="12" cy="10" r="3.2" />
+      <path d="M5.8 19.2c1-2.7 3.3-4.1 6.2-4.1s5.2 1.4 6.2 4.1" />
     </>
   ),
   santri: (
@@ -192,18 +209,27 @@ export function Ikon({
 
 export type WarnaTint = "hijau" | "emas" | "biru" | "merah" | "kuning";
 
-/** Ikon di dalam lingkaran tint 40px — pola daftar pada Panduan Desain. */
+/**
+ * Ikon di dalam lingkaran tint — pola daftar pada Panduan Desain.
+ * Ukuran baku 40px; varian `besar` (56px) untuk kisi Fast Menu.
+ */
 export function LingkaranIkon({
   nama,
   warna = "hijau",
   ukuran = 20,
+  besar = false,
 }: {
   nama: NamaIkon;
   warna?: WarnaTint;
   ukuran?: number;
+  besar?: boolean;
 }) {
   return (
-    <span className={`ikon-lingkaran ikon-lingkaran--${warna}`}>
+    <span
+      className={`ikon-lingkaran ikon-lingkaran--${warna}${
+        besar ? " ikon-lingkaran--besar" : ""
+      }`}
+    >
       <Ikon nama={nama} ukuran={ukuran} />
     </span>
   );

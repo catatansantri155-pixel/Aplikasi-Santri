@@ -103,25 +103,26 @@ export function gayaLencanaHasil(hasil: HasilUjian): CSSProperties {
   };
 }
 
+/* Tabel MUAT lebar layar (tanpa minWidth & tanpa gulir horizontal —
+   syarat keras arah UI UNPIX); sel dirampingkan dan kepala kolom
+   boleh membungkus agar 7 kolom juz muat di layar sempit. */
 export const gayaTabel: CSSProperties = {
   width: "100%",
   borderCollapse: "collapse",
-  fontSize: 14,
-  minWidth: 520,
+  fontSize: 13,
 };
 
 export const gayaSelKepala: CSSProperties = {
   textAlign: "left",
-  padding: "8px 10px",
+  padding: "7px 6px",
   borderBottom: "2px solid var(--garis)",
   color: "var(--teks-redup)",
   fontSize: 12,
   fontWeight: 600,
-  whiteSpace: "nowrap",
 };
 
 export const gayaSel: CSSProperties = {
-  padding: "8px 10px",
+  padding: "7px 6px",
   borderBottom: "1px solid var(--garis)",
   verticalAlign: "top",
 };

@@ -73,20 +73,35 @@ export default function HalamanLogin() {
 
   return (
     <div className="login-bungkus">
-      {!modeSupabase && (
-        <PenandaTahap teks="MODE CONTOH · LOGIN ASLI MENUNGGU ENV SUPABASE" />
-      )}
-      <div className="login-kepala">
-        <span className="logo-login">
+      {/* Hero (arah UI UNPIX): pita gradien hijau kop berisi logo,
+          judul, sapaan, dan ilustrasi santri mengaji; formulir masuk
+          berada di lembar putih melengkung yang menimpa hero. */}
+      <div className="login-hero">
+        <span className="logo-login logo-login--hero">
           <Ikon nama="hifzh" ukuran={38} />
         </span>
         <h1 className="login-judul">Aplikasi Santri</h1>
+        <p className="login-sapaan">
+          Assalamu&rsquo;alaikum, selamat datang
+        </p>
         <p className="login-sub">
           Ponpes Minhajus Sunnah Magelang · Marhalah Wustha
         </p>
+        {/* Ilustrasi datar dua santri mengaji (public/, palet kop). */}
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
+          className="login-ilustrasi"
+          src="/ilustrasi-login.png"
+          alt="Ilustrasi dua santri sedang mengaji bersama"
+          width={1400}
+          height={781}
+        />
       </div>
 
-      <div className="kartu">
+      <div className="login-lembar">
+        {!modeSupabase && (
+          <PenandaTahap teks="MODE CONTOH · LOGIN ASLI MENUNGGU ENV SUPABASE" />
+        )}
         <form className="formulir" onSubmit={tanganiKirim}>
           <label>
             Alamat surel
@@ -123,13 +138,13 @@ export default function HalamanLogin() {
             {mengirim ? "Memproses…" : "Masuk"}
           </button>
         </form>
-      </div>
 
-      <p className="catatan-kaki" style={{ textAlign: "center" }}>
-        Peran pengguna (admin, pengajar hifzh, pengajar diniyyah, musyrif,
-        orang tua) ditentukan dari akun yang terdaftar, bukan dipilih di
-        formulir ini.
-      </p>
+        <p className="catatan-kaki" style={{ textAlign: "center" }}>
+          Peran pengguna (admin, pengajar hifzh, pengajar diniyyah,
+          musyrif, orang tua) ditentukan dari akun yang terdaftar,
+          bukan dipilih di formulir ini.
+        </p>
+      </div>
     </div>
   );
 }

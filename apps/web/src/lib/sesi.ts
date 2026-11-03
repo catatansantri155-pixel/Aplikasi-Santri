@@ -51,3 +51,18 @@ export async function ambilProfilLogin(): Promise<ProfilLogin | null> {
     email: user.email ?? null,
   };
 }
+
+/**
+ * Akhiri sesi login (Supabase signOut). Dipakai halaman Akun; komponen
+ * InfoPengguna di kerangka memakai mekanisme yang sama. Kegagalan
+ * jaringan diabaikan: pemanggil tetap mengarahkan ke /login dan
+ * penjaga kerangka memeriksa ulang sesi di sana.
+ */
+export async function keluarDariSesi(): Promise<void> {
+  if (!supabaseTerhubung()) return;
+  try {
+    await buatKlienBrowser().auth.signOut();
+  } catch {
+    // Lihat catatan di atas — sesi tampilan tetap dianggap selesai.
+  }
+}

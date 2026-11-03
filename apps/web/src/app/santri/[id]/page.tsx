@@ -152,11 +152,12 @@ const IKON_KATEGORI_CATATAN: Record<
   lainnya: { ikon: "lapisan", warna: "hijau" },
 };
 
-/** Gaya sel tabel ringkasan diniyyah (selaras halaman modul Diniyyah). */
+/** Gaya sel tabel ringkasan diniyyah (selaras halaman modul Diniyyah).
+ *  Dirampingkan agar tabel muat lebar layar tanpa gulir horizontal. */
 const GAYA_SEL: CSSProperties = {
-  padding: "8px 10px",
+  padding: "7px 6px",
   borderBottom: "1px solid var(--garis)",
-  fontSize: 14,
+  fontSize: 13,
   textAlign: "left",
   verticalAlign: "top",
 };
@@ -559,7 +560,6 @@ export default function HalamanDetailSantri({
                 style={{
                   width: "100%",
                   borderCollapse: "collapse",
-                  minWidth: 520,
                 }}
               >
                 <thead>

@@ -69,6 +69,11 @@ html,
 body {
   margin: 0;
   padding: 0;
+  /* Syarat keras user (arah UI UNPIX): halaman TIDAK boleh bergeser
+     horizontal. Komponen diperbaiki agar muat layar (lihat
+     .tabel-bungkus); clip di sini hanya jaring pengaman terakhir —
+     memakai clip, bukan hidden, agar position: sticky tetap bekerja. */
+  overflow-x: clip;
 }
 
 body {
@@ -145,9 +150,9 @@ a {
   min-height: 100dvh;
 }
 
-/* Kepala HP: terang & melayang (kaca), menggantikan palang hijau
-   padat — sapaan personal ada di isi halaman, kepala cukup merek
-   ringkas + info pengguna beravatar. */
+/* Kepala HP: pita warna gradien hijau kop (arah UI UNPIX) berisi
+   merek ringkas + info pengguna beravatar; sapaan personal lengkap
+   ada di pita beranda. */
 .kepala {
   position: sticky;
   top: 0;
@@ -157,23 +162,46 @@ a {
   justify-content: space-between;
   gap: 12px;
   padding: 10px 16px;
-  background: rgba(255, 255, 255, 0.88);
-  backdrop-filter: blur(10px);
-  border-bottom: 1px solid var(--garis);
-  color: var(--teks);
+  background: linear-gradient(
+    135deg,
+    var(--hijau-gelap),
+    var(--hijau-kop)
+  );
+  border-bottom: none;
+  box-shadow: 0 4px 14px rgba(11, 77, 54, 0.18);
+  color: #fff;
 }
 
 .kepala-nama {
   margin: 0;
   font-size: 15px;
   font-weight: 800;
-  color: var(--hijau-gelap);
+  color: #fff;
 }
 
 .kepala-sub {
   margin: 0;
   font-size: 11px;
-  color: var(--teks-redup);
+  color: rgba(255, 255, 255, 0.85);
+}
+
+.kepala .info-pengguna-nama {
+  color: #fff;
+}
+
+.kepala .info-pengguna-peran {
+  color: rgba(255, 255, 255, 0.85);
+}
+
+.kepala .tombol-ikon {
+  background: rgba(255, 255, 255, 0.14);
+  border-color: rgba(255, 255, 255, 0.35);
+  color: #fff;
+}
+
+.kepala .tombol-kecil {
+  background: rgba(255, 255, 255, 0.16);
+  color: #fff;
 }
 
 .konten {
@@ -184,8 +212,9 @@ a {
   padding: 18px 16px 96px; /* ruang untuk navigasi bawah di HP */
 }
 
-/* Navigasi bawah: putih, bayangan ke atas, item aktif hijau penuh
-   dengan penanda emas di tepi atas. */
+/* Navigasi bawah: TEPAT 5 slot (arah UI UNPIX) — Beranda, Santri,
+   slot tengah menonjol, Menu, Akun. Putih, bayangan ke atas, slot
+   aktif hijau dengan penanda emas di tepi atas. */
 .nav-bawah {
   position: fixed;
   right: 0;
@@ -200,25 +229,29 @@ a {
   padding-bottom: env(safe-area-inset-bottom);
 }
 
-.nav-bawah .nav-tautan {
+.nav-slot {
   position: relative;
   flex: 1;
+  min-width: 0;
+  display: flex;
   flex-direction: column;
+  align-items: center;
+  justify-content: center;
   gap: 3px;
   min-height: 58px;
   padding: 7px 2px 5px;
   font-size: 10.5px;
   font-weight: 500;
   color: var(--teks-redup);
-  border-radius: 0;
+  text-decoration: none;
 }
 
-.nav-bawah .nav-tautan--aktif {
+.nav-slot--aktif {
   color: var(--hijau-kop);
   font-weight: 700;
 }
 
-.nav-bawah .nav-tautan--aktif::before {
+.nav-slot--aktif::before {
   content: "";
   position: absolute;
   top: 0;
@@ -228,6 +261,48 @@ a {
   height: 3px;
   border-radius: 0 0 999px 999px;
   background: var(--emas);
+}
+
+/* Slot hampa: penahan geometri 5 slot selama profil belum termuat
+   atau tidak ada sesi (hanya Beranda & Santri yang menjadi tautan). */
+.nav-slot--hampa {
+  pointer-events: none;
+}
+
+/* Slot tengah menonjol: lingkaran gradien hijau terangkat di atas
+   bilah, berisi ikon aksi inti peran (Kehadiran/Catatan/Anak Saya). */
+.nav-slot--tengah {
+  justify-content: flex-end;
+  color: var(--teks-redup);
+}
+
+.nav-tengah-lingkaran {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 54px;
+  height: 54px;
+  margin-top: -30px;
+  border-radius: 50%;
+  border: 3px solid #fff;
+  background: linear-gradient(
+    135deg,
+    var(--hijau-kop),
+    var(--hijau-gelap)
+  );
+  color: #fff;
+  box-shadow: 0 8px 18px rgba(11, 77, 54, 0.35);
+}
+
+.nav-slot--tengah-aktif {
+  color: var(--hijau-kop);
+  font-weight: 700;
+}
+
+.nav-slot--tengah-aktif .nav-tengah-lingkaran {
+  box-shadow:
+    0 0 0 3px var(--emas),
+    0 8px 18px rgba(11, 77, 54, 0.35);
 }
 
 .nav-tautan {
@@ -412,11 +487,39 @@ a {
   gap: 2px;
 }
 
+/* Di sidebar, ringkasan profil adalah tautan ke halaman Akun. */
+a.info-pengguna-samping {
+  color: #fff;
+  text-decoration: none;
+  border-radius: 12px;
+  padding: 6px;
+}
+
+a.info-pengguna-samping:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+
 .info-pengguna-samping .info-pengguna-baris {
   display: flex;
   align-items: center;
   gap: 10px;
   margin-bottom: 6px;
+  width: 100%;
+}
+
+a.info-pengguna-samping .info-pengguna-baris {
+  margin-bottom: 0;
+}
+
+.info-pengguna-samping .info-pengguna-nama,
+.info-pengguna-samping .info-pengguna-peran {
+  display: block;
+}
+
+.info-pengguna-chevron {
+  margin-left: auto;
+  display: inline-flex;
+  opacity: 0.8;
 }
 
 .info-pengguna-samping .info-pengguna-nama {
@@ -518,6 +621,12 @@ a {
   height: 40px;
   border-radius: 50%;
   flex-shrink: 0;
+}
+
+/* Varian besar untuk kisi Fast Menu (beranda & halaman Menu). */
+.ikon-lingkaran--besar {
+  width: 56px;
+  height: 56px;
 }
 
 .ikon-lingkaran--hijau {
@@ -653,6 +762,101 @@ a {
   font-size: 28px;
   font-weight: 800;
   line-height: 1.15;
+}
+
+/* ---------- Pita & lembar (arah UI UNPIX) ---------- */
+
+/* Pita warna selebar tepi area konten (meniadakan padding .konten)
+   di bagian paling atas halaman; isinya banner tanpa radius. */
+.pita {
+  margin: -18px -16px 0;
+}
+
+@media (min-width: 768px) {
+  .pita {
+    margin: -26px -26px 0;
+  }
+}
+
+.banner--pita {
+  margin: 0;
+  padding: 22px 20px 48px;
+  border-radius: 0;
+  box-shadow: none;
+}
+
+/* Lembar putih melengkung besar yang menimpa pita — wadah isi utama
+   halaman di bawah pita (beranda, login). */
+.lembar {
+  position: relative;
+  z-index: 1;
+  margin-top: -26px;
+  padding: 18px 16px 20px;
+  background: var(--permukaan);
+  border-radius: var(--jari-besar);
+  box-shadow: var(--bayang);
+}
+
+/* ---------- Kisi Fast Menu (ikon lingkaran + label) ---------- */
+
+.kisi-menu {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 14px 6px;
+}
+
+/* Varian halaman Menu: ada keterangan satu-dua baris per modul. */
+.kisi-menu--keterangan {
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
+}
+
+@media (min-width: 768px) {
+  .kisi-menu--keterangan {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+.item-menu {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 7px;
+  min-height: var(--tinggi-sentuh);
+  min-width: 0;
+  padding: 10px 4px;
+  border-radius: 18px;
+  color: var(--teks);
+  text-align: center;
+  text-decoration: none;
+}
+
+.item-menu:hover {
+  background: var(--hijau-muda);
+}
+
+.kisi-menu--keterangan .item-menu {
+  padding: 14px 10px;
+  background: var(--permukaan);
+  box-shadow: var(--bayang-halus);
+}
+
+.kisi-menu--keterangan .item-menu:hover {
+  background: var(--hijau-muda);
+}
+
+.item-menu-label {
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1.3;
+  overflow-wrap: break-word;
+}
+
+.item-menu-ket {
+  font-size: 11px;
+  line-height: 1.4;
+  color: var(--teks-redup);
+  overflow-wrap: break-word;
 }
 
 /* ---------- Judul & seksi ---------- */
@@ -820,22 +1024,17 @@ h1.judul-halaman {
 
 .tab-pil {
   display: flex;
+  flex-wrap: wrap;
   gap: 6px;
-  overflow-x: auto;
   padding: 4px;
   margin-bottom: 16px;
-  border-radius: 999px;
+  border-radius: 24px;
   background: var(--permukaan);
   box-shadow: var(--bayang-halus);
-  scrollbar-width: none;
-}
-
-.tab-pil::-webkit-scrollbar {
-  display: none;
 }
 
 .tab-pil button {
-  flex: 1;
+  flex: 1 1 30%;
   min-height: var(--tinggi-sentuh);
   padding: 9px 16px;
   border: none;
@@ -1298,13 +1497,9 @@ textarea.masukan {
 /* ---------- Halaman masuk ---------- */
 
 .login-bungkus {
-  max-width: 400px;
-  margin: 26px auto 0;
-}
-
-.login-kepala {
-  text-align: center;
-  margin-bottom: 18px;
+  max-width: 430px;
+  margin: 8px auto 0;
+  width: 100%;
 }
 
 .logo-login {
@@ -1321,20 +1516,132 @@ textarea.masukan {
     0 0 0 5px rgba(240, 176, 0, 0.35);
 }
 
+/* Hero login: pita gradien hijau kop berornamen (pola banner) berisi
+   logo, judul, sapaan, dan ilustrasi; formulir di lembar di bawahnya. */
+.login-hero {
+  position: relative;
+  overflow: hidden;
+  padding: 24px 20px 22px;
+  border-radius: var(--jari-besar);
+  background: linear-gradient(
+    150deg,
+    var(--hijau-gelap) 0%,
+    var(--hijau-kop) 68%,
+    #0a7a5c 100%
+  );
+  color: #fff;
+  text-align: center;
+  box-shadow: 0 10px 24px rgba(11, 77, 54, 0.22);
+}
+
+.login-hero::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='72' height='72' viewBox='0 0 72 72'%3E%3Cg fill='none' stroke='%23ffffff' stroke-opacity='0.12'%3E%3Crect x='24' y='24' width='24' height='24'/%3E%3Crect x='24' y='24' width='24' height='24' transform='rotate(45 36 36)'/%3E%3C/g%3E%3C/svg%3E");
+  pointer-events: none;
+}
+
+.login-hero::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(
+    circle at 88% -10%,
+    rgba(240, 176, 0, 0.35),
+    transparent 55%
+  );
+  pointer-events: none;
+}
+
+.login-hero > * {
+  position: relative;
+  z-index: 1;
+}
+
+.logo-login--hero {
+  background: rgba(255, 255, 255, 0.16);
+  box-shadow:
+    0 10px 24px rgba(0, 0, 0, 0.18),
+    0 0 0 3px rgba(240, 176, 0, 0.75);
+}
+
 .login-judul {
   margin: 14px 0 2px;
   font-size: 22px;
   font-weight: 800;
 }
 
+.login-sapaan {
+  margin: 4px 0 0;
+  font-size: 15px;
+  font-weight: 700;
+}
+
 .login-sub {
-  margin: 0;
+  margin: 2px 0 0;
   font-size: 13px;
   color: var(--teks-redup);
 }
 
-.login-bungkus .formulir {
+.login-hero .login-sub {
+  color: rgba(255, 255, 255, 0.88);
+}
+
+.login-ilustrasi {
+  display: block;
+  width: 100%;
+  height: auto;
+  margin-top: 16px;
+  border-radius: 16px;
+}
+
+/* Lembar putih melengkung yang menimpa hero, berisi formulir masuk. */
+.login-lembar {
+  position: relative;
+  z-index: 1;
+  margin: -14px 10px 0;
+  padding: 18px 16px 20px;
+  background: var(--permukaan);
+  border-radius: var(--jari-besar);
+  box-shadow: var(--bayang);
+}
+
+.login-lembar .formulir {
   max-width: 100%;
+}
+
+/* ---------- Halaman akun ---------- */
+
+.kartu-akun {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  padding-top: 22px;
+}
+
+.kartu-akun h2 {
+  margin-top: 10px;
+}
+
+.akun-peran {
+  margin: 0;
+  font-weight: 700;
+  color: var(--hijau-gelap);
+}
+
+.akun-email {
+  margin: 2px 0 0;
+  color: var(--teks-redup);
+  overflow-wrap: anywhere;
+}
+
+.tombol-keluar {
+  background: var(--permukaan);
+  color: #9c2b25;
+  border: 1.5px solid #e5a09a;
+  box-shadow: none;
 }
 
 /* ---------- Lain-lain ---------- */
@@ -1344,8 +1651,20 @@ textarea.masukan {
   color: var(--teks-redup);
 }
 
+/* Pembungkus tabel — strategi BARU (arah UI UNPIX, menggantikan
+   gulir horizontal dari masa Anti Slop): tabel TIDAK digulir;
+   lebarnya selalu 100% wadah dan sel membungkus teksnya, dengan
+   font & padding sel dirampingkan di gaya setempat tiap halaman.
+   Syarat keras user: tidak ada gulir horizontal sama sekali. */
 .tabel-bungkus {
-  overflow-x: auto;
-  margin: 0 -4px;
-  -webkit-overflow-scrolling: touch;
+  margin: 0;
+}
+
+.tabel-bungkus table {
+  width: 100%;
+}
+
+.tabel-bungkus th,
+.tabel-bungkus td {
+  overflow-wrap: break-word;
 }
