@@ -18,6 +18,13 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import PenandaTahap from "@/components/PenandaTahap";
+import AvatarInisial from "@/components/AvatarInisial";
+import {
+  Ikon,
+  LingkaranIkon,
+  type NamaIkon,
+  type WarnaTint,
+} from "@/components/Ikon";
 import { bolehAksesModul } from "@/lib/akses";
 import { LABEL_PERAN, RINGKASAN_PERAN, SEMUA_PERAN } from "@/lib/peran";
 import {
@@ -60,6 +67,29 @@ function formatTanggal(iso: string): string {
   });
 }
 
+/** Tanggal hari ini versi Masehi lengkap, untuk banner beranda. */
+function formatTanggalHariIni(): string {
+  return new Date().toLocaleDateString("id-ID", {
+    weekday: "long",
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+  });
+}
+
+/** Tanggal Hijriah hari ini (kalender Islam bawaan Intl); kosong bila gagal. */
+function formatTanggalHijriahHariIni(): string {
+  try {
+    return new Intl.DateTimeFormat("id-ID-u-ca-islamic", {
+      day: "numeric",
+      month: "long",
+      year: "numeric",
+    }).format(new Date());
+  } catch {
+    return "";
+  }
+}
+
 interface RingkasanKehadiranWali {
   hitung: Record<StatusKehadiran, number>;
   total: number;
@@ -71,44 +101,72 @@ interface RingkasanKehadiranWali {
  * peta terpusat src/lib/akses.ts: kartu hanya ditampilkan bila peran
  * pengguna yang login berhak membuka modul itu.
  */
-const TAUTAN_MODUL = [
+const TAUTAN_MODUL: {
+  href: string;
+  label: string;
+  keterangan: string;
+  modul: "santri" | "kehadiran" | "hifzh" | "diniyyah" | "catatan" | "rekap";
+  ikon: NamaIkon;
+  warna: WarnaTint;
+}[] = [
   {
     href: "/santri",
     label: "Santri",
     keterangan: "Daftar santri per kelas.",
     modul: "santri",
+    ikon: "santri",
+    warna: "hijau",
   },
   {
     href: "/kehadiran",
     label: "Kehadiran",
     keterangan: "Isi kehadiran sesi hifzh & diniyyah, revisi khusus admin.",
     modul: "kehadiran",
+    ikon: "kehadiran",
+    warna: "emas",
   },
   {
     href: "/hifzh",
     label: "Hifzh",
     keterangan: "Setoran Buku Hafalan dan tes semester per juz.",
     modul: "hifzh",
+    ikon: "hifzh",
+    warna: "biru",
   },
   {
     href: "/diniyyah",
     label: "Diniyyah",
     keterangan: "Nilai harian dan nilai ujian semester.",
     modul: "diniyyah",
+    ikon: "diniyyah",
+    warna: "hijau",
   },
   {
     href: "/catatan",
     label: "Catatan",
     keterangan: "Catatan keseharian santri oleh pengajar & musyrif.",
     modul: "catatan",
+    ikon: "catatan",
+    warna: "kuning",
   },
   {
     href: "/rekap",
     label: "Rekap",
     keterangan: "Rekap kehadiran pekanan & semesteran serta grafik hifzh.",
     modul: "rekap",
+    ikon: "rekap",
+    warna: "biru",
   },
-] as const;
+];
+
+/** Ikon & warna tint kartu peran pada beranda mode contoh. */
+const IKON_PERAN: Record<string, { ikon: NamaIkon; warna: WarnaTint }> = {
+  admin: { ikon: "perisai", warna: "emas" },
+  pengajar_hifzh: { ikon: "hifzh", warna: "hijau" },
+  pengajar_diniyyah: { ikon: "diniyyah", warna: "biru" },
+  musyrif: { ikon: "pena", warna: "kuning" },
+  wali: { ikon: "hati", warna: "merah" },
+};
 
 export default function HalamanBeranda() {
   const modeContoh = !supabaseTerhubung();
@@ -189,24 +247,39 @@ export default function HalamanBeranda() {
 
   // ===== Beranda MODE SUPABASE: sapaan sesuai profil login =====
   if (!modeContoh) {
+    const hijriah = formatTanggalHijriahHariIni();
     return (
       <>
-        <h1 className="judul-halaman">
-          Selamat datang{profilLogin ? `, ${profilLogin.nama}` : ""}
-        </h1>
-        <p className="subjudul">
-          {memuatProfil ? (
-            "Memuat profil pengguna…"
-          ) : profilLogin ? (
-            <>
-              Anda masuk sebagai{" "}
-              <strong>{LABEL_PERAN[profilLogin.peran]}</strong>. Pilih modul
-              di bawah untuk mulai bekerja.
-            </>
-          ) : (
-            "Profil pengguna belum ditemukan di tabel profiles. Hubungi admin agar akun Anda didaftarkan profil dan perannya."
-          )}
-        </p>
+        {/* Banner personal (Panduan Desain): sapaan + peran + tanggal. */}
+        <section className="banner">
+          <div className="banner-baris">
+            {profilLogin && (
+              <AvatarInisial nama={profilLogin.nama} ukuran="besar" diBanner />
+            )}
+            <div>
+              <p className="banner-sapaan">Assalamu&rsquo;alaikum,</p>
+              <p className="banner-nama">
+                {memuatProfil
+                  ? "Memuat profil…"
+                  : (profilLogin?.nama ?? "Pengguna")}
+              </p>
+              <p className="banner-sub">
+                {profilLogin
+                  ? `${LABEL_PERAN[profilLogin.peran]} · `
+                  : ""}
+                {formatTanggalHariIni()}
+                {hijriah ? ` · ${hijriah} H` : ""}
+              </p>
+            </div>
+          </div>
+        </section>
+
+        {!memuatProfil && !profilLogin && (
+          <p className="pesan-galat" role="alert">
+            Profil pengguna belum ditemukan di tabel profiles. Hubungi
+            admin agar akun Anda didaftarkan profil dan perannya.
+          </p>
+        )}
 
         {profilLogin && (
           <section className="kartu kartu-peran">
@@ -215,21 +288,35 @@ export default function HalamanBeranda() {
           </section>
         )}
 
-        {/* Kartu modul hanya dirender SETELAH profil termuat, disaring
-            per peran dari peta terpusat src/lib/akses.ts — kartu modul
+        {/* Daftar modul hanya dirender SETELAH profil termuat, disaring
+            per peran dari peta terpusat src/lib/akses.ts — modul
             terlarang tidak pernah tampil, juga tidak saat memuat. */}
         {profilLogin && (
-          <div className="kisi-peran">
-            {TAUTAN_MODUL.filter((modul) =>
-              bolehAksesModul(profilLogin.peran, modul.modul),
-            ).map((modul) => (
-              <section key={modul.href} className="kartu kartu-peran">
-                <p className="label-peran">{modul.label}</p>
-                <p>{modul.keterangan}</p>
-                <Link href={modul.href}>Buka modul →</Link>
-              </section>
-            ))}
-          </div>
+          <>
+            <div className="kepala-seksi">
+              <h2 className="judul-seksi">Modul</h2>
+            </div>
+            <div className="daftar-tumpuk">
+              {TAUTAN_MODUL.filter((modul) =>
+                bolehAksesModul(profilLogin.peran, modul.modul),
+              ).map((modul) => (
+                <Link
+                  key={modul.href}
+                  href={modul.href}
+                  className="baris-daftar"
+                >
+                  <LingkaranIkon nama={modul.ikon} warna={modul.warna} />
+                  <span className="baris-teks">
+                    <span className="baris-judul">{modul.label}</span>
+                    <span className="baris-ket">{modul.keterangan}</span>
+                  </span>
+                  <span className="baris-kanan">
+                    <Ikon nama="chevron-kanan" ukuran={18} />
+                  </span>
+                </Link>
+              ))}
+            </div>
+          </>
         )}
       </>
     );
@@ -238,7 +325,16 @@ export default function HalamanBeranda() {
   return (
     <>
       <PenandaTahap />
-      <h1 className="judul-halaman">Selamat datang</h1>
+      <section className="banner">
+        <p className="banner-sapaan">Assalamu&rsquo;alaikum,</p>
+        <p className="banner-nama">Selamat datang di Aplikasi Santri</p>
+        <p className="banner-sub">
+          {formatTanggalHariIni()}
+          {formatTanggalHijriahHariIni()
+            ? ` · ${formatTanggalHijriahHariIni()} H`
+            : ""}
+        </p>
+      </section>
       <p className="subjudul">
         Aplikasi monitoring santri Ponpes Minhajus Sunnah Magelang, Marhalah
         Wustha. Setelah masuk, tampilan akan menyesuaikan peran pengguna.
@@ -248,7 +344,22 @@ export default function HalamanBeranda() {
       <div className="kisi-peran">
         {SEMUA_PERAN.map((peran) => (
           <section key={peran} className="kartu kartu-peran">
-            <p className="label-peran">{LABEL_PERAN[peran]}</p>
+            <div
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: 10,
+                marginBottom: 6,
+              }}
+            >
+              <LingkaranIkon
+                nama={IKON_PERAN[peran].ikon}
+                warna={IKON_PERAN[peran].warna}
+              />
+              <p className="label-peran" style={{ margin: 0 }}>
+                {LABEL_PERAN[peran]}
+              </p>
+            </div>
             <p>{RINGKASAN_PERAN[peran]}</p>
           </section>
         ))}
@@ -284,14 +395,7 @@ export default function HalamanBeranda() {
                       {STATUS_KEHADIRAN.map((s) => (
                         <span
                           key={s}
-                          style={{
-                            padding: "6px 12px",
-                            borderRadius: 999,
-                            fontSize: 13,
-                            fontWeight: 600,
-                            background: "var(--hijau-muda)",
-                            color: "var(--hijau-gelap)",
-                          }}
+                          className={`lencana lencana--besar lencana--${s}`}
                         >
                           {LABEL_STATUS[s]}: {ringkasanWali.hitung[s]}
                         </span>
@@ -310,6 +414,17 @@ export default function HalamanBeranda() {
                       })}
                       %
                     </div>
+                    <div
+                      className="bilah"
+                      style={{ marginTop: 8, maxWidth: 320 }}
+                      role="img"
+                      aria-label={`Persentase hadir ${ringkasanWali.persenHadir}%`}
+                    >
+                      <div
+                        className="bilah-isi"
+                        style={{ width: `${ringkasanWali.persenHadir}%` }}
+                      />
+                    </div>
                   </>
                 ) : (
                   <p>Memuat ringkasan kehadiran…</p>
@@ -321,13 +436,31 @@ export default function HalamanBeranda() {
                   Hifzh terakhir
                 </div>
                 {setoranTerakhirWali ? (
-                  <p style={{ margin: 0 }}>
-                    {setoranTerakhirWali.jenis} · {setoranTerakhirWali.surat}{" "}
-                    ayat {setoranTerakhirWali.ayatDari}–
-                    {setoranTerakhirWali.ayatSampai} ·{" "}
-                    {formatTanggal(setoranTerakhirWali.tanggalMasehi)} ·
-                    Nilai {setoranTerakhirWali.nilaiHuruf} (
-                    {LABEL_NILAI_SETORAN[setoranTerakhirWali.nilaiHuruf]})
+                  <p
+                    style={{
+                      margin: 0,
+                      display: "flex",
+                      alignItems: "center",
+                      gap: 8,
+                      flexWrap: "wrap",
+                    }}
+                  >
+                    <span>
+                      {setoranTerakhirWali.jenis} · {setoranTerakhirWali.surat}{" "}
+                      ayat {setoranTerakhirWali.ayatDari}–
+                      {setoranTerakhirWali.ayatSampai} ·{" "}
+                      {formatTanggal(setoranTerakhirWali.tanggalMasehi)}
+                    </span>
+                    <span
+                      className={`lencana lencana--besar ${
+                        setoranTerakhirWali.nilaiHuruf === "L"
+                          ? "lencana--l"
+                          : "lencana--u"
+                      }`}
+                    >
+                      {setoranTerakhirWali.nilaiHuruf} ·{" "}
+                      {LABEL_NILAI_SETORAN[setoranTerakhirWali.nilaiHuruf]}
+                    </span>
                   </p>
                 ) : (
                   <p style={{ margin: 0 }}>
@@ -354,8 +487,12 @@ export default function HalamanBeranda() {
               </div>
             </div>
             <p style={{ marginTop: 12 }}>
-              <Link href={`/santri/${anakWali.id}`}>
-                Lihat detail anak →
+              <Link
+                href={`/santri/${anakWali.id}`}
+                className="tombol tombol-kecil"
+              >
+                Lihat detail anak
+                <Ikon nama="chevron-kanan" ukuran={15} />
               </Link>
             </p>
           </>

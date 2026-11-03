@@ -15,6 +15,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import PenandaTahap from "@/components/PenandaTahap";
 import PenjagaModul from "@/components/PenjagaModul";
+import AvatarInisial from "@/components/AvatarInisial";
 import { bolehRevisiKehadiran } from "@/lib/akses";
 import { ambilDaftarSantri, type Santri } from "@/lib/data/santri";
 import {
@@ -34,13 +35,6 @@ import {
   type SesiKehadiran,
   type StatusKehadiran,
 } from "@/lib/data/kehadiran";
-
-const GAYA_STATUS: Record<StatusKehadiran, { latar: string; teks: string }> = {
-  hadir: { latar: "#e6f2ec", teks: "#0b4d36" },
-  sakit: { latar: "#fff3d6", teks: "#7a5b00" },
-  izin: { latar: "#e3ecfb", teks: "#1d4e8a" },
-  alpa: { latar: "#fbe7e7", teks: "#8a1f1f" },
-};
 
 function tanggalHariIni(): string {
   const d = new Date();
@@ -259,35 +253,40 @@ function IsiHalamanKehadiran() {
               onChange={(e) => setTanggal(e.target.value)}
             />
           </label>
-          <label>
-            Jenis sesi
-            <select
-              value={sesi}
-              onChange={(e) => setSesi(e.target.value as SesiKehadiran)}
+          <div>
+            <span
               style={{
-                minHeight: "var(--tinggi-sentuh)",
-                padding: "10px 12px",
-                fontSize: 15,
-                border: "1px solid var(--garis)",
-                borderRadius: 10,
+                display: "block",
+                fontSize: 13,
+                fontWeight: 600,
+                marginBottom: 6,
               }}
             >
-              <option value="hifzh">Hifzh</option>
-              <option value="diniyyah">Diniyyah</option>
-            </select>
-          </label>
+              Jenis sesi
+            </span>
+            <div className="segmen" role="group" aria-label="Jenis sesi">
+              <button
+                type="button"
+                aria-pressed={sesi === "hifzh"}
+                onClick={() => setSesi("hifzh")}
+              >
+                Hifzh
+              </button>
+              <button
+                type="button"
+                aria-pressed={sesi === "diniyyah"}
+                onClick={() => setSesi("diniyyah")}
+              >
+                Diniyyah
+              </button>
+            </div>
+          </div>
           <label>
             Slot jadwal
             <select
+              className="masukan"
               value={jadwalId ?? ""}
               onChange={(e) => setJadwalId(e.target.value || null)}
-              style={{
-                minHeight: "var(--tinggi-sentuh)",
-                padding: "10px 12px",
-                fontSize: 15,
-                border: "1px solid var(--garis)",
-                borderRadius: 10,
-              }}
             >
               {daftarJadwal.map((j) => (
                 <option key={j.id} value={j.id}>
@@ -300,15 +299,9 @@ function IsiHalamanKehadiran() {
           <label>
             Kelas
             <select
+              className="masukan"
               value={tingkat}
               onChange={(e) => setTingkat(Number(e.target.value))}
-              style={{
-                minHeight: "var(--tinggi-sentuh)",
-                padding: "10px 12px",
-                fontSize: 15,
-                border: "1px solid var(--garis)",
-                borderRadius: 10,
-              }}
             >
               {[1, 2, 3].map((t) => (
                 <option key={t} value={t}>
@@ -340,41 +333,33 @@ function IsiHalamanKehadiran() {
                 borderBottom: "1px solid var(--garis)",
               }}
             >
-              <div>
-                <div style={{ fontWeight: 700 }}>{s.nama}</div>
-                <div style={{ color: "var(--teks-redup)", fontSize: 13 }}>
-                  Ayah/Wali: {s.namaAyahWali}
+              <div
+                style={{ display: "flex", alignItems: "center", gap: 10 }}
+              >
+                <AvatarInisial nama={s.nama} ukuran="kecil" />
+                <div>
+                  <div style={{ fontWeight: 700 }}>{s.nama}</div>
+                  <div style={{ color: "var(--teks-redup)", fontSize: 13 }}>
+                    Ayah/Wali: {s.namaAyahWali}
+                  </div>
                 </div>
               </div>
               <div style={{ display: "flex", gap: 6 }} role="group" aria-label={`Status kehadiran ${s.nama}`}>
                 {STATUS_KEHADIRAN.map((st) => {
                   const terpilih = pilihan[s.id] === st;
-                  const gaya = GAYA_STATUS[st];
                   return (
                     <button
                       key={st}
                       type="button"
+                      className={`pil-status pil-status--${st}`}
                       aria-pressed={terpilih}
                       title={LABEL_STATUS[st]}
                       onClick={() =>
                         setPilihan((lama) => ({ ...lama, [s.id]: st }))
                       }
-                      style={{
-                        flex: 1,
-                        minHeight: "var(--tinggi-sentuh)",
-                        borderRadius: 10,
-                        border: terpilih
-                          ? `2px solid ${gaya.teks}`
-                          : "1px solid var(--garis)",
-                        background: terpilih ? gaya.latar : "#fff",
-                        color: gaya.teks,
-                        fontWeight: 700,
-                        fontSize: 15,
-                        cursor: "pointer",
-                      }}
                     >
                       {SINGKATAN_STATUS[st]}
-                      <span style={{ display: "block", fontSize: 11, fontWeight: 600 }}>
+                      <span className="pil-status-label">
                         {LABEL_STATUS[st]}
                       </span>
                     </button>
@@ -388,10 +373,10 @@ function IsiHalamanKehadiran() {
           )}
         </div>
 
-        <div style={{ display: "flex", flexWrap: "wrap", gap: 8, marginTop: 14 }}>
+        <div className="bilah-aksi">
           <button
             type="button"
-            className="tombol tombol-kecil"
+            className="tombol tombol-sekunder"
             onClick={() =>
               setPilihan((lama) => {
                 const baru = { ...lama };
@@ -404,7 +389,7 @@ function IsiHalamanKehadiran() {
           </button>
           <button
             type="button"
-            className="tombol"
+            className="tombol tombol-besar"
             onClick={tanganiSimpan}
             disabled={sedangMenyimpan}
           >
@@ -420,7 +405,7 @@ function IsiHalamanKehadiran() {
 
       {/* ------------ Revisi — KHUSUS ADMIN ------------ */}
       {adalahAdmin ? (
-        <section className="kartu">
+        <section className="kartu kartu--aksen-emas">
           <h2>Revisi kehadiran (khusus Admin Utama)</h2>
           <p>
             Status yang sudah tersimpan hanya bisa diubah lewat revisi ini.
@@ -430,15 +415,9 @@ function IsiHalamanKehadiran() {
             <label>
               Baris kehadiran pada sesi terpilih
               <select
+                className="masukan"
                 value={revisiId}
                 onChange={(e) => setRevisiId(e.target.value)}
-                style={{
-                  minHeight: "var(--tinggi-sentuh)",
-                  padding: "10px 12px",
-                  fontSize: 15,
-                  border: "1px solid var(--garis)",
-                  borderRadius: 10,
-                }}
               >
                 {barisTersimpan.length === 0 && (
                   <option value="">Belum ada baris tersimpan pada sesi ini</option>
@@ -453,15 +432,9 @@ function IsiHalamanKehadiran() {
             <label>
               Status baru
               <select
+                className="masukan"
                 value={revisiStatus}
                 onChange={(e) => setRevisiStatus(e.target.value as StatusKehadiran)}
-                style={{
-                  minHeight: "var(--tinggi-sentuh)",
-                  padding: "10px 12px",
-                  fontSize: 15,
-                  border: "1px solid var(--garis)",
-                  borderRadius: 10,
-                }}
               >
                 {STATUS_KEHADIRAN.map((st) => (
                   <option key={st} value={st}>
@@ -473,18 +446,12 @@ function IsiHalamanKehadiran() {
             <label>
               Alasan revisi (wajib)
               <textarea
+                className="masukan"
                 value={revisiAlasan}
                 onChange={(e) => setRevisiAlasan(e.target.value)}
                 required
                 rows={3}
                 placeholder="Mis. santri ternyata hadir, terlambat masuk kelas…"
-                style={{
-                  padding: "10px 12px",
-                  fontSize: 15,
-                  border: "1px solid var(--garis)",
-                  borderRadius: 10,
-                  fontFamily: "inherit",
-                }}
               />
             </label>
             <button

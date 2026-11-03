@@ -1,18 +1,22 @@
 import type { ReactNode } from "react";
 import InfoPengguna from "@/components/InfoPengguna";
 import NavTautan from "@/components/NavTautan";
+import { Ikon } from "@/components/Ikon";
 
 export default function Kerangka({ children }: { children: ReactNode }) {
   return (
     <div className="kerangka">
       <aside className="sidebar">
         <div className="merek">
-          <p className="merek-nama">Aplikasi Santri</p>
-          <p className="merek-sub">
-            Ponpes Minhajus Sunnah Magelang
-            <br />
-            Marhalah Wustha
-          </p>
+          <span className="merek-logo">
+            <Ikon nama="hifzh" ukuran={22} />
+          </span>
+          <div>
+            <p className="merek-nama">Aplikasi Santri</p>
+            <p className="merek-sub">
+              Ponpes Minhajus Sunnah Magelang · Marhalah Wustha
+            </p>
+          </div>
         </div>
         <nav className="nav-samping" aria-label="Navigasi utama">
           <NavTautan />

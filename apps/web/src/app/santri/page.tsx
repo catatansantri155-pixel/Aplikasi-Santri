@@ -10,6 +10,8 @@
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import PenandaTahap from "@/components/PenandaTahap";
+import AvatarInisial from "@/components/AvatarInisial";
+import { Ikon } from "@/components/Ikon";
 import {
   ambilSantriPerKelas,
   cariSantri,
@@ -69,17 +71,17 @@ export default function HalamanSantri() {
         membuka kehadiran, hifzh, diniyyah, dan catatannya.
       </p>
 
-      <div className="formulir" style={{ maxWidth: "100%", marginBottom: 16 }}>
-        <label>
-          Cari santri
-          <input
-            type="search"
-            value={pencarian}
-            onChange={(e) => setPencarian(e.target.value)}
-            placeholder="Nama santri atau nama ayah/wali…"
-            aria-label="Cari nama santri atau nama ayah wali"
-          />
-        </label>
+      <div className="pencarian" style={{ marginBottom: 16 }}>
+        <span className="pencarian-ikon">
+          <Ikon nama="cari" ukuran={19} />
+        </span>
+        <input
+          type="search"
+          value={pencarian}
+          onChange={(e) => setPencarian(e.target.value)}
+          placeholder="Cari nama santri atau nama ayah/wali…"
+          aria-label="Cari nama santri atau nama ayah wali"
+        />
       </div>
 
       {memuat && <p className="catatan-kaki">Memuat daftar santri…</p>}
@@ -100,32 +102,28 @@ export default function HalamanSantri() {
       )}
 
       {kelompokTampil.map((k) => (
-        <section key={k.kelas.id} style={{ marginBottom: 20 }}>
-          <h2 style={{ fontSize: 16, margin: "0 0 8px" }}>
-            {k.kelas.nama}{" "}
-            <span style={{ color: "var(--teks-redup)", fontWeight: 400 }}>
-              · {k.santri.length} santri
-            </span>
-          </h2>
-          <div style={{ display: "grid", gap: 10 }}>
+        <section key={k.kelas.id}>
+          <div className="kepala-seksi">
+            <h2 className="judul-seksi">{k.kelas.nama}</h2>
+            <span className="catatan-kaki">{k.santri.length} santri</span>
+          </div>
+          <div className="daftar-tumpuk">
             {k.santri.map((s) => (
               <Link
                 key={s.id}
                 href={`/santri/${s.id}`}
-                className="kartu"
-                style={{
-                  display: "block",
-                  marginBottom: 0,
-                  textDecoration: "none",
-                  color: "var(--teks)",
-                }}
+                className="baris-daftar"
               >
-                <span style={{ display: "block", fontWeight: 700 }}>
-                  {s.nama}
+                <AvatarInisial nama={s.nama} ukuran="kecil" />
+                <span className="baris-teks">
+                  <span className="baris-judul">{s.nama}</span>
+                  <span className="baris-ket">
+                    Ayah/Wali: {s.namaAyahWali}
+                    {s.nis ? ` · NIS ${s.nis}` : ""}
+                  </span>
                 </span>
-                <span style={{ display: "block", color: "var(--teks-redup)", fontSize: 14 }}>
-                  Ayah/Wali: {s.namaAyahWali}
-                  {s.nis ? ` · NIS ${s.nis}` : ""}
+                <span className="baris-kanan">
+                  <Ikon nama="chevron-kanan" ukuran={18} />
                 </span>
               </Link>
             ))}

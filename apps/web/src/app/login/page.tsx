@@ -14,6 +14,7 @@
 import { useState, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import PenandaTahap from "@/components/PenandaTahap";
+import { Ikon } from "@/components/Ikon";
 import { buatKlienBrowser } from "@/lib/supabase/client";
 import { supabaseTerhubung } from "@/lib/data/santri";
 
@@ -71,54 +72,64 @@ export default function HalamanLogin() {
   }
 
   return (
-    <>
+    <div className="login-bungkus">
       {!modeSupabase && (
         <PenandaTahap teks="MODE CONTOH · LOGIN ASLI MENUNGGU ENV SUPABASE" />
       )}
-      <h1 className="judul-halaman">Masuk</h1>
-      <p className="subjudul">
-        Masuk dengan akun yang terdaftar. Tampilan dan hak akses akan
-        menyesuaikan peran akun Anda.
-      </p>
+      <div className="login-kepala">
+        <span className="logo-login">
+          <Ikon nama="hifzh" ukuran={38} />
+        </span>
+        <h1 className="login-judul">Aplikasi Santri</h1>
+        <p className="login-sub">
+          Ponpes Minhajus Sunnah Magelang · Marhalah Wustha
+        </p>
+      </div>
 
-      <form className="formulir" onSubmit={tanganiKirim}>
-        <label>
-          Alamat surel
-          <input
-            type="email"
-            name="email"
-            autoComplete="username"
-            required
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-          />
-        </label>
-        <label>
-          Kata sandi
-          <input
-            type="password"
-            name="kata-sandi"
-            autoComplete="current-password"
-            required
-            value={kataSandi}
-            onChange={(e) => setKataSandi(e.target.value)}
-          />
-        </label>
-        {galat && (
-          <p className="pesan-galat" role="alert">
-            {galat}
-          </p>
-        )}
-        <button type="submit" className="tombol" disabled={mengirim}>
-          {mengirim ? "Memproses…" : "Masuk"}
-        </button>
-      </form>
+      <div className="kartu">
+        <form className="formulir" onSubmit={tanganiKirim}>
+          <label>
+            Alamat surel
+            <input
+              type="email"
+              name="email"
+              autoComplete="username"
+              required
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+            />
+          </label>
+          <label>
+            Kata sandi
+            <input
+              type="password"
+              name="kata-sandi"
+              autoComplete="current-password"
+              required
+              value={kataSandi}
+              onChange={(e) => setKataSandi(e.target.value)}
+            />
+          </label>
+          {galat && (
+            <p className="pesan-galat" role="alert">
+              {galat}
+            </p>
+          )}
+          <button
+            type="submit"
+            className="tombol tombol-besar tombol-penuh"
+            disabled={mengirim}
+          >
+            {mengirim ? "Memproses…" : "Masuk"}
+          </button>
+        </form>
+      </div>
 
-      <p className="catatan-kaki">
+      <p className="catatan-kaki" style={{ textAlign: "center" }}>
         Peran pengguna (admin, pengajar hifzh, pengajar diniyyah, musyrif,
         orang tua) ditentukan dari akun yang terdaftar, bukan dipilih di
         formulir ini.
       </p>
-    </>
+    </div>
   );
 }

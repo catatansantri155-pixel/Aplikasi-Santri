@@ -22,6 +22,8 @@ import { buatKlienBrowser } from "@/lib/supabase/client";
 import { supabaseTerhubung } from "@/lib/data/santri";
 import { LABEL_PERAN } from "@/lib/peran";
 import { ambilProfilLogin, type ProfilLogin } from "@/lib/sesi";
+import { Ikon } from "@/components/Ikon";
+import AvatarInisial from "@/components/AvatarInisial";
 
 function TautanMasuk({ varian }: { varian: "samping" | "kepala" }) {
   if (varian === "kepala") {
@@ -34,7 +36,7 @@ function TautanMasuk({ varian }: { varian: "samping" | "kepala" }) {
   return (
     <Link href="/login" className="nav-tautan nav-masuk">
       <span className="nav-ikon" aria-hidden="true">
-        ➜
+        <Ikon nama="masuk" ukuran={20} />
       </span>
       <span>Masuk</span>
     </Link>
@@ -96,14 +98,22 @@ export default function InfoPengguna({
   if (varian === "kepala") {
     return (
       <div className="info-pengguna-kepala">
-        <span className="info-pengguna-nama">{profil.nama}</span>
+        <AvatarInisial nama={profil.nama} ukuran="kecil" />
+        <span className="info-pengguna-teks">
+          <span className="info-pengguna-nama">{profil.nama}</span>
+          <span className="info-pengguna-peran">
+            {LABEL_PERAN[profil.peran]}
+          </span>
+        </span>
         <button
           type="button"
-          className="tombol tombol-kecil"
+          className="tombol-ikon"
           onClick={tanganiKeluar}
           disabled={prosesKeluar}
+          aria-label="Keluar"
+          title="Keluar"
         >
-          Keluar
+          <Ikon nama="keluar" ukuran={19} />
         </button>
       </div>
     );
@@ -111,8 +121,13 @@ export default function InfoPengguna({
 
   return (
     <div className="info-pengguna-samping nav-masuk">
-      <p className="info-pengguna-nama">{profil.nama}</p>
-      <p className="info-pengguna-peran">{LABEL_PERAN[profil.peran]}</p>
+      <div className="info-pengguna-baris">
+        <AvatarInisial nama={profil.nama} ukuran="kecil" />
+        <div>
+          <p className="info-pengguna-nama">{profil.nama}</p>
+          <p className="info-pengguna-peran">{LABEL_PERAN[profil.peran]}</p>
+        </div>
+      </div>
       <button
         type="button"
         className="nav-tautan nav-tombol"
@@ -120,7 +135,7 @@ export default function InfoPengguna({
         disabled={prosesKeluar}
       >
         <span className="nav-ikon" aria-hidden="true">
-          ⎋
+          <Ikon nama="keluar" ukuran={20} />
         </span>
         <span>Keluar</span>
       </button>

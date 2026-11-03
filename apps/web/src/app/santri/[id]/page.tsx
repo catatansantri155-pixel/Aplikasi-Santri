@@ -18,6 +18,13 @@
 import { use, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import PenandaTahap, { KartuPlaceholder } from "@/components/PenandaTahap";
+import AvatarInisial from "@/components/AvatarInisial";
+import {
+  Ikon,
+  LingkaranIkon,
+  type NamaIkon,
+  type WarnaTint,
+} from "@/components/Ikon";
 import { ambilDetailSantri, type Santri } from "@/lib/data/santri";
 import {
   ambilJadwalSesi,
@@ -53,28 +60,10 @@ const TAB: { kunci: KunciTab; label: string }[] = [
   { kunci: "catatan", label: "Catatan" },
 ];
 
-/** Warna lencana status (selaras palet kop + pembeda status). */
-const GAYA_STATUS: Record<StatusKehadiran, { latar: string; teks: string }> = {
-  hadir: { latar: "#e6f2ec", teks: "#0b4d36" },
-  sakit: { latar: "#fff3d6", teks: "#7a5b00" },
-  izin: { latar: "#e3ecfb", teks: "#1d4e8a" },
-  alpa: { latar: "#fbe7e7", teks: "#8a1f1f" },
-};
-
+/** Lencana status kehadiran — kelas bersama .lencana di globals.css. */
 function LencanaStatus({ status }: { status: StatusKehadiran }) {
-  const gaya = GAYA_STATUS[status];
   return (
-    <span
-      style={{
-        display: "inline-block",
-        padding: "2px 10px",
-        borderRadius: 999,
-        fontSize: 12,
-        fontWeight: 700,
-        background: gaya.latar,
-        color: gaya.teks,
-      }}
-    >
+    <span className={`lencana lencana--${status}`}>
       {LABEL_STATUS[status]}
     </span>
   );
@@ -95,52 +84,22 @@ function formatTanggal(iso: string): string {
 /* ------------------------------------------------------------------ */
 
 function LencanaNilai({ nilai }: { nilai: NilaiSetoran }) {
-  const lancar = nilai === "L";
   return (
     <span
-      style={{
-        display: "inline-block",
-        minWidth: 34,
-        textAlign: "center",
-        padding: "2px 10px",
-        borderRadius: 999,
-        fontWeight: 700,
-        fontSize: 13,
-        background: lancar ? "var(--hijau-muda)" : "#fbe9e7",
-        color: lancar ? "var(--hijau-gelap)" : "#8e2f24",
-        border: `1px solid ${lancar ? "var(--hijau-kop)" : "#d08a80"}`,
-      }}
+      className={`lencana lencana--besar ${
+        nilai === "L" ? "lencana--l" : "lencana--u"
+      }`}
     >
       {nilai} · {LABEL_NILAI_SETORAN[nilai]}
     </span>
   );
 }
 
-const GAYA_HASIL: Record<HasilUjian, { latar: string; teks: string; garis: string }> = {
-  M: { latar: "var(--hijau-kop)", teks: "#ffffff", garis: "var(--hijau-kop)" },
-  BS: { latar: "var(--hijau-muda)", teks: "var(--hijau-gelap)", garis: "var(--hijau-kop)" },
-  B: { latar: "#eef4e6", teks: "#3d6212", garis: "var(--hijau-logo)" },
-  C: { latar: "#fdf3d7", teks: "#7a5b00", garis: "var(--emas)" },
-  K: { latar: "#fdeed3", teks: "#8a5312", garis: "#d9930d" },
-  G: { latar: "#fbe9e7", teks: "#8e2f24", garis: "#d08a80" },
-};
-
+/** Lencana hasil ujian — kelas .lencana--hasil-* (M emas → G merah). */
 function LencanaHasil({ hasil }: { hasil: HasilUjian }) {
-  const gaya = GAYA_HASIL[hasil];
   return (
     <span
-      style={{
-        display: "inline-block",
-        minWidth: 40,
-        textAlign: "center",
-        padding: "2px 10px",
-        borderRadius: 999,
-        fontWeight: 700,
-        fontSize: 13,
-        background: gaya.latar,
-        color: gaya.teks,
-        border: `1px solid ${gaya.garis}`,
-      }}
+      className={`lencana lencana--besar lencana--hasil-${hasil.toLowerCase()}`}
     >
       {hasil} · {LABEL_HASIL_UJIAN[hasil]}
     </span>
@@ -166,6 +125,17 @@ const LABEL_KATEGORI_CATATAN: Record<KategoriCatatan, string> = {
   adab: "Adab",
   ibadah_shalat: "Ibadah Shalat",
   lainnya: "Lainnya",
+};
+
+/** Ikon & warna tint per kategori catatan (Panduan Desain). */
+const IKON_KATEGORI_CATATAN: Record<
+  KategoriCatatan,
+  { ikon: NamaIkon; warna: WarnaTint }
+> = {
+  akhlaq: { ikon: "hati", warna: "merah" },
+  adab: { ikon: "bintang", warna: "kuning" },
+  ibadah_shalat: { ikon: "bulan", warna: "biru" },
+  lainnya: { ikon: "lapisan", warna: "hijau" },
 };
 
 interface CatatanContohLokal {
@@ -370,27 +340,40 @@ export default function HalamanDetailSantri({
       {sumberContoh && (
         <PenandaTahap teks="DATA CONTOH · FIKSI — env Supabase belum terisi" />
       )}
-      <p style={{ margin: "0 0 8px" }}>
-        <Link href="/santri">← Daftar Santri</Link>
-      </p>
-      <h1 className="judul-halaman">{santri.nama}</h1>
-      <p className="subjudul">
-        {santri.kelasNama} · Ayah/Wali: {santri.namaAyahWali}
-        {santri.nis ? ` · NIS ${santri.nis}` : ""}
+      <p style={{ margin: "0 0 10px" }}>
+        <Link
+          href="/santri"
+          style={{
+            display: "inline-flex",
+            alignItems: "center",
+            gap: 6,
+            fontWeight: 600,
+            textDecoration: "none",
+          }}
+        >
+          <Ikon nama="panah-kiri" ukuran={17} />
+          Daftar Santri
+        </Link>
       </p>
 
-      {/* Kerangka tab — bisa diklik; isi per tab di bawah. */}
-      <div
-        role="tablist"
-        aria-label="Bagian data santri"
-        style={{
-          display: "flex",
-          gap: 6,
-          overflowX: "auto",
-          marginBottom: 14,
-          borderBottom: "1px solid var(--garis)",
-        }}
-      >
+      {/* Kepala profil kecil bergaya banner (Panduan Desain). */}
+      <section className="banner banner--kecil">
+        <div className="banner-baris">
+          <AvatarInisial nama={santri.nama} ukuran="besar" diBanner />
+          <div>
+            <p className="banner-nama" style={{ fontSize: 19 }}>
+              {santri.nama}
+            </p>
+            <p className="banner-sub">
+              {santri.kelasNama} · Ayah/Wali: {santri.namaAyahWali}
+              {santri.nis ? ` · NIS ${santri.nis}` : ""}
+            </p>
+          </div>
+        </div>
+      </section>
+
+      {/* Kerangka tab pill — bisa diklik; isi per tab di bawah. */}
+      <div role="tablist" aria-label="Bagian data santri" className="tab-pil">
         {TAB.map((t) => {
           const aktifTab = tabAktif === t.kunci;
           return (
@@ -399,20 +382,6 @@ export default function HalamanDetailSantri({
               role="tab"
               aria-selected={aktifTab}
               onClick={() => setTabAktif(t.kunci)}
-              style={{
-                minHeight: "var(--tinggi-sentuh)",
-                padding: "10px 14px",
-                border: "none",
-                borderBottom: aktifTab
-                  ? "3px solid var(--hijau-kop)"
-                  : "3px solid transparent",
-                background: "transparent",
-                color: aktifTab ? "var(--hijau-gelap)" : "var(--teks-redup)",
-                fontSize: 15,
-                fontWeight: aktifTab ? 700 : 500,
-                cursor: "pointer",
-                whiteSpace: "nowrap",
-              }}
             >
               {t.label}
             </button>
@@ -426,17 +395,7 @@ export default function HalamanDetailSantri({
             <h2>Ringkasan kehadiran</h2>
             <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
               {STATUS_KEHADIRAN.map((s) => (
-                <span
-                  key={s}
-                  style={{
-                    padding: "6px 12px",
-                    borderRadius: 999,
-                    fontSize: 13,
-                    fontWeight: 600,
-                    background: GAYA_STATUS[s].latar,
-                    color: GAYA_STATUS[s].teks,
-                  }}
-                >
+                <span key={s} className={`lencana lencana--besar lencana--${s}`}>
                   {LABEL_STATUS[s]}: {ringkasan[s]}
                 </span>
               ))}
@@ -649,30 +608,41 @@ export default function HalamanDetailSantri({
           {catatanContohUntukSantri(santri.id).length === 0 && (
             <p>Belum ada catatan contoh untuk santri ini.</p>
           )}
-          <div style={{ display: "grid", gap: 12 }}>
-            {catatanContohUntukSantri(santri.id).map((c) => (
-              <div key={c.id}>
+          <div style={{ display: "grid", gap: 14 }}>
+            {catatanContohUntukSantri(santri.id).map((c) => {
+              const ikonKat = IKON_KATEGORI_CATATAN[c.kategori];
+              return (
                 <div
-                  style={{
-                    display: "flex",
-                    justifyContent: "space-between",
-                    alignItems: "flex-start",
-                    gap: 10,
-                  }}
+                  key={c.id}
+                  style={{ display: "flex", gap: 12, alignItems: "flex-start" }}
                 >
-                  <div style={{ fontWeight: 600 }}>
-                    {LABEL_KATEGORI_CATATAN[c.kategori]}
+                  <LingkaranIkon nama={ikonKat.ikon} warna={ikonKat.warna} />
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div
+                      style={{
+                        display: "flex",
+                        justifyContent: "space-between",
+                        alignItems: "flex-start",
+                        gap: 10,
+                      }}
+                    >
+                      <div style={{ fontWeight: 600 }}>
+                        {LABEL_KATEGORI_CATATAN[c.kategori]}
+                      </div>
+                      <span
+                        style={{ color: "var(--teks-redup)", fontSize: 13 }}
+                      >
+                        {formatTanggal(c.tanggal)}
+                      </span>
+                    </div>
+                    <p style={{ margin: "4px 0" }}>{c.isi}</p>
+                    <div style={{ color: "var(--teks-redup)", fontSize: 13 }}>
+                      Pelapor: {c.pelaporNama}
+                    </div>
                   </div>
-                  <span style={{ color: "var(--teks-redup)", fontSize: 13 }}>
-                    {formatTanggal(c.tanggal)}
-                  </span>
                 </div>
-                <p style={{ margin: "4px 0" }}>{c.isi}</p>
-                <div style={{ color: "var(--teks-redup)", fontSize: 13 }}>
-                  Pelapor: {c.pelaporNama}
-                </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
           <p className="catatan-kaki" style={{ marginTop: 10 }}>
             Pada aplikasi asli, catatan dibaca dari database dan nama

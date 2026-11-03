@@ -376,19 +376,7 @@ export default function FormSetoran({
         </label>
       </fieldset>
 
-      <div
-        aria-live="polite"
-        style={{
-          display: "flex",
-          alignItems: "center",
-          gap: 12,
-          padding: "10px 14px",
-          border: "1px dashed var(--hijau-kop)",
-          borderRadius: 10,
-          background: "var(--hijau-muda)",
-          flexWrap: "wrap",
-        }}
-      >
+      <div aria-live="polite" className="pratinjau-nilai">
         <span style={{ fontSize: 14, fontWeight: 600 }}>
           6 · Pratinjau Nilai:
         </span>

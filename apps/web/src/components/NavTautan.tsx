@@ -17,6 +17,7 @@
  */
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import {
   bolehAksesModul,
   modulUntukSemuaPeran,
@@ -24,24 +25,26 @@ import {
 } from "@/lib/akses";
 import { supabaseTerhubung } from "@/lib/data/santri";
 import { ambilProfilLogin, type ProfilLogin } from "@/lib/sesi";
+import { Ikon, type NamaIkon } from "@/components/Ikon";
 
 export const TAUTAN_NAV: {
   href: string;
   label: string;
-  ikon: string;
+  ikon: NamaIkon;
   modul: KunciModul;
 }[] = [
-  { href: "/", label: "Beranda", ikon: "⌂", modul: "beranda" },
-  { href: "/santri", label: "Santri", ikon: "☰", modul: "santri" },
-  { href: "/kehadiran", label: "Kehadiran", ikon: "✓", modul: "kehadiran" },
-  { href: "/hifzh", label: "Hifzh", ikon: "۞", modul: "hifzh" },
-  { href: "/diniyyah", label: "Diniyyah", ikon: "✎", modul: "diniyyah" },
-  { href: "/catatan", label: "Catatan", ikon: "✉", modul: "catatan" },
-  { href: "/rekap", label: "Rekap", ikon: "▦", modul: "rekap" },
+  { href: "/", label: "Beranda", ikon: "beranda", modul: "beranda" },
+  { href: "/santri", label: "Santri", ikon: "santri", modul: "santri" },
+  { href: "/kehadiran", label: "Kehadiran", ikon: "kehadiran", modul: "kehadiran" },
+  { href: "/hifzh", label: "Hifzh", ikon: "hifzh", modul: "hifzh" },
+  { href: "/diniyyah", label: "Diniyyah", ikon: "diniyyah", modul: "diniyyah" },
+  { href: "/catatan", label: "Catatan", ikon: "catatan", modul: "catatan" },
+  { href: "/rekap", label: "Rekap", ikon: "rekap", modul: "rekap" },
 ];
 
 export default function NavTautan() {
   const modeContoh = !supabaseTerhubung();
+  const pathname = usePathname();
   const [profil, setProfil] = useState<ProfilLogin | null>(null);
   const [cekSelesai, setCekSelesai] = useState(modeContoh);
 
@@ -70,14 +73,28 @@ export default function NavTautan() {
 
   return (
     <>
-      {tautanTampil.map((tautan) => (
-        <Link key={tautan.href} href={tautan.href} className="nav-tautan">
-          <span className="nav-ikon" aria-hidden="true">
-            {tautan.ikon}
-          </span>
-          <span>{tautan.label}</span>
-        </Link>
-      ))}
+      {tautanTampil.map((tautan) => {
+        // State aktif (tampilan saja): beranda hanya pada "/" persis,
+        // modul lain aktif juga pada halaman turunannya.
+        const aktif =
+          tautan.href === "/"
+            ? pathname === "/"
+            : pathname === tautan.href ||
+              pathname.startsWith(`${tautan.href}/`);
+        return (
+          <Link
+            key={tautan.href}
+            href={tautan.href}
+            className={`nav-tautan${aktif ? " nav-tautan--aktif" : ""}`}
+            aria-current={aktif ? "page" : undefined}
+          >
+            <span className="nav-ikon" aria-hidden="true">
+              <Ikon nama={tautan.ikon} ukuran={21} />
+            </span>
+            <span>{tautan.label}</span>
+          </Link>
+        );
+      })}
     </>
   );
 }

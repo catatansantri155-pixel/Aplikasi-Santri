@@ -460,6 +460,9 @@ export interface NilaiUjianBaru {
 /**
  * Simpan satu nilai ujian semester (gasal/genap). Upsert pada kunci unik
  * (santri, semester, mapel). Pengisi selalu pengguna yang login.
+ * Mode Supabase: semesterId wajib menunjuk baris semester yang sudah ada
+ * (dibuat admin); bila tidak ada, fungsi melempar pesan jelas dan tidak
+ * menyimpan apa pun.
  */
 export async function simpanNilaiUjian(
   masukan: NilaiUjianBaru,
@@ -494,6 +497,23 @@ export async function simpanNilaiUjian(
 
   const supabase = buatKlienBrowser();
   const pengisiId = await idPengisiAktif();
+  // Semester wajib baris yang BENAR-BENAR ada di database — jangan
+  // mengarang semester di klien. Bila daftar semester masih kosong /
+  // id tidak ditemukan, pesannya jelas: semester dibuat oleh admin
+  // (lewat data semester), bukan dari form nilai ini.
+  const { data: barisSemester, error: galatSemester } = await supabase
+    .from("semester")
+    .select("id")
+    .eq("id", masukan.semesterId)
+    .maybeSingle();
+  if (galatSemester) {
+    throw new Error(`Gagal memeriksa semester: ${galatSemester.message}`);
+  }
+  if (!barisSemester) {
+    throw new Error(
+      "Semester belum dibuat admin: belum ada data semester yang bisa dipilih untuk nilai ujian.",
+    );
+  }
   const { data, error } = await supabase
     .from("diniyyah_ujian")
     .upsert(

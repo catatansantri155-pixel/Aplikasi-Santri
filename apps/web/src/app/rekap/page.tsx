@@ -55,16 +55,6 @@ const gayaSel: CSSProperties = {
   verticalAlign: "top",
 };
 const gayaSelAngka: CSSProperties = { ...gayaSel, textAlign: "center" };
-const gayaPilih: CSSProperties = {
-  minHeight: "var(--tinggi-sentuh)",
-  padding: "10px 12px",
-  fontSize: 15,
-  border: "1px solid var(--garis)",
-  borderRadius: 10,
-  background: "var(--permukaan)",
-  color: "var(--teks)",
-  maxWidth: "100%",
-};
 
 const WARNA_JENIS: Record<JenisSetoran, string> = {
   BC: "var(--biru-buku)",
@@ -92,19 +82,7 @@ function formatPersen(n: number): string {
   return `${n.toLocaleString("id-ID", { maximumFractionDigits: 1 })}%`;
 }
 
-function gayaTombolMode(aktif: boolean): CSSProperties {
-  return {
-    minHeight: "var(--tinggi-sentuh)",
-    padding: "10px 16px",
-    borderRadius: 10,
-    border: aktif ? "1px solid var(--hijau-kop)" : "1px solid var(--garis)",
-    background: aktif ? "var(--hijau-kop)" : "var(--permukaan)",
-    color: aktif ? "#ffffff" : "var(--teks)",
-    fontSize: 15,
-    fontWeight: 600,
-    cursor: "pointer",
-  };
-}
+/* Tombol mode kini memakai kelas bersama .segmen (globals.css). */
 
 /** Kelompokkan sel grafik per periode, urut kronologis (tertua di atas). */
 function kelompokkanPeriode(
@@ -261,6 +239,17 @@ function TabelSantri({ baris }: { baris: RekapSantriInti[] }) {
               <td style={gayaSelAngka}>{b.totalSesi}</td>
               <td style={{ ...gayaSelAngka, fontWeight: 700 }}>
                 {formatPersen(b.persenHadir)}
+                <div
+                  className="bilah"
+                  style={{ marginTop: 5, minWidth: 64 }}
+                  role="img"
+                  aria-label={`Persentase hadir ${formatPersen(b.persenHadir)}`}
+                >
+                  <div
+                    className="bilah-isi"
+                    style={{ width: `${Math.min(100, Math.max(0, b.persenHadir))}%` }}
+                  />
+                </div>
               </td>
             </tr>
           ))}
@@ -430,30 +419,33 @@ function IsiHalamanRekap() {
         <div
           style={{
             display: "flex",
-            gap: 8,
+            gap: 10,
             flexWrap: "wrap",
             alignItems: "center",
             marginBottom: 12,
           }}
         >
-          <button
-            type="button"
-            style={gayaTombolMode(modeRekap === "pekanan")}
-            onClick={() => setModeRekap("pekanan")}
-          >
-            Pekanan
-          </button>
-          <button
-            type="button"
-            style={gayaTombolMode(modeRekap === "semesteran")}
-            onClick={() => setModeRekap("semesteran")}
-          >
-            Semesteran
-          </button>
+          <div className="segmen" role="group" aria-label="Mode rekap">
+            <button
+              type="button"
+              aria-pressed={modeRekap === "pekanan"}
+              onClick={() => setModeRekap("pekanan")}
+            >
+              Pekanan
+            </button>
+            <button
+              type="button"
+              aria-pressed={modeRekap === "semesteran"}
+              onClick={() => setModeRekap("semesteran")}
+            >
+              Semesteran
+            </button>
+          </div>
           {modeRekap === "pekanan" ? (
             <select
               aria-label="Pilih pekan"
-              style={gayaPilih}
+              className="masukan"
+              style={{ width: "auto" }}
               value={pekanTerpilih}
               onChange={(e) => setPekanTerpilih(e.target.value)}
             >
@@ -466,7 +458,8 @@ function IsiHalamanRekap() {
           ) : (
             <select
               aria-label="Pilih semester"
-              style={gayaPilih}
+              className="masukan"
+              style={{ width: "auto" }}
               value={semesterTerpilih}
               onChange={(e) => setSemesterTerpilih(e.target.value)}
             >
@@ -492,28 +485,23 @@ function IsiHalamanRekap() {
 
       <section className="kartu">
         <h2>Grafik perkembangan hifzh</h2>
-        <div
-          style={{
-            display: "flex",
-            gap: 8,
-            flexWrap: "wrap",
-            marginBottom: 12,
-          }}
-        >
-          <button
-            type="button"
-            style={gayaTombolMode(modeGrafik === "mingguan")}
-            onClick={() => setModeGrafik("mingguan")}
-          >
-            Mingguan
-          </button>
-          <button
-            type="button"
-            style={gayaTombolMode(modeGrafik === "bulanan")}
-            onClick={() => setModeGrafik("bulanan")}
-          >
-            Bulanan
-          </button>
+        <div style={{ marginBottom: 12 }}>
+          <div className="segmen" role="group" aria-label="Mode grafik">
+            <button
+              type="button"
+              aria-pressed={modeGrafik === "mingguan"}
+              onClick={() => setModeGrafik("mingguan")}
+            >
+              Mingguan
+            </button>
+            <button
+              type="button"
+              aria-pressed={modeGrafik === "bulanan"}
+              onClick={() => setModeGrafik("bulanan")}
+            >
+              Bulanan
+            </button>
+          </div>
         </div>
         <div
           style={{

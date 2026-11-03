@@ -15,6 +15,12 @@
  *   jelas di tabel, menunggu rumus resmi dari user.
  * Slot waktu yang pasti dari rancangan: 10.30–11.30, Ba'da Zhuhur,
  * Ba'da Ashr, Ba'da Maghrib (jadwal kegiatan; nilai dicatat per tanggal).
+ *
+ * Form nilai ujian memilih semester LANGSUNG dari data semester
+ * (ambilSemester). Bila database belum punya satu pun baris semester,
+ * halaman menampilkan pesan jelas bahwa semester harus dibuat oleh
+ * admin terlebih dahulu dan nilai ujian tidak bisa diisi — semester
+ * tidak pernah dikarang di klien.
  */
 import {
   useCallback,
@@ -39,19 +45,18 @@ import {
   hitungRingkasanMapel,
   simpanNilaiHarian,
   simpanNilaiUjian,
-  type JenisSemester,
   type NilaiHarian,
   type NilaiUjian,
   type SemesterRef,
 } from "@/lib/data/diniyyah";
 
 const GAYA_PILIH: CSSProperties = {
-  minHeight: "var(--tinggi-sentuh)",
-  padding: "10px 12px",
+  minHeight: 48,
+  padding: "11px 14px",
   fontSize: 15,
-  border: "1px solid var(--garis)",
-  borderRadius: 10,
-  background: "#fff",
+  border: "1.5px solid var(--garis)",
+  borderRadius: 12,
+  background: "var(--permukaan)",
 };
 
 const GAYA_SEL: CSSProperties = {
@@ -104,6 +109,7 @@ function IsiHalamanDiniyyah() {
   const [daftarSemester, setDaftarSemester] = useState<SemesterRef[]>([]);
   const [sumberContoh, setSumberContoh] = useState(false);
   const [galatMuat, setGalatMuat] = useState<string | null>(null);
+  const [muatSelesai, setMuatSelesai] = useState(false);
 
   const [santriId, setSantriId] = useState<string>("");
   const [mapel, setMapel] = useState<string>(MAPEL_DINIYYAH_CONTOH[0]);
@@ -120,9 +126,8 @@ function IsiHalamanDiniyyah() {
   const [pesanHarian, setPesanHarian] = useState<string | null>(null);
   const [simpanHarianBerjalan, setSimpanHarianBerjalan] = useState(false);
 
-  // Form nilai ujian
+  // Form nilai ujian — semester dipilih langsung dari daftar semester
   const [semesterUjianId, setSemesterUjianId] = useState<string>("");
-  const [jenisUjian, setJenisUjian] = useState<JenisSemester>("gasal");
   const [nilaiUjianInput, setNilaiUjianInput] = useState<string>("");
   const [pesanUjian, setPesanUjian] = useState<string | null>(null);
   const [simpanUjianBerjalan, setSimpanUjianBerjalan] = useState(false);
@@ -137,14 +142,21 @@ function IsiHalamanDiniyyah() {
         setDaftarSemester(semesterHasil.data);
         setSumberContoh(santriHasil.sumberContoh || semesterHasil.sumberContoh);
         if (santriHasil.data.length > 0) setSantriId(santriHasil.data[0].id);
-        const gasal = semesterHasil.data.find((s) => s.jenis === "gasal");
-        if (gasal) setSemesterUjianId(gasal.id);
+        // Semester bawaan form ujian: gasal bila ada, kalau tidak
+        // semester pertama dari data; kosong tetap kosong (pesan jelas
+        // ditampilkan di form ujian — semester tidak dikarang).
+        const bawaan =
+          semesterHasil.data.find((s) => s.jenis === "gasal") ??
+          semesterHasil.data[0];
+        if (bawaan) setSemesterUjianId(bawaan.id);
+        setMuatSelesai(true);
       })
       .catch((e: unknown) => {
         if (!aktif) return;
         setGalatMuat(
           e instanceof Error ? e.message : "Gagal memuat data diniyyah.",
         );
+        setMuatSelesai(true);
       });
     return () => {
       aktif = false;
@@ -172,17 +184,16 @@ function IsiHalamanDiniyyah() {
     });
   }, [santriId, muatNilai]);
 
-  /* Pilihan semester ujian mengikuti jenis (gasal/genap) bila daftar
-     semester menyediakan lebih dari satu baris per jenis. */
-  useEffect(() => {
-    const cocok = daftarSemester.find((s) => s.jenis === jenisUjian);
-    if (cocok) setSemesterUjianId(cocok.id);
-  }, [jenisUjian, daftarSemester]);
-
   const santriTerpilih = useMemo(
     () => semuaSantri.find((s) => s.id === santriId) ?? null,
     [semuaSantri, santriId],
   );
+
+  /* Database asli belum punya satu pun baris semester (mode contoh
+     selalu punya semester contoh, jadi keadaan ini khusus mode asli):
+     nilai ujian belum bisa diisi sampai admin membuat semester. */
+  const semesterBelumAda =
+    muatSelesai && !sumberContoh && daftarSemester.length === 0;
 
   const ringkasan = useMemo(
     () => hitungRingkasanMapel(harian, ujian),
@@ -198,6 +209,10 @@ function IsiHalamanDiniyyah() {
     }
     if (nilaiHarianInput.trim() === "" || Number.isNaN(nilai)) {
       setPesanHarian("Nilai harian wajib diisi dengan angka 0–100.");
+      return;
+    }
+    if (nilai < 0 || nilai > 100) {
+      setPesanHarian("Nilai harian harus antara 0 sampai 100.");
       return;
     }
     setSimpanHarianBerjalan(true);
@@ -233,11 +248,19 @@ function IsiHalamanDiniyyah() {
       return;
     }
     if (!semesterUjianId) {
-      setPesanUjian("Daftar semester belum tersedia.");
+      setPesanUjian(
+        sumberContoh
+          ? "Daftar semester belum tersedia."
+          : "Belum ada semester yang bisa dipilih — semester harus dibuat oleh admin terlebih dahulu.",
+      );
       return;
     }
     if (nilaiUjianInput.trim() === "" || Number.isNaN(nilai)) {
       setPesanUjian("Nilai ujian wajib diisi dengan angka 0–100.");
+      return;
+    }
+    if (nilai < 0 || nilai > 100) {
+      setPesanUjian("Nilai ujian harus antara 0 sampai 100.");
       return;
     }
     setSimpanUjianBerjalan(true);
@@ -249,7 +272,7 @@ function IsiHalamanDiniyyah() {
         nilai,
       });
       setPesanUjian(
-        `Tersimpan: nilai ujian ${LABEL_SEMESTER[hasil.data.jenisSemester]} mapel ${mapel} (contoh) untuk ${santriTerpilih?.nama ?? "santri terpilih"} = ${formatNilai(hasil.data.nilai)}.` +
+        `Tersimpan: nilai ujian ${hasil.data.semesterNama} (${LABEL_SEMESTER[hasil.data.jenisSemester]}) mapel ${mapel} (contoh) untuk ${santriTerpilih?.nama ?? "santri terpilih"} = ${formatNilai(hasil.data.nilai)}.` +
           (hasil.sumberContoh
             ? " (Data contoh — tersimpan sementara di halaman ini.)"
             : ""),
@@ -320,20 +343,31 @@ function IsiHalamanDiniyyah() {
               ))}
             </select>
           </label>
-          <label>
-            Mata pelajaran (contoh)
-            <select
-              value={mapel}
-              onChange={(e) => setMapel(e.target.value)}
-              style={GAYA_PILIH}
+          <div>
+            <span
+              style={{
+                display: "block",
+                fontSize: 13,
+                fontWeight: 600,
+                marginBottom: 6,
+              }}
             >
+              Mata pelajaran (contoh)
+            </span>
+            <div className="grup-chip" role="group" aria-label="Mata pelajaran">
               {MAPEL_DINIYYAH_CONTOH.map((m) => (
-                <option key={m} value={m}>
-                  {m} (contoh)
-                </option>
+                <button
+                  key={m}
+                  type="button"
+                  className="chip"
+                  aria-pressed={mapel === m}
+                  onClick={() => setMapel(m)}
+                >
+                  {m}
+                </button>
               ))}
-            </select>
-          </label>
+            </div>
+          </div>
         </div>
       </section>
 
@@ -389,17 +423,29 @@ function IsiHalamanDiniyyah() {
           Nilai ujian per mapel untuk semester gasal atau genap
           {santriTerpilih ? ` — santri: ${santriTerpilih.nama}` : ""}.
         </p>
+        {semesterBelumAda && (
+          <p>
+            <strong>Belum ada data semester.</strong> Semester gasal/genap
+            harus dibuat oleh admin terlebih dahulu — selama belum ada,
+            nilai ujian belum bisa diisi. Nilai harian di atas tetap bisa
+            diisi seperti biasa.
+          </p>
+        )}
         <div className="formulir" style={{ maxWidth: "100%" }}>
           <label>
             Semester
             <select
-              value={jenisUjian}
-              onChange={(e) => setJenisUjian(e.target.value as JenisSemester)}
+              value={semesterUjianId}
+              onChange={(e) => setSemesterUjianId(e.target.value)}
               style={GAYA_PILIH}
+              disabled={daftarSemester.length === 0}
             >
-              {(Object.keys(LABEL_SEMESTER) as JenisSemester[]).map((j) => (
-                <option key={j} value={j}>
-                  {LABEL_SEMESTER[j]}
+              {daftarSemester.length === 0 && (
+                <option value="">Belum ada semester</option>
+              )}
+              {daftarSemester.map((s) => (
+                <option key={s.id} value={s.id}>
+                  {s.nama} — {s.tahunAjaran} ({LABEL_SEMESTER[s.jenis]})
                 </option>
               ))}
             </select>
@@ -415,6 +461,7 @@ function IsiHalamanDiniyyah() {
               placeholder="Nilai 0–100"
               value={nilaiUjianInput}
               onChange={(e) => setNilaiUjianInput(e.target.value)}
+              disabled={daftarSemester.length === 0}
             />
           </label>
           <button

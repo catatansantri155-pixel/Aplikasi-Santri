@@ -24,6 +24,11 @@ import {
 } from "react";
 import PenandaTahap from "@/components/PenandaTahap";
 import PenjagaModul from "@/components/PenjagaModul";
+import {
+  LingkaranIkon,
+  type NamaIkon,
+  type WarnaTint,
+} from "@/components/Ikon";
 import { ambilDaftarSantri, type Santri } from "@/lib/data/santri";
 import { LABEL_PERAN } from "@/lib/peran";
 import {
@@ -38,20 +43,20 @@ import {
 } from "@/lib/data/catatan";
 
 const GAYA_PILIH: CSSProperties = {
-  minHeight: "var(--tinggi-sentuh)",
-  padding: "10px 12px",
+  minHeight: 48,
+  padding: "11px 14px",
   fontSize: 15,
-  border: "1px solid var(--garis)",
-  borderRadius: 10,
-  background: "#fff",
+  border: "1.5px solid var(--garis)",
+  borderRadius: 12,
+  background: "var(--permukaan)",
 };
 
 const GAYA_TERKUNCI: CSSProperties = {
-  minHeight: "var(--tinggi-sentuh)",
-  padding: "10px 12px",
+  minHeight: 48,
+  padding: "11px 14px",
   fontSize: 15,
-  border: "1px dashed var(--garis)",
-  borderRadius: 10,
+  border: "1.5px dashed #bfd4c6",
+  borderRadius: 12,
   background: "var(--hijau-muda)",
   color: "var(--hijau-gelap)",
   fontWeight: 700,
@@ -60,22 +65,23 @@ const GAYA_TERKUNCI: CSSProperties = {
 };
 
 const GAYA_AREA_TEKS: CSSProperties = {
-  padding: "10px 12px",
+  padding: "11px 14px",
   fontSize: 15,
-  border: "1px solid var(--garis)",
-  borderRadius: 10,
+  border: "1.5px solid var(--garis)",
+  borderRadius: 12,
   fontFamily: "inherit",
   resize: "vertical",
 };
 
-const GAYA_LENCANA: CSSProperties = {
-  display: "inline-block",
-  padding: "2px 10px",
-  borderRadius: 999,
-  background: "var(--hijau-muda)",
-  color: "var(--hijau-gelap)",
-  fontSize: 12,
-  fontWeight: 700,
+/** Ikon & warna tint per kategori catatan (Panduan Desain). */
+const IKON_KATEGORI: Record<
+  KategoriCatatan,
+  { ikon: NamaIkon; warna: WarnaTint }
+> = {
+  akhlaq: { ikon: "hati", warna: "merah" },
+  adab: { ikon: "bintang", warna: "kuning" },
+  ibadah_shalat: { ikon: "bulan", warna: "biru" },
+  lainnya: { ikon: "lapisan", warna: "hijau" },
 };
 
 function tanggalHariIni(): string {
@@ -248,20 +254,31 @@ function IsiHalamanCatatan() {
               ))}
             </select>
           </label>
-          <label>
-            Kategori
-            <select
-              value={kategori}
-              onChange={(e) => setKategori(e.target.value as KategoriCatatan)}
-              style={GAYA_PILIH}
+          <div>
+            <span
+              style={{
+                display: "block",
+                fontSize: 13,
+                fontWeight: 600,
+                marginBottom: 6,
+              }}
             >
+              Kategori
+            </span>
+            <div className="grup-chip" role="group" aria-label="Kategori catatan">
               {KATEGORI_CATATAN.map((k) => (
-                <option key={k} value={k}>
+                <button
+                  key={k}
+                  type="button"
+                  className="chip"
+                  aria-pressed={kategori === k}
+                  onClick={() => setKategori(k)}
+                >
                   {LABEL_KATEGORI[k]}
-                </option>
+                </button>
               ))}
-            </select>
-          </label>
+            </div>
+          </div>
           <label>
             Tanggal
             <input
@@ -308,45 +325,57 @@ function IsiHalamanCatatan() {
         {daftarCatatan.length === 0 ? (
           <p>Belum ada catatan tercatat.</p>
         ) : (
-          <div style={{ display: "grid", gap: 12 }}>
-            {daftarCatatan.map((c) => (
-              <article
-                key={c.id}
-                style={{ paddingBottom: 12, borderBottom: "1px solid var(--garis)" }}
-              >
-                <div
+          <div style={{ display: "grid", gap: 14 }}>
+            {daftarCatatan.map((c) => {
+              const ikonKat = IKON_KATEGORI[c.kategori];
+              return (
+                <article
+                  key={c.id}
                   style={{
                     display: "flex",
-                    justifyContent: "space-between",
+                    gap: 12,
                     alignItems: "flex-start",
-                    gap: 10,
-                    flexWrap: "wrap",
+                    paddingBottom: 14,
+                    borderBottom: "1px solid var(--garis)",
                   }}
                 >
-                  <div>
-                    <strong>{c.santriNama}</strong>
+                  <LingkaranIkon nama={ikonKat.ikon} warna={ikonKat.warna} />
+                  <div style={{ flex: 1, minWidth: 0 }}>
                     <div
-                      style={{ color: "var(--teks-redup)", fontSize: 13 }}
+                      style={{
+                        display: "flex",
+                        justifyContent: "space-between",
+                        alignItems: "flex-start",
+                        gap: 10,
+                        flexWrap: "wrap",
+                      }}
                     >
-                      {c.tanggal}
+                      <div>
+                        <strong>{c.santriNama}</strong>
+                        <div
+                          style={{ color: "var(--teks-redup)", fontSize: 13 }}
+                        >
+                          {c.tanggal}
+                        </div>
+                      </div>
+                      <span className="lencana lencana--netral">
+                        {LABEL_KATEGORI[c.kategori]}
+                      </span>
                     </div>
+                    <p style={{ margin: "6px 0 0", fontSize: 14 }}>{c.isi}</p>
+                    <p
+                      style={{
+                        margin: "4px 0 0",
+                        fontSize: 13,
+                        color: "var(--teks-redup)",
+                      }}
+                    >
+                      Pelapor: <strong>{c.pelaporNama}</strong>
+                    </p>
                   </div>
-                  <span style={GAYA_LENCANA}>
-                    {LABEL_KATEGORI[c.kategori]}
-                  </span>
-                </div>
-                <p style={{ margin: "6px 0 0", fontSize: 14 }}>{c.isi}</p>
-                <p
-                  style={{
-                    margin: "4px 0 0",
-                    fontSize: 13,
-                    color: "var(--teks-redup)",
-                  }}
-                >
-                  Pelapor: <strong>{c.pelaporNama}</strong>
-                </p>
-              </article>
-            ))}
+                </article>
+              );
+            })}
           </div>
         )}
       </section>

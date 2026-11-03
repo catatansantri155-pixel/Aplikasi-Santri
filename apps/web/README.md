@@ -26,6 +26,27 @@ Gerbang ini hanya tampilan — penegakan sesungguhnya tetap RLS Supabase.
 Lapisan data membaca Supabase asli bila env terisi; bila env kosong,
 aplikasi berjalan dalam mode CONTOH yang tertanda jelas (bukan data
 asli) dengan perilaku contoh seperti semula (semua menu tampil).
+Halaman Diniyyah memiliki form input nilai harian (per santri, tanggal,
+mapel; upsert) dan form input nilai ujian dengan pemilih semester yang
+mengambil data semester apa adanya; bila database belum memiliki baris
+semester, halaman menampilkan pesan bahwa semester harus dibuat oleh
+admin terlebih dahulu dan nilai ujian tidak dapat disimpan (semester
+tidak dikarang di klien). Daftar mapel diniyyah masih daftar contoh
+menunggu PDF jadwal, dan rata-rata masih rumus sementara.
+
+## Sistem desain
+
+Tampilan mengikuti Panduan Desain aplikasi (token & kelas bersama di
+`src/app/globals.css`): huruf Plus Jakarta Sans (Google Fonts, cadangan
+font sistem), warna kop pondok (hijau #006B4F/#0B4D36, emas #F0B000,
+biru #1D6FB8), kartu putih radius 20–24px, banner gradien hijau kop
+berornamen geometris (tanpa foto manusia), chip/tab/segmen pill, dan
+lencana status berwarna. Ikon adalah komponen SVG bersama
+(`src/components/Ikon.tsx`); identitas pengguna & santri memakai
+lingkaran inisial (`src/components/AvatarInisial.tsx`). Mengubah token
+cukup di `globals.css` — halaman memakai kelas bersama (.banner,
+.baris-daftar, .lencana--*, .pil-status--*, .segmen, .tab-pil, .chip,
+.bilah, .bilah-aksi) agar konsisten.
 
 ## Deploy ke Cloudflare (OpenNext -> Workers)
 
