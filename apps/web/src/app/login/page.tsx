@@ -15,6 +15,7 @@ import { useState, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import PenandaTahap from "@/components/PenandaTahap";
 import { Ikon } from "@/components/Ikon";
+import { ILUSTRASI_LOGIN } from "@/lib/ilustrasi-login";
 import { buatKlienBrowser } from "@/lib/supabase/client";
 import { supabaseTerhubung } from "@/lib/data/santri";
 
@@ -87,14 +88,14 @@ export default function HalamanLogin() {
         <p className="login-sub">
           Ponpes Minhajus Sunnah Magelang · Marhalah Wustha
         </p>
-        {/* Ilustrasi datar dua santri mengaji (public/, palet kop). */}
+        {/* Ilustrasi datar dua santri mengaji (data URI WebP, palet kop). */}
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
           className="login-ilustrasi"
-          src="/ilustrasi-login.png"
+          src={ILUSTRASI_LOGIN}
           alt="Ilustrasi dua santri sedang mengaji bersama"
-          width={1400}
-          height={781}
+          width={1200}
+          height={670}
         />
       </div>
 
