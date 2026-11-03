@@ -10,12 +10,15 @@
  * tabel wali_santri) — bukan sekadar tampilan yang disembunyikan.
  *
  * MODE SUPABASE (login asli tersambung): sapaan sesuai profil pengguna
- * yang login (nama + peran dari tabel profiles) dan tautan modul,
- * tanpa penanda contoh dan tanpa mengarang data apa pun.
+ * yang login (nama + peran dari tabel profiles) dan tautan modul yang
+ * disaring per peran dari peta terpusat src/lib/akses.ts (kartu modul
+ * yang tidak berhak dibuka peran itu tidak ditampilkan), tanpa
+ * penanda contoh dan tanpa mengarang data apa pun.
  */
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import PenandaTahap from "@/components/PenandaTahap";
+import { bolehAksesModul } from "@/lib/akses";
 import { LABEL_PERAN, RINGKASAN_PERAN, SEMUA_PERAN } from "@/lib/peran";
 import {
   ambilDaftarSantri,
@@ -63,33 +66,47 @@ interface RingkasanKehadiranWali {
   persenHadir: number;
 }
 
-/** Tautan modul untuk beranda mode Supabase. */
+/**
+ * Tautan modul untuk beranda mode Supabase. Kunci `modul` merujuk ke
+ * peta terpusat src/lib/akses.ts: kartu hanya ditampilkan bila peran
+ * pengguna yang login berhak membuka modul itu.
+ */
 const TAUTAN_MODUL = [
-  { href: "/santri", label: "Santri", keterangan: "Daftar santri per kelas." },
+  {
+    href: "/santri",
+    label: "Santri",
+    keterangan: "Daftar santri per kelas.",
+    modul: "santri",
+  },
   {
     href: "/kehadiran",
     label: "Kehadiran",
     keterangan: "Isi kehadiran sesi hifzh & diniyyah, revisi khusus admin.",
+    modul: "kehadiran",
   },
   {
     href: "/hifzh",
     label: "Hifzh",
     keterangan: "Setoran Buku Hafalan dan tes semester per juz.",
+    modul: "hifzh",
   },
   {
     href: "/diniyyah",
     label: "Diniyyah",
     keterangan: "Nilai harian dan nilai ujian semester.",
+    modul: "diniyyah",
   },
   {
     href: "/catatan",
     label: "Catatan",
     keterangan: "Catatan keseharian santri oleh pengajar & musyrif.",
+    modul: "catatan",
   },
   {
     href: "/rekap",
     label: "Rekap",
     keterangan: "Rekap kehadiran pekanan & semesteran serta grafik hifzh.",
+    modul: "rekap",
   },
 ] as const;
 
@@ -198,15 +215,22 @@ export default function HalamanBeranda() {
           </section>
         )}
 
-        <div className="kisi-peran">
-          {TAUTAN_MODUL.map((modul) => (
-            <section key={modul.href} className="kartu kartu-peran">
-              <p className="label-peran">{modul.label}</p>
-              <p>{modul.keterangan}</p>
-              <Link href={modul.href}>Buka modul →</Link>
-            </section>
-          ))}
-        </div>
+        {/* Kartu modul hanya dirender SETELAH profil termuat, disaring
+            per peran dari peta terpusat src/lib/akses.ts — kartu modul
+            terlarang tidak pernah tampil, juga tidak saat memuat. */}
+        {profilLogin && (
+          <div className="kisi-peran">
+            {TAUTAN_MODUL.filter((modul) =>
+              bolehAksesModul(profilLogin.peran, modul.modul),
+            ).map((modul) => (
+              <section key={modul.href} className="kartu kartu-peran">
+                <p className="label-peran">{modul.label}</p>
+                <p>{modul.keterangan}</p>
+                <Link href={modul.href}>Buka modul →</Link>
+              </section>
+            ))}
+          </div>
+        )}
       </>
     );
   }

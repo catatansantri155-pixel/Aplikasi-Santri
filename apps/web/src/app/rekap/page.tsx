@@ -14,6 +14,7 @@
  */
 import { useEffect, useMemo, useState, type CSSProperties } from "react";
 import PenandaTahap from "@/components/PenandaTahap";
+import PenjagaModul from "@/components/PenjagaModul";
 import {
   ambilAgregatGrafikHifzh,
   ambilRekapPekanan,
@@ -308,7 +309,21 @@ function TabelKelas({ baris }: { baris: RekapSantriInti[] }) {
   );
 }
 
+/**
+ * Gerbang peran modul (src/lib/akses.ts): halaman Rekap hanya
+ * dirender untuk admin, kedua pengajar, dan musyrif; wali menerima
+ * pesan penolakan dari PenjagaModul (ringkasan anaknya ada di beranda
+ * & detail santri).
+ */
 export default function HalamanRekap() {
+  return (
+    <PenjagaModul modul="rekap">
+      <IsiHalamanRekap />
+    </PenjagaModul>
+  );
+}
+
+function IsiHalamanRekap() {
   const [pekanan, setPekanan] = useState<BarisRekapPekanan[]>([]);
   const [semesteran, setSemesteran] = useState<BarisRekapSemester[]>([]);
   const [grafik, setGrafik] = useState<AgregatGrafikHifzh>({

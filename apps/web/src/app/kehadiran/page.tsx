@@ -14,6 +14,8 @@
  */
 import { useCallback, useEffect, useMemo, useState } from "react";
 import PenandaTahap from "@/components/PenandaTahap";
+import PenjagaModul from "@/components/PenjagaModul";
+import { bolehRevisiKehadiran } from "@/lib/akses";
 import { ambilDaftarSantri, type Santri } from "@/lib/data/santri";
 import {
   ajukanRevisiKehadiran,
@@ -46,7 +48,21 @@ function tanggalHariIni(): string {
   return `${d.getFullYear()}-${dua(d.getMonth() + 1)}-${dua(d.getDate())}`;
 }
 
+/**
+ * Gerbang peran modul (src/lib/akses.ts): halaman Kehadiran hanya
+ * dirender untuk admin & kedua pengajar; musyrif/wali menerima pesan
+ * penolakan dari PenjagaModul dan form isian tidak dirender sama
+ * sekali — termasuk revisi, yang di dalam halaman tetap khusus admin.
+ */
 export default function HalamanKehadiran() {
+  return (
+    <PenjagaModul modul="kehadiran">
+      <IsiHalamanKehadiran />
+    </PenjagaModul>
+  );
+}
+
+function IsiHalamanKehadiran() {
   const [profil, setProfil] = useState<ProfilSaya | null>(null);
   const [semuaSantri, setSemuaSantri] = useState<Santri[]>([]);
   const [sumberContoh, setSumberContoh] = useState(false);
@@ -203,7 +219,8 @@ export default function HalamanKehadiran() {
     }
   }
 
-  const adalahAdmin = profil?.peran === "admin";
+  // Revisi tetap khusus admin — aturan terpusat di src/lib/akses.ts.
+  const adalahAdmin = bolehRevisiKehadiran(profil?.peran);
 
   return (
     <>

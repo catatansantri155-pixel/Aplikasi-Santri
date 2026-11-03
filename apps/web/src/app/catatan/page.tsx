@@ -23,6 +23,7 @@ import {
   type CSSProperties,
 } from "react";
 import PenandaTahap from "@/components/PenandaTahap";
+import PenjagaModul from "@/components/PenjagaModul";
 import { ambilDaftarSantri, type Santri } from "@/lib/data/santri";
 import { LABEL_PERAN } from "@/lib/peran";
 import {
@@ -83,7 +84,21 @@ function tanggalHariIni(): string {
   return `${d.getFullYear()}-${dua(d.getMonth() + 1)}-${dua(d.getDate())}`;
 }
 
+/**
+ * Gerbang peran modul (src/lib/akses.ts): halaman Catatan hanya
+ * dirender untuk admin, kedua pengajar, dan musyrif; wali menerima
+ * pesan penolakan dari PenjagaModul dan form catatan tidak dirender
+ * (catatan anaknya tetap bisa ia baca di detail santri, hanya-lihat).
+ */
 export default function HalamanCatatan() {
+  return (
+    <PenjagaModul modul="catatan">
+      <IsiHalamanCatatan />
+    </PenjagaModul>
+  );
+}
+
+function IsiHalamanCatatan() {
   const [profil, setProfil] = useState<ProfilPelapor | null>(null);
   const [semuaSantri, setSemuaSantri] = useState<Santri[]>([]);
   const [daftarCatatan, setDaftarCatatan] = useState<CatatanMusyrif[]>([]);

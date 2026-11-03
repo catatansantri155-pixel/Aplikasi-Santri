@@ -1,31 +1,6 @@
-import Link from "next/link";
 import type { ReactNode } from "react";
 import InfoPengguna from "@/components/InfoPengguna";
-
-export const TAUTAN_NAV = [
-  { href: "/", label: "Beranda", ikon: "⌂" },
-  { href: "/santri", label: "Santri", ikon: "☰" },
-  { href: "/kehadiran", label: "Kehadiran", ikon: "✓" },
-  { href: "/hifzh", label: "Hifzh", ikon: "۞" },
-  { href: "/diniyyah", label: "Diniyyah", ikon: "✎" },
-  { href: "/catatan", label: "Catatan", ikon: "✉" },
-  { href: "/rekap", label: "Rekap", ikon: "▦" },
-] as const;
-
-function DaftarTautan() {
-  return (
-    <>
-      {TAUTAN_NAV.map((tautan) => (
-        <Link key={tautan.href} href={tautan.href} className="nav-tautan">
-          <span className="nav-ikon" aria-hidden="true">
-            {tautan.ikon}
-          </span>
-          <span>{tautan.label}</span>
-        </Link>
-      ))}
-    </>
-  );
-}
+import NavTautan from "@/components/NavTautan";
 
 export default function Kerangka({ children }: { children: ReactNode }) {
   return (
@@ -40,7 +15,7 @@ export default function Kerangka({ children }: { children: ReactNode }) {
           </p>
         </div>
         <nav className="nav-samping" aria-label="Navigasi utama">
-          <DaftarTautan />
+          <NavTautan />
         </nav>
         <InfoPengguna varian="samping" />
       </aside>
@@ -59,7 +34,7 @@ export default function Kerangka({ children }: { children: ReactNode }) {
         <main className="konten">{children}</main>
 
         <nav className="nav-bawah" aria-label="Navigasi bawah">
-          <DaftarTautan />
+          <NavTautan />
         </nav>
       </div>
     </div>

@@ -14,9 +14,18 @@ Login ASLI sudah tersambung: `/login` memakai Supabase Auth
 (`signInWithPassword`), kerangka menampilkan nama + peran pengguna yang
 login (dari tabel `profiles`) dan tombol Keluar, halaman selain `/login`
 diarahkan ke `/login` bila tidak ada sesi, dan identitas pengisi/paraf/
-pelapor diambil dari profil login. Lapisan data membaca Supabase asli bila
-env terisi; bila env kosong, aplikasi berjalan dalam mode CONTOH yang
-tertanda jelas (bukan data asli) dengan perilaku contoh seperti semula.
+pelapor diambil dari profil login. GERBANG FITUR PER PERAN di level
+tampilan juga sudah diterapkan dari peta terpusat `src/lib/akses.ts`:
+menu navigasi, kartu modul beranda, dan isi tiap halaman modul disaring
+menurut peran profil login (Kehadiran: admin + kedua pengajar; Hifzh:
+admin + pengajar hifzh; Diniyyah: admin + pengajar diniyyah; Catatan &
+Rekap: admin + kedua pengajar + musyrif; Beranda & Santri: semua peran;
+revisi kehadiran tetap khusus admin). Peran yang membuka URL modul
+terlarang menerima pesan penolakan dan form/isinya tidak dirender.
+Gerbang ini hanya tampilan — penegakan sesungguhnya tetap RLS Supabase.
+Lapisan data membaca Supabase asli bila env terisi; bila env kosong,
+aplikasi berjalan dalam mode CONTOH yang tertanda jelas (bukan data
+asli) dengan perilaku contoh seperti semula (semua menu tampil).
 
 ## Deploy ke Cloudflare (OpenNext -> Workers)
 
@@ -66,3 +75,4 @@ npm run dev                  # http://localhost:3000
 - `src/components/` — kerangka tampilan (header, navigasi bawah HP, sidebar tablet/PC)
 - `src/lib/supabase/` — klien Supabase pola `@supabase/ssr` (browser & server)
 - `src/lib/peran.ts` — konstanta peran pengguna dan labelnya
+- `src/lib/akses.ts` — peta akses modul per peran (satu-satunya sumber gerbang tampilan: navigasi, kartu beranda, penjaga halaman)

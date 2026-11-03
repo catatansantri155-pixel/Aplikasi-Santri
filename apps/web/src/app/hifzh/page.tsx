@@ -13,6 +13,7 @@
  */
 import { useEffect, useState } from "react";
 import PenandaTahap from "@/components/PenandaTahap";
+import PenjagaModul from "@/components/PenjagaModul";
 import { LABEL_PERAN, PERAN } from "@/lib/peran";
 import { LABEL_NILAI_SETORAN } from "@/lib/hifzh";
 import {
@@ -60,7 +61,21 @@ function formatMasehi(tanggalIso: string): string {
   }
 }
 
+/**
+ * Gerbang peran modul (src/lib/akses.ts): halaman Hifzh — termasuk
+ * form setoran dan bagian ujian — hanya dirender untuk admin &
+ * pengajar hifzh; peran lain menerima pesan penolakan dari
+ * PenjagaModul dan tidak satu pun form dirender.
+ */
 export default function HalamanHifzh() {
+  return (
+    <PenjagaModul modul="hifzh">
+      <IsiHalamanHifzh />
+    </PenjagaModul>
+  );
+}
+
+function IsiHalamanHifzh() {
   const [daftarSantri, setDaftarSantri] = useState<SantriRingkas[]>([]);
   const [setoran, setSetoran] = useState<SetoranHifzh[]>([]);
   const [sumber, setSumber] = useState<SumberData>("contoh");

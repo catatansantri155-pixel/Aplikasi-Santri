@@ -24,6 +24,7 @@ import {
   type CSSProperties,
 } from "react";
 import PenandaTahap from "@/components/PenandaTahap";
+import PenjagaModul from "@/components/PenjagaModul";
 import { ambilDaftarSantri, type Santri } from "@/lib/data/santri";
 import {
   CATATAN_RUMUS_SEMENTARA,
@@ -85,7 +86,20 @@ function LabelMapel({ mapel }: { mapel: string }) {
   );
 }
 
+/**
+ * Gerbang peran modul (src/lib/akses.ts): halaman Diniyyah hanya
+ * dirender untuk admin & pengajar diniyyah; peran lain menerima pesan
+ * penolakan dari PenjagaModul dan form nilai tidak dirender.
+ */
 export default function HalamanDiniyyah() {
+  return (
+    <PenjagaModul modul="diniyyah">
+      <IsiHalamanDiniyyah />
+    </PenjagaModul>
+  );
+}
+
+function IsiHalamanDiniyyah() {
   const [semuaSantri, setSemuaSantri] = useState<Santri[]>([]);
   const [daftarSemester, setDaftarSemester] = useState<SemesterRef[]>([]);
   const [sumberContoh, setSumberContoh] = useState(false);
