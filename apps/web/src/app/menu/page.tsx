@@ -17,8 +17,8 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import PenandaTahap from "@/components/PenandaTahap";
 import PenjagaModul from "@/components/PenjagaModul";
-import { LingkaranIkon } from "@/components/Ikon";
 import { bolehAksesModul } from "@/lib/akses";
+import IkonModul from "@/components/IkonModul";
 import { DAFTAR_MODUL } from "@/lib/modul";
 import { supabaseTerhubung } from "@/lib/data/santri";
 import { ambilProfilLogin, type ProfilLogin } from "@/lib/sesi";
@@ -75,11 +75,10 @@ function IsiMenu() {
               href={modul.href}
               className="item-menu"
             >
-              <LingkaranIkon
-                nama={modul.ikon}
+              <IkonModul
+                modul={modul.modul}
+                ikon={modul.ikon}
                 warna={modul.warna}
-                ukuran={24}
-                besar
               />
               <span className="item-menu-label">{modul.label}</span>
               <span className="item-menu-ket">{modul.keterangan}</span>

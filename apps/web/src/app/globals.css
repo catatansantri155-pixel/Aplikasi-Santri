@@ -629,6 +629,15 @@ a.info-pengguna-samping .info-pengguna-baris {
   height: 56px;
 }
 
+/* Ikon gambar 3D di kisi Fast Menu (pengganti lingkaran tint). */
+.ikon-gambar {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  display: block;
+  flex-shrink: 0;
+}
+
 .ikon-lingkaran--hijau {
   background: #e2f1e8;
   color: #0b6b4a;

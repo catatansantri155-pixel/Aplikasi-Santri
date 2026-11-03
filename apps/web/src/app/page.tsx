@@ -27,6 +27,7 @@ import {
 } from "@/components/Ikon";
 import { bolehAksesModul } from "@/lib/akses";
 import { DAFTAR_MODUL } from "@/lib/modul";
+import IkonModul from "@/components/IkonModul";
 import {
   LABEL_PERAN,
   PERAN,
@@ -356,11 +357,10 @@ export default function HalamanBeranda() {
                     href={modul.href}
                     className="item-menu"
                   >
-                    <LingkaranIkon
-                      nama={modul.ikon}
+                    <IkonModul
+                      modul={modul.modul}
+                      ikon={modul.ikon}
                       warna={modul.warna}
-                      ukuran={24}
-                      besar
                     />
                     <span className="item-menu-label">{modul.label}</span>
                   </Link>
