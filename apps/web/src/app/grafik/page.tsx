@@ -27,8 +27,19 @@
  * ditampilkan sebagai pesan "Belum ada data." — bukan angka karangan.
  * Boleh dibuka semua peran yang login (modul "grafik" di
  * src/lib/akses.ts = semua peran).
+ *
+ * Perbaikan audit Fase 1 (3 Nov 2026):
+ * - Donat komposisi kehadiran memakai PILIHAN SEMESTER (bawaan:
+ *   semester yang sedang berjalan menurut tanggal hari ini), tidak
+ *   lagi menjumlahkan semua semester sekaligus.
+ * - Di bawah tiap judul ada label cakupan data yang sedang dibaca.
+ * - Galat ≠ kosong: setiap grafik dimuat mandiri; kegagalannya
+ *   menampilkan KartuGalat "Gagal memuat data" dengan tombol coba
+ *   lagi khusus grafik itu, BUKAN tulisan "Belum ada data".
+ * - Label grafik pertama diperjelas: yang dihitung adalah catatan
+ *   hadir per pekan, bukan jumlah santri unik.
  */
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import PenandaTahap from "@/components/PenandaTahap";
 import PenjagaModul from "@/components/PenjagaModul";
 import KartuGalat from "@/components/KartuGalat";
@@ -36,13 +47,16 @@ import {
   ambilAgregatGrafikHifzh,
   ambilRekapPekanan,
   ambilRekapSemester,
+  type BarisRekapSemester,
 } from "@/lib/data/rekap";
 import { ambilDaftarSantri } from "@/lib/data/santri";
 import {
   ambilNilaiHarianSantri,
   ambilNilaiUjianSantri,
+  ambilSemester,
   formatNilai,
   hitungRingkasanMapel,
+  type SemesterRef,
 } from "@/lib/data/diniyyah";
 import { ambilDaftarSesi } from "@/lib/data/olahraga";
 
@@ -480,34 +494,72 @@ export default function HalamanGrafik() {
   );
 }
 
+/** Label cakupan singkat di bawah judul grafik (audit Fase 1). */
+function LabelCakupan({ teks }: { teks: string }) {
+  return (
+    <p className="catatan-kaki" style={{ marginTop: 0 }}>
+      Cakupan: {teks}
+    </p>
+  );
+}
+
+const CAKUPAN_SEMUA = "semua data yang dapat Anda akses";
+
+function tanggalHariIniIso(): string {
+  const d = new Date();
+  const dua = (n: number) => String(n).padStart(2, "0");
+  return `${d.getFullYear()}-${dua(d.getMonth() + 1)}-${dua(d.getDate())}`;
+}
+
+interface OpsiSemester {
+  id: string;
+  label: string;
+}
+
 function IsiGrafik() {
-  const [hadirPerPekan, setHadirPerPekan] = useState<TitikBatang[]>([]);
-  const [komposisi, setKomposisi] = useState<KomposisiStatus | null>(null);
-  const [progresHifzh, setProgresHifzh] = useState<TitikBatang[]>([]);
+  // a. Kehadiran per pekan
+  const [hadirPerPekan, setHadirPerPekan] = useState<TitikBatang[] | null>(
+    null,
+  );
+  const [galatPekanan, setGalatPekanan] = useState<string | null>(null);
+
+  // b. Donat komposisi per semester terpilih
+  const [barisSemester, setBarisSemester] = useState<
+    BarisRekapSemester[] | null
+  >(null);
+  const [daftarSemester, setDaftarSemester] = useState<SemesterRef[]>([]);
+  const [semesterId, setSemesterId] = useState<string>("");
+  const [galatDonat, setGalatDonat] = useState<string | null>(null);
+
+  // c + e. Agregat hifzh (progres mingguan & proporsi L/U)
+  const [progresHifzh, setProgresHifzh] = useState<TitikBatang[] | null>(null);
   const [proporsiLU, setProporsiLU] = useState<{ l: number; u: number } | null>(
     null,
   );
-  const [rataMapel, setRataMapel] = useState<{ mapel: string; rata: number }[]>(
-    [],
-  );
-  const [sesiPerBulan, setSesiPerBulan] = useState<TitikBatang[]>([]);
+  const [galatHifzh, setGalatHifzh] = useState<string | null>(null);
+
+  // d. Rata-rata diniyyah per mapel
+  const [rataMapel, setRataMapel] = useState<
+    { mapel: string; rata: number }[] | null
+  >(null);
+  const [galatDiniyyah, setGalatDiniyyah] = useState<string | null>(null);
+
+  // f. Sesi olahraga per bulan
+  const [sesiPerBulan, setSesiPerBulan] = useState<TitikBatang[] | null>(null);
+  const [galatOlahraga, setGalatOlahraga] = useState<string | null>(null);
+
   const [sumberContoh, setSumberContoh] = useState(false);
-  const [memuat, setMemuat] = useState(true);
-  const [galat, setGalat] = useState<string | null>(null);
+  const tandaiContoh = useCallback((b: boolean) => {
+    if (b) setSumberContoh(true);
+  }, []);
 
-  const muat = useCallback(async () => {
-    setMemuat(true);
-    setGalat(null);
+  /* ---- a. Hadir per pekan: jumlahkan catatan hadir lintas santri,
+         8 pekan terakhir. ---- */
+  const muatPekanan = useCallback(async () => {
+    setGalatPekanan(null);
     try {
-      const [pekanan, semesteran, agregat] = await Promise.all([
-        ambilRekapPekanan(),
-        ambilRekapSemester(),
-        ambilAgregatGrafikHifzh(),
-      ]);
-      let contoh =
-        pekanan.sumberContoh || semesteran.sumberContoh || agregat.sumberContoh;
-
-      // a. Hadir per pekan — jumlahkan lintas santri, 8 pekan terakhir.
+      const pekanan = await ambilRekapPekanan();
+      tandaiContoh(pekanan.sumberContoh);
       const perPekan = new Map<string, number>();
       for (const b of pekanan.data) {
         perPekan.set(
@@ -524,25 +576,54 @@ function IsiGrafik() {
             nilai,
           })),
       );
+    } catch (e: unknown) {
+      setGalatPekanan(
+        e instanceof Error ? e.message : "Gagal memuat data kehadiran.",
+      );
+    }
+  }, [tandaiContoh]);
 
-      // b. Komposisi status semester — jumlahkan lintas santri.
-      const komp: KomposisiStatus = {
-        hadir: 0,
-        sakit: 0,
-        izin: 0,
-        alpa: 0,
-        total: 0,
-      };
-      for (const b of semesteran.data) {
-        komp.hadir += b.jumlahHadir;
-        komp.sakit += b.jumlahSakit;
-        komp.izin += b.jumlahIzin;
-        komp.alpa += b.jumlahAlpa;
-        komp.total += b.totalSesi;
-      }
-      setKomposisi(komp);
+  /* ---- b. Donat: daftar semester + baris rekap semester; donat
+         hanya menjumlahkan baris pada semester terpilih. ---- */
+  const muatDonat = useCallback(async () => {
+    setGalatDonat(null);
+    try {
+      const [semesterHasil, semesteran] = await Promise.all([
+        ambilSemester(),
+        ambilRekapSemester(),
+      ]);
+      tandaiContoh(semesterHasil.sumberContoh || semesteran.sumberContoh);
+      setDaftarSemester(semesterHasil.data);
+      setBarisSemester(semesteran.data);
+      // Bawaan pilihan: semester yang sedang berjalan menurut tanggal
+      // hari ini; cadangan: semester pertama pada daftar pilihan.
+      setSemesterId((lama) => {
+        if (lama) return lama;
+        const opsi = opsiSemesterDari(semesterHasil.data, semesteran.data);
+        const hariIni = tanggalHariIniIso();
+        const berjalan = semesterHasil.data.find(
+          (s) =>
+            s.tanggalMulai &&
+            s.tanggalSelesai &&
+            hariIni >= s.tanggalMulai &&
+            hariIni <= s.tanggalSelesai,
+        );
+        return berjalan?.id ?? opsi[0]?.id ?? "";
+      });
+    } catch (e: unknown) {
+      setGalatDonat(
+        e instanceof Error ? e.message : "Gagal memuat data semester.",
+      );
+    }
+  }, [tandaiContoh]);
 
-      // c. Progres setoran per pekan — jumlahkan lintas jenis setoran.
+  /* ---- c + e. Progres setoran per pekan & proporsi L vs U dari
+         agregat hifzh yang sama. ---- */
+  const muatHifzh = useCallback(async () => {
+    setGalatHifzh(null);
+    try {
+      const agregat = await ambilAgregatGrafikHifzh();
+      tandaiContoh(agregat.sumberContoh);
       const perPeriode = new Map<string, number>();
       let totalL = 0;
       let totalU = 0;
@@ -563,80 +644,116 @@ function IsiGrafik() {
             nilai,
           })),
       );
-
-      // e. Proporsi Lancar vs Ulang dari agregat yang sama.
       setProporsiLU({ l: totalL, u: totalU });
-
-      // d. Rata-rata nilai diniyyah per mapel — per santri yang bisa
-      // diakses peran ini (RLS), diringkas lalu dirata-rata. Kegagalan
-      // bagian ini hanya mengosongkan grafiknya, bukan seluruh halaman.
-      try {
-        const daftar = await ambilDaftarSantri();
-        contoh = contoh || daftar.sumberContoh;
-        const perMapel = new Map<string, number[]>();
-        await Promise.all(
-          daftar.data.map(async (s) => {
-            const [harian, ujian] = await Promise.all([
-              ambilNilaiHarianSantri(s.id),
-              ambilNilaiUjianSantri(s.id),
-            ]);
-            contoh = contoh || harian.sumberContoh || ujian.sumberContoh;
-            for (const r of hitungRingkasanMapel(harian.data, ujian.data)) {
-              if (r.rataGabungan === null) continue;
-              const ada = perMapel.get(r.mapel) ?? [];
-              ada.push(r.rataGabungan);
-              perMapel.set(r.mapel, ada);
-            }
-          }),
-        );
-        setRataMapel(
-          [...perMapel.entries()]
-            .map(([mapel, nilai]) => ({
-              mapel,
-              rata:
-                Math.round(
-                  (nilai.reduce((a, b) => a + b, 0) / nilai.length) * 10,
-                ) / 10,
-            }))
-            .sort((a, b) => b.rata - a.rata),
-        );
-      } catch {
-        setRataMapel([]);
-      }
-
-      // f. Sesi olahraga per bulan — kelompokkan tanggal sesi.
-      try {
-        const sesi = await ambilDaftarSesi();
-        contoh = contoh || sesi.sumberContoh;
-        const perBulan = new Map<string, number>();
-        for (const s of sesi.data) {
-          const bulan = s.tanggal.slice(0, 7);
-          perBulan.set(bulan, (perBulan.get(bulan) ?? 0) + 1);
-        }
-        setSesiPerBulan(
-          [...perBulan.entries()]
-            .sort((a, b) => a[0].localeCompare(b[0]))
-            .slice(-6)
-            .map(([bulan, nilai]) => ({
-              label: labelBulanSingkat(`${bulan}-01`),
-              nilai,
-            })),
-        );
-      } catch {
-        setSesiPerBulan([]);
-      }
-
-      setSumberContoh(contoh);
     } catch (e: unknown) {
-      setGalat(e instanceof Error ? e.message : "Gagal memuat grafik.");
-    } finally {
-      setMemuat(false);
+      setGalatHifzh(
+        e instanceof Error ? e.message : "Gagal memuat data hifzh.",
+      );
     }
-  }, []);
+  }, [tandaiContoh]);
+
+  /* ---- d. Rata-rata nilai diniyyah per mapel: per santri yang bisa
+         diakses peran ini (RLS), diringkas lalu dirata-rata. ---- */
+  const muatDiniyyah = useCallback(async () => {
+    setGalatDiniyyah(null);
+    try {
+      const daftar = await ambilDaftarSantri();
+      tandaiContoh(daftar.sumberContoh);
+      const perMapel = new Map<string, number[]>();
+      await Promise.all(
+        daftar.data.map(async (s) => {
+          const [harian, ujian] = await Promise.all([
+            ambilNilaiHarianSantri(s.id),
+            ambilNilaiUjianSantri(s.id),
+          ]);
+          tandaiContoh(harian.sumberContoh || ujian.sumberContoh);
+          for (const r of hitungRingkasanMapel(harian.data, ujian.data)) {
+            if (r.rataGabungan === null) continue;
+            const ada = perMapel.get(r.mapel) ?? [];
+            ada.push(r.rataGabungan);
+            perMapel.set(r.mapel, ada);
+          }
+        }),
+      );
+      setRataMapel(
+        [...perMapel.entries()]
+          .map(([mapel, nilai]) => ({
+            mapel,
+            rata:
+              Math.round(
+                (nilai.reduce((a, b) => a + b, 0) / nilai.length) * 10,
+              ) / 10,
+          }))
+          .sort((a, b) => b.rata - a.rata),
+      );
+    } catch (e: unknown) {
+      setGalatDiniyyah(
+        e instanceof Error ? e.message : "Gagal memuat data diniyyah.",
+      );
+    }
+  }, [tandaiContoh]);
+
+  /* ---- f. Sesi olahraga per bulan: kelompokkan tanggal sesi. ---- */
+  const muatOlahraga = useCallback(async () => {
+    setGalatOlahraga(null);
+    try {
+      const sesi = await ambilDaftarSesi();
+      tandaiContoh(sesi.sumberContoh);
+      const perBulan = new Map<string, number>();
+      for (const s of sesi.data) {
+        const bulan = s.tanggal.slice(0, 7);
+        perBulan.set(bulan, (perBulan.get(bulan) ?? 0) + 1);
+      }
+      setSesiPerBulan(
+        [...perBulan.entries()]
+          .sort((a, b) => a[0].localeCompare(b[0]))
+          .slice(-6)
+          .map(([bulan, nilai]) => ({
+            label: labelBulanSingkat(`${bulan}-01`),
+            nilai,
+          })),
+      );
+    } catch (e: unknown) {
+      setGalatOlahraga(
+        e instanceof Error ? e.message : "Gagal memuat data olahraga.",
+      );
+    }
+  }, [tandaiContoh]);
 
   useEffect(() => {
-    void muat();
-  }, [muat]);
+    void muatPekanan();
+    void muatDonat();
+    void muatHifzh();
+    void muatDiniyyah();
+    void muatOlahraga();
+  }, [muatPekanan, muatDonat, muatHifzh, muatDiniyyah, muatOlahraga]);
+
+  /* Pilihan semester untuk donat: dari daftar semester resmi; bila
+     daftar itu kosong, turunkan dari baris rekap yang ada. */
+  const opsiSemester = opsiSemesterDari(daftarSemester, barisSemester ?? []);
+  const semesterTerpilih =
+    opsiSemester.find((o) => o.id === semesterId) ?? opsiSemester[0];
+
+  /* Komposisi donat: HANYA baris pada semester terpilih. */
+  const komposisi: KomposisiStatus | null = useMemo(() => {
+    if (!barisSemester || !semesterTerpilih) return null;
+    const komp: KomposisiStatus = {
+      hadir: 0,
+      sakit: 0,
+      izin: 0,
+      alpa: 0,
+      total: 0,
+    };
+    for (const b of barisSemester) {
+      if (b.semesterId !== semesterTerpilih.id) continue;
+      komp.hadir += b.jumlahHadir;
+      komp.sakit += b.jumlahSakit;
+      komp.izin += b.jumlahIzin;
+      komp.alpa += b.jumlahAlpa;
+      komp.total += b.totalSesi;
+    }
+    return komp;
+  }, [barisSemester, semesterTerpilih]);
 
   return (
     <>
@@ -649,100 +766,200 @@ function IsiGrafik() {
         olahraga yang bisa Anda akses.
       </p>
 
-      {memuat && <p className="catatan-kaki">Memuat grafik…</p>}
-
-      {!memuat && galat && (
-        <KartuGalat pesan={galat} onCobaLagi={() => void muat()} />
+      {/* ------------ a. Kehadiran per pekan ------------ */}
+      {galatPekanan ? (
+        <KartuGalat
+          pesan={`Gagal memuat data grafik "Kehadiran per pekan": ${galatPekanan}`}
+          onCobaLagi={() => void muatPekanan()}
+        />
+      ) : (
+        <section className="kartu">
+          <h2>Kehadiran per pekan</h2>
+          <LabelCakupan teks={CAKUPAN_SEMUA} />
+          <p className="catatan-kaki" style={{ marginTop: 0 }}>
+            Jumlah catatan hadir per pekan (satu santri dapat terhitung
+            di beberapa sesi). 8 pekan terakhir.
+          </p>
+          {hadirPerPekan === null ? (
+            <p className="catatan-kaki">Memuat grafik…</p>
+          ) : hadirPerPekan.length > 0 ? (
+            <GrafikBatangVertikal
+              data={hadirPerPekan}
+              gaya="polos"
+              satuan="catatan hadir"
+            />
+          ) : (
+            <BelumAdaData />
+          )}
+        </section>
       )}
 
-      {!memuat && !galat && (
+      {/* ------------ b. Komposisi kehadiran semester ------------ */}
+      {galatDonat ? (
+        <KartuGalat
+          pesan={`Gagal memuat data grafik "Komposisi kehadiran semester": ${galatDonat}`}
+          onCobaLagi={() => void muatDonat()}
+        />
+      ) : (
+        <section className="kartu">
+          <h2>Komposisi kehadiran semester</h2>
+          <LabelCakupan
+            teks={
+              semesterTerpilih
+                ? semesterTerpilih.label
+                : "semester belum dipilih"
+            }
+          />
+          <div className="formulir" style={{ maxWidth: "100%" }}>
+            <label>
+              Semester
+              <select
+                className="masukan"
+                value={semesterTerpilih?.id ?? ""}
+                onChange={(e) => setSemesterId(e.target.value)}
+                disabled={opsiSemester.length === 0}
+              >
+                {opsiSemester.length === 0 && (
+                  <option value="">Belum ada semester</option>
+                )}
+                {opsiSemester.map((o) => (
+                  <option key={o.id} value={o.id}>
+                    {o.label}
+                  </option>
+                ))}
+              </select>
+            </label>
+          </div>
+          <p className="catatan-kaki">
+            Persentase status Hadir, Sakit, Izin, dan Alpa dari sesi
+            pada semester terpilih.
+          </p>
+          {barisSemester === null ? (
+            <p className="catatan-kaki">Memuat grafik…</p>
+          ) : komposisi && komposisi.total > 0 ? (
+            <GrafikDonat komposisi={komposisi} />
+          ) : (
+            <BelumAdaData />
+          )}
+        </section>
+      )}
+
+      {/* ------------ c. Progres setoran hifzh ------------ */}
+      {galatHifzh ? (
+        <KartuGalat
+          pesan={`Gagal memuat data grafik hifzh: ${galatHifzh}`}
+          onCobaLagi={() => void muatHifzh()}
+        />
+      ) : (
         <>
           <section className="kartu">
-            <h2>Kehadiran per pekan</h2>
-            <p className="catatan-kaki" style={{ marginTop: 0 }}>
-              Jumlah santri berstatus Hadir pada tiap pekan (8 pekan
-              terakhir).
-            </p>
-            {hadirPerPekan.length > 0 ? (
-              <GrafikBatangVertikal
-                data={hadirPerPekan}
-                gaya="polos"
-                satuan="hadir"
-              />
-            ) : (
-              <BelumAdaData />
-            )}
-          </section>
-
-          <section className="kartu">
-            <h2>Komposisi kehadiran semester</h2>
-            <p className="catatan-kaki" style={{ marginTop: 0 }}>
-              Persentase status Hadir, Sakit, Izin, dan Alpa dari semua
-              sesi semester yang tercatat.
-            </p>
-            {komposisi && komposisi.total > 0 ? (
-              <GrafikDonat komposisi={komposisi} />
-            ) : (
-              <BelumAdaData />
-            )}
-          </section>
-
-          <section className="kartu">
             <h2>Progres setoran hifzh</h2>
+            <LabelCakupan teks={CAKUPAN_SEMUA} />
             <p className="catatan-kaki" style={{ marginTop: 0 }}>
               Jumlah setoran Buku Hafalan per pekan (8 pekan terakhir).
             </p>
-            {progresHifzh.length > 0 ? (
+            {progresHifzh === null ? (
+              <p className="catatan-kaki">Memuat grafik…</p>
+            ) : progresHifzh.length > 0 ? (
               <GrafikGaris data={progresHifzh} />
             ) : (
               <BelumAdaData />
             )}
           </section>
 
-          <section className="kartu">
-            <h2>Rata-rata nilai diniyyah per mapel</h2>
-            <p className="catatan-kaki" style={{ marginTop: 0 }}>
-              Rata-rata gabungan nilai harian dan ujian tiap mata
-              pelajaran, dirata-rata dari santri yang bisa Anda akses.
-            </p>
-            {rataMapel.length > 0 ? (
-              <GrafikBatangHorizontal data={rataMapel} />
-            ) : (
-              <BelumAdaData />
-            )}
-          </section>
-
+          {/* ------------ e. Hasil setoran L vs U ------------ */}
           <section className="kartu">
             <h2>Hasil setoran: Lancar vs Ulang</h2>
+            <LabelCakupan teks={CAKUPAN_SEMUA} />
             <p className="catatan-kaki" style={{ marginTop: 0 }}>
               Proporsi nilai L (Lancar) berbanding U (Ulang) dari semua
               setoran hifzh yang tercatat.
             </p>
-            {proporsiLU && proporsiLU.l + proporsiLU.u > 0 ? (
+            {proporsiLU === null ? (
+              <p className="catatan-kaki">Memuat grafik…</p>
+            ) : proporsiLU.l + proporsiLU.u > 0 ? (
               <GrafikProporsiLU l={proporsiLU.l} u={proporsiLU.u} />
-            ) : (
-              <BelumAdaData />
-            )}
-          </section>
-
-          <section className="kartu">
-            <h2>Sesi olahraga per bulan</h2>
-            <p className="catatan-kaki" style={{ marginTop: 0 }}>
-              Jumlah sesi olahraga yang tercatat pada tiap bulan (6
-              bulan terakhir).
-            </p>
-            {sesiPerBulan.length > 0 ? (
-              <GrafikBatangVertikal
-                data={sesiPerBulan}
-                gaya="bulat"
-                satuan="sesi"
-              />
             ) : (
               <BelumAdaData />
             )}
           </section>
         </>
       )}
+
+      {/* ------------ d. Rata-rata nilai diniyyah per mapel ------------ */}
+      {galatDiniyyah ? (
+        <KartuGalat
+          pesan={`Gagal memuat data grafik "Rata-rata nilai diniyyah per mapel": ${galatDiniyyah}`}
+          onCobaLagi={() => void muatDiniyyah()}
+        />
+      ) : (
+        <section className="kartu">
+          <h2>Rata-rata nilai diniyyah per mapel</h2>
+          <LabelCakupan teks={CAKUPAN_SEMUA} />
+          <p className="catatan-kaki" style={{ marginTop: 0 }}>
+            Rata-rata gabungan nilai harian dan ujian tiap mata
+            pelajaran, dirata-rata dari santri yang bisa Anda akses.
+          </p>
+          {rataMapel === null ? (
+            <p className="catatan-kaki">Memuat grafik…</p>
+          ) : rataMapel.length > 0 ? (
+            <GrafikBatangHorizontal data={rataMapel} />
+          ) : (
+            <BelumAdaData />
+          )}
+        </section>
+      )}
+
+      {/* ------------ f. Sesi olahraga per bulan ------------ */}
+      {galatOlahraga ? (
+        <KartuGalat
+          pesan={`Gagal memuat data grafik "Sesi olahraga per bulan": ${galatOlahraga}`}
+          onCobaLagi={() => void muatOlahraga()}
+        />
+      ) : (
+        <section className="kartu">
+          <h2>Sesi olahraga per bulan</h2>
+          <LabelCakupan teks={CAKUPAN_SEMUA} />
+          <p className="catatan-kaki" style={{ marginTop: 0 }}>
+            Jumlah sesi olahraga yang tercatat pada tiap bulan (6
+            bulan terakhir).
+          </p>
+          {sesiPerBulan === null ? (
+            <p className="catatan-kaki">Memuat grafik…</p>
+          ) : sesiPerBulan.length > 0 ? (
+            <GrafikBatangVertikal
+              data={sesiPerBulan}
+              gaya="bulat"
+              satuan="sesi"
+            />
+          ) : (
+            <BelumAdaData />
+          )}
+        </section>
+      )}
     </>
   );
+}
+
+/**
+ * Pilihan semester untuk filter donat: utamakan daftar semester dari
+ * lapisan data diniyyah (nama + tahun ajaran); bila daftar itu kosong
+ * (mis. baris semester belum dibuat), turunkan pilihan unik dari
+ * baris rekap semester yang tersedia agar filter tetap bisa dipakai.
+ */
+function opsiSemesterDari(
+  daftar: SemesterRef[],
+  baris: BarisRekapSemester[],
+): OpsiSemester[] {
+  if (daftar.length > 0) {
+    return daftar.map((s) => ({
+      id: s.id,
+      label: `${s.nama} · ${s.tahunAjaran}`,
+    }));
+  }
+  const unik = new Map<string, string>();
+  for (const b of baris) {
+    if (!unik.has(b.semesterId)) unik.set(b.semesterId, b.semesterNama);
+  }
+  return [...unik.entries()].map(([id, nama]) => ({ id, label: nama }));
 }

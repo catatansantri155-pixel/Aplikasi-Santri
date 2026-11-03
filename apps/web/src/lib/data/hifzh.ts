@@ -310,6 +310,55 @@ export async function ambilSetoranTerakhir(
   }
 }
 
+/**
+ * Riwayat setoran KHUSUS satu santri, terbaru lebih dulu, dibatasi
+ * `batas` baris. Dipakai halaman detail santri (audit Fase 1): halaman
+ * TIDAK lagi mengambil setoran terakhir lintas santri lalu menyaring,
+ * karena setoran anak bisa tidak muncul bila tidak termasuk potongan
+ * lintas santri tersebut.
+ */
+export async function ambilSetoranSantri(
+  santriId: string,
+  batas = 50,
+): Promise<HasilMuat<SetoranHifzh[]>> {
+  if (!envSupabaseTerisi()) {
+    return {
+      sumber: "contoh",
+      data: SETORAN_CONTOH.filter((s) => s.santriId === santriId).slice(
+        0,
+        batas,
+      ),
+    };
+  }
+  try {
+    const supabase = buatKlienBrowser();
+    const { data, error } = await supabase
+      .from("hifzh_setoran")
+      .select(
+        "id, santri_id, tanggal_masehi, tanggal_hijriah, jenis, halaman, surat, ayat_dari, ayat_sampai, rg, kk, kb, catatan_rincian, nilai_huruf, tugas_berikutnya, santri:santri_id ( nama ), penyimak:penyimak_id ( nama )",
+      )
+      .eq("santri_id", santriId)
+      .order("tanggal_masehi", { ascending: false })
+      .order("created_at", { ascending: false })
+      .limit(batas);
+    if (error) throw error;
+    const baris = (data ?? []) as unknown as Array<Record<string, unknown>>;
+    return { sumber: "supabase", data: baris.map(petakanSetoran) };
+  } catch (ralat) {
+    console.warn(
+      "[hifzh] Gagal membaca setoran santri, memakai data contoh:",
+      ralat,
+    );
+    return {
+      sumber: "contoh",
+      data: SETORAN_CONTOH.filter((s) => s.santriId === santriId).slice(
+        0,
+        batas,
+      ),
+    };
+  }
+}
+
 /** Baris tes semester (per juz) untuk satu santri. */
 export async function ambilUjianSemester(
   santriId: string,

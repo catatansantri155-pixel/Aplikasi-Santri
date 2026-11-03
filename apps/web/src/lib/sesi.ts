@@ -53,6 +53,33 @@ export async function ambilProfilLogin(): Promise<ProfilLogin | null> {
 }
 
 /**
+ * Kunci sessionStorage penanda "sesi ada tetapi profil belum
+ * disiapkan" (audit Fase 1): penjaga kerangka menyetelnya sebelum
+ * mengarahkan pengguna ke /login, dan halaman login membacanya sekali
+ * untuk menampilkan pesan khusus, lalu menghapusnya.
+ */
+export const KUNCI_PENANDA_PROFIL_BELUM_DISIAPKAN =
+  "aplikasi-santri:profil-belum-disiapkan";
+
+/**
+ * Apakah ada sesi Auth yang aktif (tanpa peduli baris profilnya)?
+ * Membedakan dua keadaan yang selama ini tercampur di ambilProfilLogin
+ * (sama-sama null): "belum masuk sama sekali" dan "sudah masuk tetapi
+ * akses/profilnya belum disiapkan admin".
+ */
+export async function adaSesiAktif(): Promise<boolean> {
+  if (!supabaseTerhubung()) return false;
+  try {
+    const {
+      data: { user },
+    } = await buatKlienBrowser().auth.getUser();
+    return Boolean(user);
+  } catch {
+    return false;
+  }
+}
+
+/**
  * Akhiri sesi login (Supabase signOut). Dipakai halaman Akun; komponen
  * InfoPengguna di kerangka memakai mekanisme yang sama. Kegagalan
  * jaringan diabaikan: pemanggil tetap mengarahkan ke /login dan

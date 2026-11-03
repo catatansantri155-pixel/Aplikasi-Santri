@@ -59,11 +59,17 @@ export default function BagianUjian({
   const [ralat, setRalat] = useState<string | null>(null);
   const [mengirim, setMengirim] = useState(false);
 
+  // Santri TIDAK dipilih otomatis (audit Fase 1, pola sama dengan
+  // FormSetoran): tanpa pilihan sadar, tabel juz kosong dan tombol
+  // simpan nonaktif — baris ujian tidak boleh masuk ke anak yang salah.
   const santriTerpilih =
-    daftarSantri.find((s) => s.id === santriId) ?? daftarSantri[0];
+    daftarSantri.find((s) => s.id === santriId) ?? null;
 
   useEffect(() => {
-    if (!santriTerpilih) return;
+    if (!santriTerpilih) {
+      setBaris([]);
+      return;
+    }
     let batal = false;
     setMemuat(true);
     ambilUjianSemester(santriTerpilih.id)
@@ -96,7 +102,7 @@ export default function BagianUjian({
     setRalat(null);
     setPesan(null);
     if (!santriTerpilih) {
-      setRalat("Daftar santri belum termuat.");
+      setRalat("Pilih santri dulu sebelum menyimpan baris ujian.");
       return;
     }
     const juzN = keAngka(juz);
@@ -157,10 +163,15 @@ export default function BagianUjian({
       <label style={{ ...gayaLabel, maxWidth: 420, marginBottom: 12 }}>
         Santri yang Diuji
         <select
-          value={santriTerpilih?.id ?? ""}
+          value={santriId}
           onChange={(e) => setSantriId(e.target.value)}
           style={gayaMasukan}
         >
+          <option value="">
+            {daftarSantri.length === 0
+              ? "Belum ada santri"
+              : "Pilih santri…"}
+          </option>
           {daftarSantri.map((s) => (
             <option key={s.id} value={s.id}>
               {s.nama}
@@ -178,7 +189,12 @@ export default function BagianUjian({
         {ringkasan ? ` ${ringkasan}.` : ""}
       </p>
 
-      {memuat ? (
+      {!santriTerpilih ? (
+        <p style={gayaPetunjuk}>
+          Pilih santri terlebih dahulu untuk melihat dan mengisi baris
+          juz tes semesternya.
+        </p>
+      ) : memuat ? (
         <p style={gayaPetunjuk}>Memuat tabel juz…</p>
       ) : baris.length === 0 ? (
         <p style={gayaPetunjuk}>
@@ -313,7 +329,27 @@ export default function BagianUjian({
           </p>
         )}
 
-        <button type="submit" className="tombol" disabled={mengirim}>
+        <p style={{ ...gayaPetunjuk, margin: 0 }}>
+          {santriTerpilih ? (
+            <>
+              Santri terpilih:{" "}
+              <strong>
+                {santriTerpilih.nama}
+                {santriTerpilih.kelasTingkat
+                  ? ` — Kelas ${santriTerpilih.kelasTingkat}`
+                  : ""}
+              </strong>
+            </>
+          ) : (
+            "Pilih santri terlebih dahulu — baris ujian tidak akan tersimpan sebelum santri dipilih."
+          )}
+        </p>
+
+        <button
+          type="submit"
+          className="tombol"
+          disabled={mengirim || !santriTerpilih}
+        >
           {mengirim ? "Menyimpan…" : "Tambah Baris Juz"}
         </button>
       </form>

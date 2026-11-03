@@ -8,16 +8,34 @@
  * galat bahasa Indonesia. Peran pengguna TIDAK dipilih di sini —
  * ditentukan dari baris tabel profiles milik akun yang masuk.
  *
+ * Perbaikan audit Fase 1 (3 Nov 2026):
+ * - Halaman ini TIDAK dibungkus kerangka aplikasi (lihat Kerangka):
+ *   tidak ada sidebar/header/navigasi bawah di sini.
+ * - Tombol tampilkan/sembunyikan kata sandi (ikon mata).
+ * - Kalimat bantuan singkat: "Gunakan akun yang diberikan admin."
+ * - Keadaan khusus "masuk tetapi profil belum disiapkan": sesi Auth
+ *   berhasil tetapi baris profiles belum ada → pesan khusus tampil
+ *   di halaman ini ("Akun berhasil masuk, tetapi akses belum
+ *   disiapkan. Hubungi admin."), pengguna tidak dipantulkan diam-
+ *   diam antara beranda dan login. Terdeteksi tiga jalan: tepat
+ *   setelah kirim formulir, saat halaman dibuka dengan sesi yatim,
+ *   dan lewat penanda sessionStorage dari penjaga kerangka.
+ *
  * MODE CONTOH (env Supabase kosong): formulir tetap tampil, tetapi
  * pengiriman ditolak dengan penjelasan bahwa login asli belum aktif.
  */
-import { useState, type FormEvent } from "react";
+import { useEffect, useState, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import PenandaTahap from "@/components/PenandaTahap";
 import { Ikon } from "@/components/Ikon";
 import { ILUSTRASI_LOGIN } from "@/lib/ilustrasi-login";
 import { buatKlienBrowser } from "@/lib/supabase/client";
 import { supabaseTerhubung } from "@/lib/data/santri";
+import {
+  KUNCI_PENANDA_PROFIL_BELUM_DISIAPKAN,
+  adaSesiAktif,
+  ambilProfilLogin,
+} from "@/lib/sesi";
 
 /** Ubah pesan galat Supabase menjadi pesan Indonesia yang jelas. */
 function pesanGalatLogin(pesanMentah: string): string {
@@ -33,17 +51,57 @@ function pesanGalatLogin(pesanMentah: string): string {
   return "Gagal masuk. Periksa koneksi internet, lalu coba lagi.";
 }
 
+const PESAN_PROFIL_BELUM_DISIAPKAN =
+  "Akun berhasil masuk, tetapi akses belum disiapkan. Hubungi admin.";
+
 export default function HalamanLogin() {
   const router = useRouter();
   const modeSupabase = supabaseTerhubung();
   const [email, setEmail] = useState("");
   const [kataSandi, setKataSandi] = useState("");
+  const [sandiTerlihat, setSandiTerlihat] = useState(false);
   const [galat, setGalat] = useState<string | null>(null);
+  const [profilBelumDisiapkan, setProfilBelumDisiapkan] = useState(false);
   const [mengirim, setMengirim] = useState(false);
+
+  /* Saat halaman dibuka: bila sudah ada sesi dengan profil → teruskan
+     ke beranda; bila sesi ada tetapi profil belum disiapkan (termasuk
+     pantulan dari penjaga kerangka yang menyetel penanda) → tampilkan
+     pesan khusus di sini. */
+  useEffect(() => {
+    if (!modeSupabase) return;
+    let aktif = true;
+    (async () => {
+      let dariPenanda = false;
+      try {
+        dariPenanda =
+          sessionStorage.getItem(KUNCI_PENANDA_PROFIL_BELUM_DISIAPKAN) ===
+          "1";
+        if (dariPenanda) {
+          sessionStorage.removeItem(KUNCI_PENANDA_PROFIL_BELUM_DISIAPKAN);
+        }
+      } catch {
+        // sessionStorage tidak tersedia — lanjut dengan cek sesi.
+      }
+      const profil = await ambilProfilLogin();
+      if (!aktif) return;
+      if (profil) {
+        router.replace("/");
+        return;
+      }
+      if (dariPenanda || (await adaSesiAktif())) {
+        if (aktif) setProfilBelumDisiapkan(true);
+      }
+    })();
+    return () => {
+      aktif = false;
+    };
+  }, [modeSupabase, router]);
 
   async function tanganiKirim(acara: FormEvent<HTMLFormElement>) {
     acara.preventDefault();
     setGalat(null);
+    setProfilBelumDisiapkan(false);
     if (!modeSupabase) {
       setGalat(
         "Login asli belum aktif: env Supabase belum terisi, aplikasi sedang berjalan dalam mode contoh.",
@@ -61,8 +119,15 @@ export default function HalamanLogin() {
         setGalat(pesanGalatLogin(error.message));
         return;
       }
-      // Sesi tersimpan oleh klien Supabase (cookie); penjaga halaman di
-      // kerangka akan membaca profilnya di beranda.
+      // Sesi Auth berhasil. Pastikan baris profilnya sudah disiapkan
+      // admin SEBELUM meneruskan ke beranda — bila belum, tampilkan
+      // pesan khusus di sini (audit Fase 1), jangan memantulkan
+      // pengguna tanpa penjelasan.
+      const profil = await ambilProfilLogin();
+      if (!profil) {
+        setProfilBelumDisiapkan(true);
+        return;
+      }
       router.replace("/");
       router.refresh();
     } catch {
@@ -105,6 +170,11 @@ export default function HalamanLogin() {
         {!modeSupabase && (
           <PenandaTahap teks="MODE CONTOH · LOGIN ASLI MENUNGGU ENV SUPABASE" />
         )}
+        {profilBelumDisiapkan && (
+          <p className="pesan-galat" role="alert" style={{ marginBottom: 14 }}>
+            {PESAN_PROFIL_BELUM_DISIAPKAN}
+          </p>
+        )}
         <form className="formulir" onSubmit={tanganiKirim}>
           <label>
             Alamat surel
@@ -119,14 +189,29 @@ export default function HalamanLogin() {
           </label>
           <label>
             Kata sandi
-            <input
-              type="password"
-              name="kata-sandi"
-              autoComplete="current-password"
-              required
-              value={kataSandi}
-              onChange={(e) => setKataSandi(e.target.value)}
-            />
+            <span className="bungkus-sandi">
+              <input
+                type={sandiTerlihat ? "text" : "password"}
+                name="kata-sandi"
+                autoComplete="current-password"
+                required
+                value={kataSandi}
+                onChange={(e) => setKataSandi(e.target.value)}
+              />
+              <button
+                type="button"
+                className="tombol-mata"
+                aria-label={
+                  sandiTerlihat
+                    ? "Sembunyikan kata sandi"
+                    : "Tampilkan kata sandi"
+                }
+                aria-pressed={sandiTerlihat}
+                onClick={() => setSandiTerlihat((lama) => !lama)}
+              >
+                <Ikon nama={sandiTerlihat ? "mata-silang" : "mata"} ukuran={22} />
+              </button>
+            </span>
           </label>
           {galat && (
             <p className="pesan-galat" role="alert">
@@ -143,9 +228,7 @@ export default function HalamanLogin() {
         </form>
 
         <p className="catatan-kaki" style={{ textAlign: "center" }}>
-          Peran pengguna (admin, pengajar hifzh, pengajar diniyyah,
-          musyrif, orang tua) ditentukan dari akun yang terdaftar,
-          bukan dipilih di formulir ini.
+          Gunakan akun yang diberikan admin.
         </p>
       </div>
     </div>

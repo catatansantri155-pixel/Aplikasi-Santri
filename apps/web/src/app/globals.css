@@ -32,10 +32,17 @@
   --biru-buku: #1d6fb8;
 
   /* Status kehadiran */
-  --status-hadir: #1e9e6a;
+  /* Warna status terpilih dikontraskan ≥4,5:1 (audit Fase 1, hitungan
+     luminansi relatif WCAG): Hadir #0e7a35 dengan teks putih = 5,45:1
+     (sebelumnya #1e9e6a = 3,41:1); Alpa #b3261e dengan teks putih =
+     6,54:1 (sebelumnya #d9534f = 3,96:1); Sakit tetap #e8a100 tetapi
+     teks terpilihnya gelap #4a3500 = 5,29:1 (teks putih hanya 2,20:1);
+     Izin #1d6fb8 dengan teks putih = 5,23:1, sudah lulus, tidak
+     diubah. */
+  --status-hadir: #0e7a35;
   --status-sakit: #e8a100;
   --status-izin: #1d6fb8;
-  --status-alpa: #d9534f;
+  --status-alpa: #b3261e;
 
   /* Hasil hifzh (M emas → G merah) */
   --hasil-m: #f0b000;
@@ -1178,6 +1185,17 @@ h1.judul-halaman {
   opacity: 0.88;
 }
 
+/* Sakit terpilih: latar kuning tidak pernah cukup kontras dengan teks
+   putih (2,20:1), jadi teksnya gelap — #4a3500 di atas #e8a100 =
+   5,29:1 (audit Fase 1). */
+.pil-status--sakit[aria-pressed="true"] {
+  color: #4a3500;
+}
+
+.pil-status--sakit[aria-pressed="true"] .pil-status-label {
+  opacity: 1;
+}
+
 /* ---------- Tombol aksi ---------- */
 
 .tombol {
@@ -1464,6 +1482,38 @@ textarea.masukan {
   max-width: 430px;
   margin: 8px auto 0;
   width: 100%;
+  /* Halaman login kini TANPA kerangka aplikasi (audit Fase 1), jadi
+     bantalan yang dulu berasal dari .konten tinggal di sini. */
+  padding: 18px 16px 40px;
+}
+
+/* Bungkus kolom kata sandi + tombol tampilkan/sembunyikan (audit
+   Fase 1). Tombol mata berada di dalam kolom, target sentuh 44px. */
+.bungkus-sandi {
+  position: relative;
+  display: block;
+}
+
+.bungkus-sandi input {
+  padding-right: 52px;
+}
+
+.tombol-mata {
+  position: absolute;
+  right: 4px;
+  top: 50%;
+  transform: translateY(-50%);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  background: none;
+  border: none;
+  border-radius: 10px;
+  color: var(--teks-redup);
+  cursor: pointer;
 }
 
 .logo-login {

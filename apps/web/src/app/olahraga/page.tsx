@@ -14,6 +14,13 @@
  *
  * Halaman ini hanya mengelola sesi & kehadiran. Belum ada keputusan
  * user apakah olahraga juga dinilai — tidak ada isian nilai di sini.
+ *
+ * Perbaikan audit Fase 1 (3 Nov 2026): aksi massal diganti "Isi yang
+ * kosong sebagai Hadir" (tidak menimpa pilihan yang sudah dibuat;
+ * penimpaan total menjadi tindakan sekunder berkonsfirmasi), dan
+ * tombol Simpan menyebut cakupan yang benar-benar dikirim — semua
+ * status terisi pada sesi ini, termasuk santri yang sedang
+ * tersembunyi oleh filter kelas (dijelaskan di keterangan tombol).
  */
 import { useCallback, useEffect, useMemo, useState } from "react";
 import PenandaTahap from "@/components/PenandaTahap";
@@ -21,6 +28,11 @@ import KartuGalat from "@/components/KartuGalat";
 import PenjagaModul from "@/components/PenjagaModul";
 import AvatarInisial from "@/components/AvatarInisial";
 import { LingkaranIkon } from "@/components/Ikon";
+import {
+  hitungTertimpa,
+  isiKosongSebagaiHadir,
+  timpaSemuaJadiHadir,
+} from "@/lib/kehadiran-isi";
 import { ambilDaftarSantri, type Santri } from "@/lib/data/santri";
 import {
   ambilProfilSaya,
@@ -385,14 +397,34 @@ function IsiHalamanOlahraga() {
               type="button"
               className="tombol tombol-sekunder"
               onClick={() =>
-                setPilihan((lama) => {
-                  const baru = { ...lama };
-                  for (const s of santriTampil) baru[s.id] = "hadir";
-                  return baru;
-                })
+                setPilihan((lama) =>
+                  isiKosongSebagaiHadir(
+                    lama,
+                    santriTampil.map((s) => s.id),
+                  ),
+                )
               }
             >
-              Tandai semua Hadir
+              Isi yang kosong sebagai Hadir
+            </button>
+            <button
+              type="button"
+              className="tombol tombol-kecil tombol-sekunder"
+              onClick={() => {
+                const ids = santriTampil.map((s) => s.id);
+                const tertimpa = hitungTertimpa(pilihan, ids);
+                if (
+                  tertimpa > 0 &&
+                  !window.confirm(
+                    `${tertimpa} status yang sudah dipilih akan tertimpa menjadi Hadir. Lanjutkan?`,
+                  )
+                ) {
+                  return;
+                }
+                setPilihan((lama) => timpaSemuaJadiHadir(lama, ids));
+              }}
+            >
+              Timpa semua jadi Hadir
             </button>
             <button
               type="button"
@@ -400,9 +432,16 @@ function IsiHalamanOlahraga() {
               onClick={tanganiSimpan}
               disabled={sedangMenyimpan}
             >
-              {sedangMenyimpan ? "Menyimpan…" : "Simpan kehadiran"}
+              {sedangMenyimpan
+                ? "Menyimpan…"
+                : `Simpan kehadiran · ${jumlahTerisi} terisi`}
             </button>
           </div>
+          <p className="catatan-kaki" style={{ marginTop: 8 }}>
+            {filterKelas === "semua"
+              ? "Tombol Simpan mengirim semua status yang terisi pada sesi ini."
+              : `Tombol Simpan mengirim semua status yang terisi pada sesi ini (${jumlahTerisi} santri), termasuk santri di luar filter kelas yang sedang tampil — filter hanya membatasi tampilan, bukan cakupan simpan.`}
+          </p>
           {pesanSimpan && (
             <p className="catatan-kaki" role="status" style={{ marginTop: 10 }}>
               {pesanSimpan}

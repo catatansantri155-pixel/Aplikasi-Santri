@@ -24,7 +24,12 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { supabaseTerhubung } from "@/lib/data/santri";
 import { LABEL_PERAN } from "@/lib/peran";
-import { ambilProfilLogin, type ProfilLogin } from "@/lib/sesi";
+import {
+  KUNCI_PENANDA_PROFIL_BELUM_DISIAPKAN,
+  adaSesiAktif,
+  ambilProfilLogin,
+  type ProfilLogin,
+} from "@/lib/sesi";
 import { Ikon } from "@/components/Ikon";
 import AvatarInisial from "@/components/AvatarInisial";
 
@@ -66,7 +71,19 @@ export default function InfoPengguna({
       setProfil(p);
       setCekSelesai(true);
       if (!p && pathname !== "/login") {
-        // Tanpa sesi (atau profil belum terdaftar): ke halaman masuk.
+        // Ke halaman masuk. Bedakan sebabnya (audit Fase 1): sesi
+        // Auth ADA tetapi baris profilnya belum disiapkan → setel
+        // penanda agar /login menampilkan pesan khusus "akses belum
+        // disiapkan, hubungi admin", bukan pantulan diam tanpa
+        // penjelasan. Tanpa sesi sama sekali: masuk biasa.
+        if (await adaSesiAktif()) {
+          try {
+            sessionStorage.setItem(KUNCI_PENANDA_PROFIL_BELUM_DISIAPKAN, "1");
+          } catch {
+            // sessionStorage tidak tersedia — pesan khusus dilewati.
+          }
+        }
+        if (!aktif) return;
         router.replace("/login");
       } else if (p && pathname === "/login") {
         // Sudah masuk tetapi membuka /login: teruskan ke beranda.

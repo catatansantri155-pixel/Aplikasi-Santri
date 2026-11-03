@@ -48,7 +48,7 @@ import {
   type StatusKehadiran,
 } from "@/lib/data/kehadiran";
 import {
-  ambilSetoranTerakhir,
+  ambilSetoranSantri,
   ambilUjianSemester,
   type BarisUjianHifzh,
   type SetoranHifzh,
@@ -195,7 +195,11 @@ export default function HalamanDetailSantri({
   const [harianDiniyyah, setHarianDiniyyah] = useState<NilaiHarian[]>([]);
   const [ujianDiniyyah, setUjianDiniyyah] = useState<NilaiUjian[]>([]);
   const [catatan, setCatatan] = useState<CatatanMusyrif[]>([]);
-  const [sumberHifzhContoh, setSumberHifzhContoh] = useState(false);
+  /** Batas riwayat setoran yang dimuat (50 → 100 → 200, audit Fase 1). */
+  const [batasSetoran, setBatasSetoran] = useState(50);
+  const [sumberSetoranContoh, setSumberSetoranContoh] = useState(false);
+  const [sumberUjianContoh, setSumberUjianContoh] = useState(false);
+  const sumberHifzhContoh = sumberSetoranContoh || sumberUjianContoh;
   const [sumberContoh, setSumberContoh] = useState(false);
   const [tabAktif, setTabAktif] = useState<KunciTab>("kehadiran");
   const [memuat, setMemuat] = useState(true);
@@ -209,7 +213,6 @@ export default function HalamanDetailSantri({
         detail,
         riwayatHasil,
         logHasil,
-        setoranHasil,
         ujianHasil,
         jadwalHasil,
         harianHasil,
@@ -219,10 +222,6 @@ export default function HalamanDetailSantri({
         ambilDetailSantri(id),
         ambilRiwayatKehadiranSantri(id),
         ambilLogRevisiSantri(id),
-        // Tab Hifzh: setoran terakhir lintas santri dari lapisan data
-        // hifzh, disaring ke santri ini di bawah (pada data Supabase,
-        // santriId baris setoran memang id santri ini).
-        ambilSetoranTerakhir(50),
         ambilUjianSemester(id),
         ambilJadwalSesi("diniyyah"),
         // Tab Diniyyah & Catatan: dari lapisan datanya masing-masing
@@ -234,17 +233,12 @@ export default function HalamanDetailSantri({
       setSantri(detail.data);
       setRiwayat(riwayatHasil.data);
       setLogRevisi(logHasil.data);
-      setSetoran(
-        setoranHasil.data.filter((s) => s.santriId === id).slice(0, 10),
-      );
       setUjian(ujianHasil.data);
+      setSumberUjianContoh(ujianHasil.sumber === "contoh");
       setJadwalDiniyyah(jadwalHasil.data);
       setHarianDiniyyah(harianHasil.data);
       setUjianDiniyyah(ujianDiniyyahHasil.data);
       setCatatan(catatanHasil.data);
-      setSumberHifzhContoh(
-        setoranHasil.sumber === "contoh" || ujianHasil.sumber === "contoh",
-      );
       setSumberContoh(
         detail.sumberContoh ||
           riwayatHasil.sumberContoh ||
@@ -263,6 +257,24 @@ export default function HalamanDetailSantri({
   useEffect(() => {
     void muat();
   }, [muat]);
+
+  /* Riwayat setoran KHUSUS santri ini (audit Fase 1): diambil dengan
+     kueri per santri dari lapisan data, bukan lagi potongan 50 setoran
+     terakhir lintas santri yang disaring di halaman — setoran anak
+     bisa tidak muncul pada pola lama. Batas dapat dinaikkan pengguna
+     lewat tombol "Muat lebih banyak" (50 → 100 → 200). */
+  const muatSetoran = useCallback(
+    async (batas: number) => {
+      const hasil = await ambilSetoranSantri(id, batas);
+      setSetoran(hasil.data);
+      setSumberSetoranContoh(hasil.sumber === "contoh");
+    },
+    [id],
+  );
+
+  useEffect(() => {
+    muatSetoran(batasSetoran).catch(() => setSetoran([]));
+  }, [muatSetoran, batasSetoran]);
 
   const ringkasan = useMemo(() => {
     const hitung: Record<StatusKehadiran, number> = {
@@ -489,6 +501,20 @@ export default function HalamanDetailSantri({
                 </div>
               ))}
             </div>
+            {setoran.length >= batasSetoran && batasSetoran < 200 && (
+              <p style={{ marginTop: 12 }}>
+                <button
+                  type="button"
+                  className="tombol tombol-sekunder"
+                  onClick={() =>
+                    setBatasSetoran((b) => (b < 100 ? 100 : 200))
+                  }
+                >
+                  Muat lebih banyak setoran (kini menampilkan{" "}
+                  {batasSetoran} terakhir)
+                </button>
+              </p>
+            )}
             <p className="catatan-kaki" style={{ marginTop: 10 }}>
               Nilai L (Lancar) / U (Ulang) dihitung otomatis dari kesalahan
               RG/KK/KB mengikuti aturan Buku Hafalan. Grafik perkembangan

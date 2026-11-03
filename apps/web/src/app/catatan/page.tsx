@@ -142,7 +142,9 @@ function IsiHalamanCatatan() {
           santriHasil.sumberContoh ||
           catatanHasil.sumberContoh,
       );
-      if (santriHasil.data.length > 0) setSantriId(santriHasil.data[0].id);
+      // Santri TIDAK dipilih otomatis (audit Fase 1): pilihan awal
+      // kosong agar catatan tidak berisiko masuk ke anak yang salah;
+      // pengguna wajib memilih secara sadar.
     } catch (e: unknown) {
       setGalatMuat(
         e instanceof Error ? e.message : "Gagal memuat data catatan.",
@@ -157,6 +159,8 @@ function IsiHalamanCatatan() {
   /** Pelapor siap bila profil termuat DAN namanya tidak kosong. */
   const pelaporSiap = profil !== null && profil.nama.trim().length > 0;
   const formulirSiap = pelaporSiap && santriId !== "" && isi.trim().length > 0;
+  /** Identitas santri terpilih, ditampilkan dekat tombol Simpan. */
+  const santriTerpilih = semuaSantri.find((s) => s.id === santriId) ?? null;
 
   async function tanganiSimpan() {
     setPesanSimpan(null);
@@ -236,9 +240,11 @@ function IsiHalamanCatatan() {
               onChange={(e) => setSantriId(e.target.value)}
               style={GAYA_PILIH}
             >
-              {semuaSantri.length === 0 && (
-                <option value="">Belum ada santri</option>
-              )}
+              <option value="">
+                {semuaSantri.length === 0
+                  ? "Belum ada santri"
+                  : "Pilih santri…"}
+              </option>
               {semuaSantri.map((s) => (
                 <option key={s.id} value={s.id}>
                   {s.nama} — Kelas {s.kelasTingkat}
@@ -290,6 +296,18 @@ function IsiHalamanCatatan() {
               style={GAYA_AREA_TEKS}
             />
           </label>
+          <p className="catatan-kaki" style={{ margin: 0 }}>
+            {santriTerpilih ? (
+              <>
+                Santri terpilih:{" "}
+                <strong>
+                  {santriTerpilih.nama} — Kelas {santriTerpilih.kelasTingkat}
+                </strong>
+              </>
+            ) : (
+              "Pilih santri terlebih dahulu — catatan tidak akan tersimpan sebelum santri dipilih."
+            )}
+          </p>
           <button
             type="button"
             className="tombol"

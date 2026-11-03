@@ -129,8 +129,9 @@ function IsiHalamanAdmin() {
         tautanHasil.sumberContoh,
     );
     setKelasBaruId((lama) => lama || kelasHasil.data[0]?.id || "");
-    setWaliPilih((lama) => lama || waliHasil.data[0]?.id || "");
-    setSantriPilih((lama) => lama || santriHasil.data[0]?.id || "");
+    // Wali & santri pada form tautan TIDAK dipilih otomatis (audit
+    // Fase 1): keduanya mulai dari penampung "Pilih wali…" /
+    // "Pilih santri…" agar tautan tidak dibuat ke pasangan yang salah.
   }, []);
 
   /* Muat profil + semua data panel; juga target tombol coba lagi. */
@@ -175,6 +176,10 @@ function IsiHalamanAdmin() {
     (id: string) => semuaSantri.find((s) => s.id === id) ?? null,
     [semuaSantri],
   );
+
+  /** Pasangan terpilih pada form tautan, ditampilkan dekat tombol. */
+  const waliTerpilih = daftarWali.find((w) => w.id === waliPilih) ?? null;
+  const santriUntukTautan = santriPilih ? santriDariId(santriPilih) : null;
 
   const jumlahAktif = semuaSantri.filter((s) => s.statusAktif).length;
 
@@ -751,6 +756,7 @@ function IsiHalamanAdmin() {
               value={waliPilih}
               onChange={(e) => setWaliPilih(e.target.value)}
             >
+              <option value="">Pilih wali…</option>
               {daftarWali.map((w) => (
                 <option key={w.id} value={w.id}>
                   {w.nama}
@@ -765,6 +771,7 @@ function IsiHalamanAdmin() {
               value={santriPilih}
               onChange={(e) => setSantriPilih(e.target.value)}
             >
+              <option value="">Pilih santri…</option>
               {semuaSantri.map((s) => (
                 <option key={s.id} value={s.id}>
                   {s.nama} · {s.kelasNama}
@@ -773,11 +780,29 @@ function IsiHalamanAdmin() {
               ))}
             </select>
           </label>
+          <p className="catatan-kaki" style={{ margin: 0 }}>
+            {waliTerpilih && santriUntukTautan ? (
+              <>
+                Pasangan yang akan ditautkan:{" "}
+                <strong>{waliTerpilih.nama}</strong> →{" "}
+                <strong>
+                  {santriUntukTautan.nama} · {santriUntukTautan.kelasNama}
+                </strong>
+              </>
+            ) : (
+              "Pilih wali dan santri terlebih dahulu — tombol Tautkan aktif setelah keduanya dipilih."
+            )}
+          </p>
           <button
             type="button"
             className="tombol"
             onClick={tanganiTambahTautan}
-            disabled={sedangSimpanTautan || daftarWali.length === 0}
+            disabled={
+              sedangSimpanTautan ||
+              daftarWali.length === 0 ||
+              !waliPilih ||
+              !santriPilih
+            }
           >
             {sedangSimpanTautan ? "Menyimpan…" : "Tautkan"}
           </button>

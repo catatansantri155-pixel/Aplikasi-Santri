@@ -11,6 +11,18 @@
  * Selama env Supabase belum terisi, semua berjalan di atas DATA CONTOH
  * FIKSI (profil contoh adalah admin, agar bagian revisi bisa diuji) dan
  * halaman ini menandainya dengan jelas.
+ *
+ * Perbaikan audit Fase 1 (3 Nov 2026):
+ * - "Tandai semua Hadir" diganti "Isi yang kosong sebagai Hadir"
+ *   (tidak menimpa pilihan yang sudah dibuat); penimpaan total tetap
+ *   ada sebagai tindakan sekunder berkonsfirmasi.
+ * - Label Simpan menyebut cakupan (jumlah entri + kelas) dan sisa
+ *   yang belum diisi.
+ * - Ganti tanggal/sesi/jadwal saat ada perubahan belum tersimpan
+ *   meminta konfirmasi buang perubahan.
+ * - Baris yang statusnya SUDAH tersimpan tampil sebagai lencana
+ *   baca-saja untuk non-admin (dan tidak ikut dikirim ulang saat
+ *   menyimpan); perubahan status tersimpan hanya lewat revisi admin.
  */
 import { useCallback, useEffect, useMemo, useState } from "react";
 import PenandaTahap from "@/components/PenandaTahap";
@@ -18,6 +30,12 @@ import KartuGalat from "@/components/KartuGalat";
 import PenjagaModul from "@/components/PenjagaModul";
 import AvatarInisial from "@/components/AvatarInisial";
 import { bolehRevisiKehadiran } from "@/lib/akses";
+import {
+  hitungKosong,
+  hitungTertimpa,
+  isiKosongSebagaiHadir,
+  timpaSemuaJadiHadir,
+} from "@/lib/kehadiran-isi";
 import { ambilDaftarSantri, type Santri } from "@/lib/data/santri";
 import {
   ajukanRevisiKehadiran,
@@ -73,6 +91,8 @@ function IsiHalamanKehadiran() {
   // Isi formulir
   const [pilihan, setPilihan] = useState<Record<string, StatusKehadiran>>({});
   const [barisTersimpan, setBarisTersimpan] = useState<BarisKehadiran[]>([]);
+  /** Ada perubahan pilihan yang belum tersimpan (penjaga konteks). */
+  const [kotor, setKotor] = useState(false);
   const [pesanSimpan, setPesanSimpan] = useState<string | null>(null);
   const [sedangMenyimpan, setSedangMenyimpan] = useState(false);
 
@@ -130,6 +150,8 @@ function IsiHalamanKehadiran() {
     const awal: Record<string, StatusKehadiran> = {};
     for (const b of hasil.data) awal[b.santriId] = b.status;
     setPilihan(awal);
+    // Isi awal dari basis data bukan perubahan pengguna.
+    setKotor(false);
     setRevisiId(hasil.data[0]?.id ?? "");
   }, [tanggal, sesi, jadwalId]);
 
@@ -149,15 +171,65 @@ function IsiHalamanKehadiran() {
 
   const jumlahTerisi = santriKelas.filter((s) => pilihan[s.id]).length;
 
+  // Revisi tetap khusus admin — aturan terpusat di src/lib/akses.ts.
+  const adalahAdmin = bolehRevisiKehadiran(profil?.peran);
+
+  /** Status yang sudah tersimpan di basis data, per santri. */
+  const petaTersimpan = useMemo(
+    () => new Map(barisTersimpan.map((b) => [b.santriId, b.status])),
+    [barisTersimpan],
+  );
+
+  const idKelas = useMemo(() => santriKelas.map((s) => s.id), [santriKelas]);
+  /** Id yang boleh diubah dari formulir ini: untuk non-admin, baris
+      yang sudah tersimpan dikecualikan dari aksi massal juga. */
+  const idBisaDiubah = useMemo(
+    () =>
+      santriKelas
+        .filter((s) => adalahAdmin || !petaTersimpan.has(s.id))
+        .map((s) => s.id),
+    [santriKelas, adalahAdmin, petaTersimpan],
+  );
+  const jumlahBelumDiisi = hitungKosong(pilihan, idKelas);
+  /** Entri yang benar-benar akan dikirim tombol Simpan: untuk
+      non-admin, baris yang sudah tersimpan TIDAK dikirim ulang
+      (status tersimpan hanya berubah lewat revisi admin). */
+  const jumlahAkanDisimpan = santriKelas.filter(
+    (s) => pilihan[s.id] && (adalahAdmin || !petaTersimpan.has(s.id)),
+  ).length;
+
+  /**
+   * Penjaga konteks (audit Fase 1): mengganti tanggal/sesi/jadwal
+   * memuat ulang isi formulir — bila masih ada perubahan belum
+   * tersimpan, minta konfirmasi dulu; ditolak = konteks tidak berubah.
+   */
+  function mintaGantiKonteks(terapkan: () => void) {
+    if (
+      kotor &&
+      !window.confirm(
+        "Ada perubahan belum disimpan. Lanjutkan dan buang perubahan?",
+      )
+    ) {
+      return;
+    }
+    terapkan();
+  }
+
   async function tanganiSimpan() {
     setPesanSimpan(null);
     const entri: EntriKehadiranBaru[] = [];
     for (const s of santriKelas) {
       const status = pilihan[s.id];
-      if (status) entri.push({ santriId: s.id, status });
+      if (!status) continue;
+      if (!adalahAdmin && petaTersimpan.has(s.id)) continue;
+      entri.push({ santriId: s.id, status });
     }
     if (entri.length === 0) {
-      setPesanSimpan("Belum ada santri yang diberi status. Ketuk H/S/I/A dulu.");
+      setPesanSimpan(
+        jumlahTerisi > 0 && !adalahAdmin
+          ? "Semua status yang terisi pada sesi ini sudah tersimpan. Perubahan status tersimpan hanya lewat revisi admin."
+          : "Belum ada santri yang diberi status. Ketuk H/S/I/A dulu.",
+      );
       return;
     }
     setSedangMenyimpan(true);
@@ -215,9 +287,6 @@ function IsiHalamanKehadiran() {
     }
   }
 
-  // Revisi tetap khusus admin — aturan terpusat di src/lib/akses.ts.
-  const adalahAdmin = bolehRevisiKehadiran(profil?.peran);
-
   return (
     <>
       {sumberContoh && (
@@ -241,7 +310,10 @@ function IsiHalamanKehadiran() {
             <input
               type="date"
               value={tanggal}
-              onChange={(e) => setTanggal(e.target.value)}
+              onChange={(e) => {
+                const nilai = e.target.value;
+                mintaGantiKonteks(() => setTanggal(nilai));
+              }}
             />
           </label>
           <div>
@@ -259,14 +331,14 @@ function IsiHalamanKehadiran() {
               <button
                 type="button"
                 aria-pressed={sesi === "hifzh"}
-                onClick={() => setSesi("hifzh")}
+                onClick={() => mintaGantiKonteks(() => setSesi("hifzh"))}
               >
                 Hifzh
               </button>
               <button
                 type="button"
                 aria-pressed={sesi === "diniyyah"}
-                onClick={() => setSesi("diniyyah")}
+                onClick={() => mintaGantiKonteks(() => setSesi("diniyyah"))}
               >
                 Diniyyah
               </button>
@@ -277,7 +349,10 @@ function IsiHalamanKehadiran() {
             <select
               className="masukan"
               value={jadwalId ?? ""}
-              onChange={(e) => setJadwalId(e.target.value || null)}
+              onChange={(e) => {
+                const nilai = e.target.value || null;
+                mintaGantiKonteks(() => setJadwalId(nilai));
+              }}
             >
               {daftarJadwal.map((j) => (
                 <option key={j.id} value={j.id}>
@@ -313,8 +388,19 @@ function IsiHalamanKehadiran() {
           Terisi {jumlahTerisi} dari {santriKelas.length} santri. Status yang
           sudah tersimpan untuk sesi ini terisi otomatis.
         </p>
+        {!adalahAdmin && barisTersimpan.length > 0 && (
+          <p className="catatan-kaki" style={{ marginTop: -6 }}>
+            Baris bertanda &ldquo;Tersimpan&rdquo; hanya tampil sebagai
+            lencana. Perubahan status tersimpan hanya lewat revisi admin.
+          </p>
+        )}
         <div style={{ display: "grid", gap: 12 }}>
-          {santriKelas.map((s) => (
+          {santriKelas.map((s) => {
+            // Non-admin: status yang sudah tersimpan di basis data
+            // tampil baca-saja (bukan tombol aktif) — audit Fase 1.
+            const statusTersimpan = petaTersimpan.get(s.id);
+            const bacaSaja = !adalahAdmin && statusTersimpan !== undefined;
+            return (
             <div
               key={s.id}
               style={{
@@ -335,6 +421,22 @@ function IsiHalamanKehadiran() {
                   </div>
                 </div>
               </div>
+              {bacaSaja ? (
+                <div
+                  style={{ display: "flex", alignItems: "center", gap: 8 }}
+                >
+                  <span
+                    className={`lencana lencana--besar lencana--${statusTersimpan}`}
+                  >
+                    {LABEL_STATUS[statusTersimpan as StatusKehadiran]}
+                  </span>
+                  <span
+                    style={{ color: "var(--teks-redup)", fontSize: 13 }}
+                  >
+                    Tersimpan
+                  </span>
+                </div>
+              ) : (
               <div style={{ display: "flex", gap: 6 }} role="group" aria-label={`Status kehadiran ${s.nama}`}>
                 {STATUS_KEHADIRAN.map((st) => {
                   const terpilih = pilihan[s.id] === st;
@@ -345,9 +447,10 @@ function IsiHalamanKehadiran() {
                       className={`pil-status pil-status--${st}`}
                       aria-pressed={terpilih}
                       title={LABEL_STATUS[st]}
-                      onClick={() =>
-                        setPilihan((lama) => ({ ...lama, [s.id]: st }))
-                      }
+                      onClick={() => {
+                        setPilihan((lama) => ({ ...lama, [s.id]: st }));
+                        setKotor(true);
+                      }}
                     >
                       {SINGKATAN_STATUS[st]}
                       <span className="pil-status-label">
@@ -357,8 +460,10 @@ function IsiHalamanKehadiran() {
                   );
                 })}
               </div>
+              )}
             </div>
-          ))}
+            );
+          })}
           {santriKelas.length === 0 && (
             <p>Belum ada santri pada kelas ini.</p>
           )}
@@ -368,15 +473,31 @@ function IsiHalamanKehadiran() {
           <button
             type="button"
             className="tombol tombol-sekunder"
-            onClick={() =>
-              setPilihan((lama) => {
-                const baru = { ...lama };
-                for (const s of santriKelas) baru[s.id] = "hadir";
-                return baru;
-              })
-            }
+            onClick={() => {
+              setPilihan((lama) => isiKosongSebagaiHadir(lama, idBisaDiubah));
+              setKotor(true);
+            }}
           >
-            Tandai semua Hadir
+            Isi yang kosong sebagai Hadir
+          </button>
+          <button
+            type="button"
+            className="tombol tombol-kecil tombol-sekunder"
+            onClick={() => {
+              const tertimpa = hitungTertimpa(pilihan, idBisaDiubah);
+              if (
+                tertimpa > 0 &&
+                !window.confirm(
+                  `${tertimpa} status yang sudah dipilih akan tertimpa menjadi Hadir. Lanjutkan?`,
+                )
+              ) {
+                return;
+              }
+              setPilihan((lama) => timpaSemuaJadiHadir(lama, idBisaDiubah));
+              setKotor(true);
+            }}
+          >
+            Timpa semua jadi Hadir
           </button>
           <button
             type="button"
@@ -384,8 +505,15 @@ function IsiHalamanKehadiran() {
             onClick={tanganiSimpan}
             disabled={sedangMenyimpan}
           >
-            {sedangMenyimpan ? "Menyimpan…" : "Simpan kehadiran"}
+            {sedangMenyimpan
+              ? "Menyimpan…"
+              : `Simpan ${jumlahAkanDisimpan} kehadiran · Kelas ${tingkat}`}
           </button>
+          <span className="catatan-kaki" role="status">
+            {jumlahBelumDiisi > 0
+              ? `${jumlahBelumDiisi} belum diisi`
+              : "Semua santri kelas ini sudah terisi"}
+          </span>
         </div>
         {pesanSimpan && (
           <p className="catatan-kaki" role="status" style={{ marginTop: 10 }}>

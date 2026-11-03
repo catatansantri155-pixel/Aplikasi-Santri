@@ -117,8 +117,13 @@ export default function FormSetoran({
   const rincian = rincianKonversi(rgN, kkN, kbN);
   const nilaiLive = nilaiSetoran(jenis, rgN, kkN, kbN);
 
+  // Santri TIDAK dipilih otomatis (audit Fase 1): tanpa pilihan sadar
+  // dari pengguna, santriTerpilih null dan tombol Simpan nonaktif —
+  // setoran tidak boleh berisiko masuk ke anak yang salah. (Setelah
+  // pengguna memilih dan menyimpan, pilihan dipertahankan untuk
+  // setoran berikutnya pada anak yang sama.)
   const santriTerpilih =
-    daftarSantri.find((s) => s.id === santriId) ?? daftarSantri[0];
+    daftarSantri.find((s) => s.id === santriId) ?? null;
 
   async function tanganiKirim(e: React.FormEvent) {
     e.preventDefault();
@@ -126,7 +131,7 @@ export default function FormSetoran({
     setPesan(null);
 
     if (!santriTerpilih) {
-      setRalat("Daftar santri belum termuat.");
+      setRalat("Pilih santri dulu sebelum menyimpan setoran.");
       return;
     }
     const halamanN = keAngka(halaman);
@@ -214,11 +219,16 @@ export default function FormSetoran({
       <label style={gayaLabel}>
         Santri
         <select
-          value={santriTerpilih?.id ?? ""}
+          value={santriId}
           onChange={(e) => setSantriId(e.target.value)}
           style={gayaMasukan}
           required
         >
+          <option value="">
+            {daftarSantri.length === 0
+              ? "Belum ada santri"
+              : "Pilih santri…"}
+          </option>
           {daftarSantri.map((s) => (
             <option key={s.id} value={s.id}>
               {s.nama}
@@ -433,7 +443,27 @@ export default function FormSetoran({
         </p>
       )}
 
-      <button type="submit" className="tombol" disabled={mengirim}>
+      <p style={{ ...gayaPetunjuk, margin: 0 }}>
+        {santriTerpilih ? (
+          <>
+            Santri terpilih:{" "}
+            <strong>
+              {santriTerpilih.nama}
+              {santriTerpilih.kelasTingkat
+                ? ` — Kelas ${santriTerpilih.kelasTingkat}`
+                : ""}
+            </strong>
+          </>
+        ) : (
+          "Pilih santri terlebih dahulu — setoran tidak akan tersimpan sebelum santri dipilih."
+        )}
+      </p>
+
+      <button
+        type="submit"
+        className="tombol"
+        disabled={mengirim || !santriTerpilih}
+      >
         {mengirim ? "Menyimpan…" : "Simpan setoran"}
       </button>
     </form>

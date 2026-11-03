@@ -144,7 +144,8 @@ function IsiHalamanDiniyyah() {
       setSemuaSantri(santriHasil.data);
       setDaftarSemester(semesterHasil.data);
       setSumberContoh(santriHasil.sumberContoh || semesterHasil.sumberContoh);
-      if (santriHasil.data.length > 0) setSantriId(santriHasil.data[0].id);
+      // Santri TIDAK dipilih otomatis (audit Fase 1): pilihan awal
+      // kosong agar nilai tidak berisiko masuk ke anak yang salah.
       // Semester bawaan form ujian: gasal bila ada, kalau tidak
       // semester pertama dari data; kosong tetap kosong (pesan jelas
       // ditampilkan di form ujian — semester tidak dikarang).
@@ -185,6 +186,18 @@ function IsiHalamanDiniyyah() {
       setUjian([]);
     });
   }, [santriId, muatNilai]);
+
+  /* Reset konteks (audit Fase 1): mengganti santri atau mapel
+     mengosongkan nilai yang sedang diketik pada KEDUA form, agar
+     angka yang dimaksudkan untuk anak/mapel sebelumnya tidak terbawa
+     tersimpan ke konteks yang baru. Pesan hasil simpan sebelumnya
+     juga dibersihkan karena konteksnya sudah berganti. */
+  useEffect(() => {
+    setNilaiHarianInput("");
+    setNilaiUjianInput("");
+    setPesanHarian(null);
+    setPesanUjian(null);
+  }, [santriId, mapel]);
 
   const santriTerpilih = useMemo(
     () => semuaSantri.find((s) => s.id === santriId) ?? null,
@@ -335,9 +348,11 @@ function IsiHalamanDiniyyah() {
               onChange={(e) => setSantriId(e.target.value)}
               style={GAYA_PILIH}
             >
-              {semuaSantri.length === 0 && (
-                <option value="">Belum ada santri</option>
-              )}
+              <option value="">
+                {semuaSantri.length === 0
+                  ? "Belum ada santri"
+                  : "Pilih santri…"}
+              </option>
               {semuaSantri.map((s) => (
                 <option key={s.id} value={s.id}>
                   {s.nama} — Kelas {s.kelasTingkat}
@@ -402,6 +417,18 @@ function IsiHalamanDiniyyah() {
               onChange={(e) => setNilaiHarianInput(e.target.value)}
             />
           </label>
+          <p className="catatan-kaki" style={{ margin: 0 }}>
+            {santriTerpilih ? (
+              <>
+                Santri terpilih:{" "}
+                <strong>
+                  {santriTerpilih.nama} — Kelas {santriTerpilih.kelasTingkat}
+                </strong>
+              </>
+            ) : (
+              "Pilih santri terlebih dahulu — nilai tidak akan tersimpan sebelum santri dipilih."
+            )}
+          </p>
           <button
             type="button"
             className="tombol"
@@ -466,6 +493,18 @@ function IsiHalamanDiniyyah() {
               disabled={daftarSemester.length === 0}
             />
           </label>
+          <p className="catatan-kaki" style={{ margin: 0 }}>
+            {santriTerpilih ? (
+              <>
+                Santri terpilih:{" "}
+                <strong>
+                  {santriTerpilih.nama} — Kelas {santriTerpilih.kelasTingkat}
+                </strong>
+              </>
+            ) : (
+              "Pilih santri terlebih dahulu — nilai tidak akan tersimpan sebelum santri dipilih."
+            )}
+          </p>
           <button
             type="button"
             className="tombol"

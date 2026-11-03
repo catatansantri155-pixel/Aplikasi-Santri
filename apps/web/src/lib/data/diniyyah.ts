@@ -78,6 +78,13 @@ export interface SemesterRef {
   jenis: JenisSemester;
   nama: string;
   tahunAjaran: string;
+  /**
+   * Rentang tanggal semester (ISO YYYY-MM-DD). Dipakai halaman Grafik
+   * untuk memilih semester yang sedang berjalan sebagai bawaan filter
+   * (audit Fase 1). Opsional agar pemanggil lama tidak berubah.
+   */
+  tanggalMulai?: string;
+  tanggalSelesai?: string;
 }
 
 export interface NilaiHarian {
@@ -188,12 +195,18 @@ const SEMESTER_CONTOH: SemesterRef[] = [
     jenis: "gasal",
     nama: "Semester Gasal (Contoh)",
     tahunAjaran: "1448/1449 H (contoh)",
+    // Rentang fiktif contoh; gasal selaras dengan SEMESTER_CONTOH di
+    // lib/data/rekap.ts agar filter semester Grafik konsisten.
+    tanggalMulai: "2026-07-01",
+    tanggalSelesai: "2026-12-31",
   },
   {
     id: "contoh-semester-genap",
     jenis: "genap",
     nama: "Semester Genap (Contoh)",
     tahunAjaran: "1448/1449 H (contoh)",
+    tanggalMulai: "2027-01-01",
+    tanggalSelesai: "2027-06-30",
   },
 ];
 
@@ -238,7 +251,7 @@ export async function ambilSemester(): Promise<HasilSantri<SemesterRef[]>> {
   const supabase = buatKlienBrowser();
   const { data, error } = await supabase
     .from("semester")
-    .select("id, jenis, nama, tahun_ajaran")
+    .select("id, jenis, nama, tahun_ajaran, tanggal_mulai, tanggal_selesai")
     .order("tanggal_mulai", { ascending: false });
   if (error) {
     throw new Error(`Gagal membaca daftar semester: ${error.message}`);
@@ -248,6 +261,8 @@ export async function ambilSemester(): Promise<HasilSantri<SemesterRef[]>> {
     jenis: JenisSemester;
     nama: string;
     tahun_ajaran: string;
+    tanggal_mulai: string;
+    tanggal_selesai: string;
   }[];
   return {
     data: baris.map((b) => ({
@@ -255,6 +270,8 @@ export async function ambilSemester(): Promise<HasilSantri<SemesterRef[]>> {
       jenis: b.jenis,
       nama: b.nama,
       tahunAjaran: b.tahun_ajaran,
+      tanggalMulai: b.tanggal_mulai,
+      tanggalSelesai: b.tanggal_selesai,
     })),
     sumberContoh: false,
   };
