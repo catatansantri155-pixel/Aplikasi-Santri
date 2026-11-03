@@ -434,7 +434,7 @@ export default function FormSetoran({
       )}
 
       <button type="submit" className="tombol" disabled={mengirim}>
-        {mengirim ? "Menyimpan…" : "Simpan Setoran"}
+        {mengirim ? "Menyimpan…" : "Simpan setoran"}
       </button>
     </form>
   );

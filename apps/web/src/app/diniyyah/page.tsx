@@ -30,6 +30,7 @@ import {
   type CSSProperties,
 } from "react";
 import PenandaTahap from "@/components/PenandaTahap";
+import KartuGalat from "@/components/KartuGalat";
 import PenjagaModul from "@/components/PenjagaModul";
 import { ambilDaftarSantri, type Santri } from "@/lib/data/santri";
 import {
@@ -132,36 +133,37 @@ function IsiHalamanDiniyyah() {
   const [pesanUjian, setPesanUjian] = useState<string | null>(null);
   const [simpanUjianBerjalan, setSimpanUjianBerjalan] = useState(false);
 
-  /* Muat daftar santri + semester sekali. */
-  useEffect(() => {
-    let aktif = true;
-    Promise.all([ambilDaftarSantri(), ambilSemester()])
-      .then(([santriHasil, semesterHasil]) => {
-        if (!aktif) return;
-        setSemuaSantri(santriHasil.data);
-        setDaftarSemester(semesterHasil.data);
-        setSumberContoh(santriHasil.sumberContoh || semesterHasil.sumberContoh);
-        if (santriHasil.data.length > 0) setSantriId(santriHasil.data[0].id);
-        // Semester bawaan form ujian: gasal bila ada, kalau tidak
-        // semester pertama dari data; kosong tetap kosong (pesan jelas
-        // ditampilkan di form ujian — semester tidak dikarang).
-        const bawaan =
-          semesterHasil.data.find((s) => s.jenis === "gasal") ??
-          semesterHasil.data[0];
-        if (bawaan) setSemesterUjianId(bawaan.id);
-        setMuatSelesai(true);
-      })
-      .catch((e: unknown) => {
-        if (!aktif) return;
-        setGalatMuat(
-          e instanceof Error ? e.message : "Gagal memuat data diniyyah.",
-        );
-        setMuatSelesai(true);
-      });
-    return () => {
-      aktif = false;
-    };
+  /* Muat daftar santri + semester sekali; juga target coba lagi. */
+  const muatAwal = useCallback(async () => {
+    setGalatMuat(null);
+    try {
+      const [santriHasil, semesterHasil] = await Promise.all([
+        ambilDaftarSantri(),
+        ambilSemester(),
+      ]);
+      setSemuaSantri(santriHasil.data);
+      setDaftarSemester(semesterHasil.data);
+      setSumberContoh(santriHasil.sumberContoh || semesterHasil.sumberContoh);
+      if (santriHasil.data.length > 0) setSantriId(santriHasil.data[0].id);
+      // Semester bawaan form ujian: gasal bila ada, kalau tidak
+      // semester pertama dari data; kosong tetap kosong (pesan jelas
+      // ditampilkan di form ujian — semester tidak dikarang).
+      const bawaan =
+        semesterHasil.data.find((s) => s.jenis === "gasal") ??
+        semesterHasil.data[0];
+      if (bawaan) setSemesterUjianId(bawaan.id);
+    } catch (e: unknown) {
+      setGalatMuat(
+        e instanceof Error ? e.message : "Gagal memuat data diniyyah.",
+      );
+    } finally {
+      setMuatSelesai(true);
+    }
   }, []);
+
+  useEffect(() => {
+    void muatAwal();
+  }, [muatAwal]);
 
   const muatNilai = useCallback(async (id: string) => {
     if (!id) {
@@ -295,8 +297,11 @@ function IsiHalamanDiniyyah() {
       )}
       <h1 className="judul-halaman">Diniyyah</h1>
       <p className="subjudul">
-        Nilai harian dan nilai ujian semester gasal/genap beserta rata-rata.
-        Slot kegiatan diniyyah: {SLOT_DINIYYAH.join(" · ")}.
+        Nilai harian dan nilai ujian semester gasal dan genap beserta
+        rata-ratanya.
+      </p>
+      <p className="catatan-kaki" style={{ marginTop: -10, marginBottom: 16 }}>
+        Slot kegiatan: {SLOT_DINIYYAH.join(" · ")}.
       </p>
 
       {/* Penanda jujur: mapel contoh + rumus sementara */}
@@ -316,10 +321,7 @@ function IsiHalamanDiniyyah() {
       </section>
 
       {galatMuat && (
-        <section className="kartu">
-          <h2>Data belum bisa dimuat</h2>
-          <p>{galatMuat}</p>
-        </section>
+        <KartuGalat pesan={galatMuat} onCobaLagi={() => void muatAwal()} />
       )}
 
       {/* ------------ Pilih santri & mapel ------------ */}
@@ -489,7 +491,7 @@ function IsiHalamanDiniyyah() {
           Kolom rata-rata memakai <strong>rumus sementara</strong> (rata-rata
           sederhana). {CATATAN_RUMUS_SEMENTARA}
         </p>
-        <div style={{ overflowX: "auto" }}>
+        <div className="tabel-bungkus">
           <table
             style={{ width: "100%", borderCollapse: "collapse", minWidth: 520 }}
           >

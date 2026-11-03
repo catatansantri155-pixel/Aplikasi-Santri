@@ -23,6 +23,7 @@ import {
   type CSSProperties,
 } from "react";
 import PenandaTahap from "@/components/PenandaTahap";
+import KartuGalat from "@/components/KartuGalat";
 import PenjagaModul from "@/components/PenjagaModul";
 import {
   LingkaranIkon,
@@ -30,7 +31,6 @@ import {
   type WarnaTint,
 } from "@/components/Ikon";
 import { ambilDaftarSantri, type Santri } from "@/lib/data/santri";
-import { LABEL_PERAN } from "@/lib/peran";
 import {
   KATEGORI_CATATAN,
   LABEL_KATEGORI,
@@ -124,32 +124,35 @@ function IsiHalamanCatatan() {
     setDaftarCatatan(hasil.data);
   }, []);
 
-  /* Muat profil pelapor + daftar santri + catatan terbaru sekali. */
-  useEffect(() => {
-    let aktif = true;
-    Promise.all([ambilProfilPelapor(), ambilDaftarSantri(), ambilCatatanTerbaru(20)])
-      .then(([profilHasil, santriHasil, catatanHasil]) => {
-        if (!aktif) return;
-        setProfil(profilHasil.data);
-        setSemuaSantri(santriHasil.data);
-        setDaftarCatatan(catatanHasil.data);
-        setSumberContoh(
-          profilHasil.sumberContoh ||
-            santriHasil.sumberContoh ||
-            catatanHasil.sumberContoh,
-        );
-        if (santriHasil.data.length > 0) setSantriId(santriHasil.data[0].id);
-      })
-      .catch((e: unknown) => {
-        if (!aktif) return;
-        setGalatMuat(
-          e instanceof Error ? e.message : "Gagal memuat data catatan.",
-        );
-      });
-    return () => {
-      aktif = false;
-    };
+  /* Muat profil pelapor + daftar santri + catatan terbaru sekali;
+     juga target tombol coba lagi. */
+  const muatAwal = useCallback(async () => {
+    setGalatMuat(null);
+    try {
+      const [profilHasil, santriHasil, catatanHasil] = await Promise.all([
+        ambilProfilPelapor(),
+        ambilDaftarSantri(),
+        ambilCatatanTerbaru(20),
+      ]);
+      setProfil(profilHasil.data);
+      setSemuaSantri(santriHasil.data);
+      setDaftarCatatan(catatanHasil.data);
+      setSumberContoh(
+        profilHasil.sumberContoh ||
+          santriHasil.sumberContoh ||
+          catatanHasil.sumberContoh,
+      );
+      if (santriHasil.data.length > 0) setSantriId(santriHasil.data[0].id);
+    } catch (e: unknown) {
+      setGalatMuat(
+        e instanceof Error ? e.message : "Gagal memuat data catatan.",
+      );
+    }
   }, []);
+
+  useEffect(() => {
+    void muatAwal();
+  }, [muatAwal]);
 
   /** Pelapor siap bila profil termuat DAN namanya tidak kosong. */
   const pelaporSiap = profil !== null && profil.nama.trim().length > 0;
@@ -204,21 +207,10 @@ function IsiHalamanCatatan() {
       <h1 className="judul-halaman">Catatan Musyrif</h1>
       <p className="subjudul">
         Catatan keseharian santri: akhlaq, adab, ibadah shalat, dan lainnya.
-        Boleh diisi musyrif serta pengajar hifzh dan diniyyah.
-        {profil && (
-          <>
-            {" "}
-            Masuk sebagai: <strong>{profil.nama}</strong> (
-            {LABEL_PERAN[profil.peran]}).
-          </>
-        )}
       </p>
 
       {galatMuat && (
-        <section className="kartu">
-          <h2>Data belum bisa dimuat</h2>
-          <p>{galatMuat}</p>
-        </section>
+        <KartuGalat pesan={galatMuat} onCobaLagi={() => void muatAwal()} />
       )}
 
       {/* ------------ Form catatan ------------ */}

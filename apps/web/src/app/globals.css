@@ -41,7 +41,11 @@
   --latar: #f2f7f3;
   --permukaan: #ffffff;
   --teks: #12211a;
-  --teks-redup: #6b7a70;
+  /* Diperkuat dari #6b7a70 (3,99–4,52:1) agar kontras teks redup
+     ≥4,5:1 di latar aplikasi maupun kartu putih — Anti Slop.
+     #52625b memberi 5,69–6,45:1 (dihitung, lihat
+     docs/VERIFIKASI-UI-ANTISLOP.md). */
+  --teks-redup: #52625b;
   --garis: #e3eae4;
 
   /* Bentuk & bayangan */
@@ -83,9 +87,46 @@ a {
   color: var(--hijau-kop);
 }
 
+/* Fokus keyboard: garis hijau gelap (9,86:1 di putih) + halo emas
+   agar tetap terlihat di atas sidebar/banner hijau gelap — emas
+   sendirian hanya 1,92:1 di putih, terlalu lemah sebagai penanda. */
 :focus-visible {
-  outline: 2px solid var(--emas);
+  outline: 2px solid var(--hijau-gelap);
   outline-offset: 2px;
+  box-shadow: 0 0 0 4px rgba(240, 176, 0, 0.55);
+}
+
+/* Tautan lewati: tersembunyi sampai menerima fokus keyboard. */
+.lewati-konten {
+  position: absolute;
+  left: 12px;
+  top: -60px;
+  z-index: 50;
+  padding: 10px 16px;
+  background: var(--hijau-gelap);
+  color: #fff;
+  font-weight: 700;
+  text-decoration: none;
+  border-radius: 0 0 12px 12px;
+  transition: top 0.15s ease;
+}
+
+.lewati-konten:focus-visible {
+  top: 0;
+  outline-color: #fff;
+}
+
+/* Gerakan dikurangi: matikan transisi & animasi bagi pengguna yang
+   memintanya lewat sistem operasi. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
 }
 
 /* ---------- Kerangka ---------- */
@@ -395,8 +436,8 @@ a {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 40px;
-  height: 40px;
+  width: var(--tinggi-sentuh);
+  height: var(--tinggi-sentuh);
   border-radius: 50%;
   border: 1px solid var(--garis);
   background: var(--permukaan);
@@ -528,10 +569,10 @@ a {
   margin: 0 0 8px;
 }
 
-/* Kartu beraksen emas — untuk bagian khusus (mis. revisi admin). */
+/* Kartu beraksen emas — untuk bagian khusus (mis. revisi admin).
+   Cukup garis atas; tanpa gradien latar tambahan. */
 .kartu--aksen-emas {
   border-top: 4px solid var(--emas);
-  background: linear-gradient(180deg, #fffdf4, var(--permukaan) 55%);
 }
 
 /* Banner gradien hijau kop dengan ornamen geometris Islami
@@ -711,7 +752,7 @@ h1.judul-halaman {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  color: #b7c4ba;
+  color: var(--teks-redup);
   flex-shrink: 0;
 }
 
@@ -729,7 +770,7 @@ h1.judul-halaman {
 }
 
 .chip {
-  min-height: 40px;
+  min-height: var(--tinggi-sentuh);
   padding: 8px 16px;
   border-radius: 999px;
   border: 1.5px solid var(--garis);
@@ -758,7 +799,7 @@ h1.judul-halaman {
 }
 
 .segmen button {
-  min-height: 40px;
+  min-height: var(--tinggi-sentuh);
   padding: 8px 18px;
   border: none;
   border-radius: 999px;
@@ -1022,7 +1063,7 @@ h1.judul-halaman {
 }
 
 .tombol-kecil {
-  min-height: 36px;
+  min-height: var(--tinggi-sentuh);
   padding: 6px 14px;
   background: var(--hijau-muda);
   color: var(--hijau-gelap);
@@ -1031,10 +1072,12 @@ h1.judul-halaman {
   box-shadow: none;
 }
 
-/* Bilah aksi melekat di atas navigasi bawah (HP); statis di PC. */
+/* Bilah aksi melekat di atas navigasi bawah (HP); statis di PC.
+   Jarak bawah memperhitungkan safe-area perangkat berponi agar
+   bilah tidak tertutup navigasi bawah. */
 .bilah-aksi {
   position: sticky;
-  bottom: 72px;
+  bottom: calc(72px + env(safe-area-inset-bottom));
   z-index: 5;
   display: flex;
   flex-wrap: wrap;
@@ -1304,4 +1347,5 @@ textarea.masukan {
 .tabel-bungkus {
   overflow-x: auto;
   margin: 0 -4px;
+  -webkit-overflow-scrolling: touch;
 }

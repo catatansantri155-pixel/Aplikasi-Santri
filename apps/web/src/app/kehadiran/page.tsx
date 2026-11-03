@@ -14,6 +14,7 @@
  */
 import { useCallback, useEffect, useMemo, useState } from "react";
 import PenandaTahap from "@/components/PenandaTahap";
+import KartuGalat from "@/components/KartuGalat";
 import PenjagaModul from "@/components/PenjagaModul";
 import AvatarInisial from "@/components/AvatarInisial";
 import { bolehRevisiKehadiran } from "@/lib/akses";
@@ -82,26 +83,27 @@ function IsiHalamanKehadiran() {
   const [pesanRevisi, setPesanRevisi] = useState<string | null>(null);
   const [sedangRevisi, setSedangRevisi] = useState(false);
 
-  /* Muat profil + daftar santri sekali. */
-  useEffect(() => {
-    let aktif = true;
-    Promise.all([ambilProfilSaya(), ambilDaftarSantri()])
-      .then(([profilHasil, santriHasil]) => {
-        if (!aktif) return;
-        setProfil(profilHasil.data);
-        setSemuaSantri(santriHasil.data);
-        setSumberContoh(profilHasil.sumberContoh || santriHasil.sumberContoh);
-      })
-      .catch((e: unknown) => {
-        if (!aktif) return;
-        setGalatMuat(
-          e instanceof Error ? e.message : "Gagal memuat data kehadiran.",
-        );
-      });
-    return () => {
-      aktif = false;
-    };
+  /* Muat profil + daftar santri sekali; juga target tombol coba lagi. */
+  const muatAwal = useCallback(async () => {
+    setGalatMuat(null);
+    try {
+      const [profilHasil, santriHasil] = await Promise.all([
+        ambilProfilSaya(),
+        ambilDaftarSantri(),
+      ]);
+      setProfil(profilHasil.data);
+      setSemuaSantri(santriHasil.data);
+      setSumberContoh(profilHasil.sumberContoh || santriHasil.sumberContoh);
+    } catch (e: unknown) {
+      setGalatMuat(
+        e instanceof Error ? e.message : "Gagal memuat data kehadiran.",
+      );
+    }
   }, []);
+
+  useEffect(() => {
+    void muatAwal();
+  }, [muatAwal]);
 
   /* Jadwal mengikuti jenis sesi terpilih. */
   useEffect(() => {
@@ -223,22 +225,11 @@ function IsiHalamanKehadiran() {
       )}
       <h1 className="judul-halaman">Kehadiran</h1>
       <p className="subjudul">
-        Isi kehadiran per sesi hifzh dan diniyyah: Hadir, Sakit, Izin, Alpa —
-        satu ketukan per santri.
-        {profil && (
-          <>
-            {" "}
-            Masuk sebagai contoh: <strong>{profil.nama}</strong> (
-            {profil.peran === "admin" ? "Admin Utama" : profil.peran}).
-          </>
-        )}
+        Isi kehadiran santri untuk sesi hifzh dan diniyyah.
       </p>
 
       {galatMuat && (
-        <section className="kartu">
-          <h2>Data belum bisa dimuat</h2>
-          <p>{galatMuat}</p>
-        </section>
+        <KartuGalat pesan={galatMuat} onCobaLagi={() => void muatAwal()} />
       )}
 
       {/* ------------ Pilihan tanggal & sesi ------------ */}

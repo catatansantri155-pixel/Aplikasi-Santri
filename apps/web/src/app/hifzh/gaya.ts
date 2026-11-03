@@ -103,11 +103,6 @@ export function gayaLencanaHasil(hasil: HasilUjian): CSSProperties {
   };
 }
 
-export const gayaPembungkusTabel: CSSProperties = {
-  overflowX: "auto",
-  margin: "0 -4px",
-};
-
 export const gayaTabel: CSSProperties = {
   width: "100%",
   borderCollapse: "collapse",

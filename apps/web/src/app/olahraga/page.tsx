@@ -17,6 +17,7 @@
  */
 import { useCallback, useEffect, useMemo, useState } from "react";
 import PenandaTahap from "@/components/PenandaTahap";
+import KartuGalat from "@/components/KartuGalat";
 import PenjagaModul from "@/components/PenjagaModul";
 import AvatarInisial from "@/components/AvatarInisial";
 import { LingkaranIkon } from "@/components/Ikon";
@@ -26,7 +27,6 @@ import {
   LABEL_STATUS,
   SINGKATAN_STATUS,
   STATUS_KEHADIRAN,
-  type ProfilSaya,
   type StatusKehadiran,
 } from "@/lib/data/kehadiran";
 import {
@@ -60,7 +60,6 @@ export default function HalamanOlahraga() {
 }
 
 function IsiHalamanOlahraga() {
-  const [profil, setProfil] = useState<ProfilSaya | null>(null);
   const [semuaSantri, setSemuaSantri] = useState<Santri[]>([]);
   const [daftarSesi, setDaftarSesi] = useState<SesiOlahraga[]>([]);
   const [sumberContoh, setSumberContoh] = useState(false);
@@ -92,32 +91,34 @@ function IsiHalamanOlahraga() {
     return hasil.data;
   }, []);
 
-  /* Muat profil + daftar santri + daftar sesi sekali. */
-  useEffect(() => {
-    let aktif = true;
-    Promise.all([ambilProfilSaya(), ambilDaftarSantri(), ambilDaftarSesi()])
-      .then(([profilHasil, santriHasil, sesiHasil]) => {
-        if (!aktif) return;
-        setProfil(profilHasil.data);
-        setSemuaSantri(santriHasil.data);
-        setDaftarSesi(sesiHasil.data);
-        setSesiId(sesiHasil.data[0]?.id ?? null);
-        setSumberContoh(
-          profilHasil.sumberContoh ||
-            santriHasil.sumberContoh ||
-            sesiHasil.sumberContoh,
-        );
-      })
-      .catch((e: unknown) => {
-        if (!aktif) return;
-        setGalatMuat(
-          e instanceof Error ? e.message : "Gagal memuat data olahraga.",
-        );
-      });
-    return () => {
-      aktif = false;
-    };
+  /* Muat profil + daftar santri + daftar sesi sekali; juga target
+     tombol coba lagi. */
+  const muatAwal = useCallback(async () => {
+    setGalatMuat(null);
+    try {
+      const [profilHasil, santriHasil, sesiHasil] = await Promise.all([
+        ambilProfilSaya(),
+        ambilDaftarSantri(),
+        ambilDaftarSesi(),
+      ]);
+      setSemuaSantri(santriHasil.data);
+      setDaftarSesi(sesiHasil.data);
+      setSesiId(sesiHasil.data[0]?.id ?? null);
+      setSumberContoh(
+        profilHasil.sumberContoh ||
+          santriHasil.sumberContoh ||
+          sesiHasil.sumberContoh,
+      );
+    } catch (e: unknown) {
+      setGalatMuat(
+        e instanceof Error ? e.message : "Gagal memuat data olahraga.",
+      );
+    }
   }, []);
+
+  useEffect(() => {
+    void muatAwal();
+  }, [muatAwal]);
 
   /* Kehadiran tersimpan untuk sesi terpilih → isi awal formulir. */
   const muatKehadiran = useCallback(async (id: string) => {
@@ -227,28 +228,20 @@ function IsiHalamanOlahraga() {
       )}
       <h1 className="judul-halaman">Olahraga</h1>
       <p className="subjudul">
-        Sesi olahraga rutin <strong>Ahad pagi</strong> dan{" "}
-        <strong>Kamis pagi</strong>: buat sesinya, lalu isi kehadiran per
-        santri (Hadir, Sakit, Izin, Alpa).
-        {profil && (
-          <>
-            {" "}
-            Masuk sebagai: <strong>{profil.nama}</strong>.
-          </>
-        )}
+        Sesi olahraga Ahad dan Kamis pagi: buat sesi dan isi kehadiran per
+        santri.
       </p>
 
       {galatMuat && (
-        <section className="kartu">
-          <h2>Data belum bisa dimuat</h2>
-          <p>{galatMuat}</p>
-        </section>
+        <KartuGalat pesan={galatMuat} onCobaLagi={() => void muatAwal()} />
       )}
 
       {/* ------------ Daftar sesi ------------ */}
       <section className="kartu">
         <h2>Sesi olahraga</h2>
-        {daftarSesi.length === 0 ? (
+        {galatMuat ? (
+          <p>Data sesi belum bisa ditampilkan.</p>
+        ) : daftarSesi.length === 0 ? (
           <p>
             Belum ada sesi olahraga. Buat sesi pertama lewat formulir
             &ldquo;Buat sesi baru&rdquo; di bawah.

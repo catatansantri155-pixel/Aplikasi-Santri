@@ -17,7 +17,14 @@
  * Data dibaca lewat lapisan data (src/lib/data/); selama env Supabase
  * belum terisi, yang tampil adalah DATA CONTOH FIKSI.
  */
-import { use, useEffect, useMemo, useState, type CSSProperties } from "react";
+import {
+  use,
+  useCallback,
+  useEffect,
+  useMemo,
+  useState,
+  type CSSProperties,
+} from "react";
 import Link from "next/link";
 import PenandaTahap from "@/components/PenandaTahap";
 import AvatarInisial from "@/components/AvatarInisial";
@@ -193,71 +200,68 @@ export default function HalamanDetailSantri({
   const [memuat, setMemuat] = useState(true);
   const [galat, setGalat] = useState<string | null>(null);
 
-  useEffect(() => {
-    let aktif = true;
-    Promise.all([
-      ambilDetailSantri(id),
-      ambilRiwayatKehadiranSantri(id),
-      ambilLogRevisiSantri(id),
-      // Tab Hifzh: setoran terakhir lintas santri dari lapisan data
-      // hifzh, disaring ke santri ini di bawah (pada data Supabase,
-      // santriId baris setoran memang id santri ini).
-      ambilSetoranTerakhir(50),
-      ambilUjianSemester(id),
-      ambilJadwalSesi("diniyyah"),
-      // Tab Diniyyah & Catatan: dari lapisan datanya masing-masing
-      // (bercabang contoh/Supabase di dalamnya), BUKAN data lokal.
-      ambilNilaiHarianSantri(id),
-      ambilNilaiUjianSantri(id),
-      ambilCatatanSantri(id),
-    ])
-      .then(
-        ([
-          detail,
-          riwayatHasil,
-          logHasil,
-          setoranHasil,
-          ujianHasil,
-          jadwalHasil,
-          harianHasil,
-          ujianDiniyyahHasil,
-          catatanHasil,
-        ]) => {
-          if (!aktif) return;
-          setSantri(detail.data);
-          setRiwayat(riwayatHasil.data);
-          setLogRevisi(logHasil.data);
-          setSetoran(
-            setoranHasil.data.filter((s) => s.santriId === id).slice(0, 10),
-          );
-          setUjian(ujianHasil.data);
-          setJadwalDiniyyah(jadwalHasil.data);
-          setHarianDiniyyah(harianHasil.data);
-          setUjianDiniyyah(ujianDiniyyahHasil.data);
-          setCatatan(catatanHasil.data);
-          setSumberHifzhContoh(
-            setoranHasil.sumber === "contoh" || ujianHasil.sumber === "contoh",
-          );
-          setSumberContoh(
-            detail.sumberContoh ||
-              riwayatHasil.sumberContoh ||
-              logHasil.sumberContoh ||
-              harianHasil.sumberContoh ||
-              ujianDiniyyahHasil.sumberContoh ||
-              catatanHasil.sumberContoh,
-          );
-          setMemuat(false);
-        },
-      )
-      .catch((e: unknown) => {
-        if (!aktif) return;
-        setGalat(e instanceof Error ? e.message : "Gagal memuat detail santri.");
-        setMemuat(false);
-      });
-    return () => {
-      aktif = false;
-    };
+  const muat = useCallback(async () => {
+    setMemuat(true);
+    setGalat(null);
+    try {
+      const [
+        detail,
+        riwayatHasil,
+        logHasil,
+        setoranHasil,
+        ujianHasil,
+        jadwalHasil,
+        harianHasil,
+        ujianDiniyyahHasil,
+        catatanHasil,
+      ] = await Promise.all([
+        ambilDetailSantri(id),
+        ambilRiwayatKehadiranSantri(id),
+        ambilLogRevisiSantri(id),
+        // Tab Hifzh: setoran terakhir lintas santri dari lapisan data
+        // hifzh, disaring ke santri ini di bawah (pada data Supabase,
+        // santriId baris setoran memang id santri ini).
+        ambilSetoranTerakhir(50),
+        ambilUjianSemester(id),
+        ambilJadwalSesi("diniyyah"),
+        // Tab Diniyyah & Catatan: dari lapisan datanya masing-masing
+        // (bercabang contoh/Supabase di dalamnya), BUKAN data lokal.
+        ambilNilaiHarianSantri(id),
+        ambilNilaiUjianSantri(id),
+        ambilCatatanSantri(id),
+      ]);
+      setSantri(detail.data);
+      setRiwayat(riwayatHasil.data);
+      setLogRevisi(logHasil.data);
+      setSetoran(
+        setoranHasil.data.filter((s) => s.santriId === id).slice(0, 10),
+      );
+      setUjian(ujianHasil.data);
+      setJadwalDiniyyah(jadwalHasil.data);
+      setHarianDiniyyah(harianHasil.data);
+      setUjianDiniyyah(ujianDiniyyahHasil.data);
+      setCatatan(catatanHasil.data);
+      setSumberHifzhContoh(
+        setoranHasil.sumber === "contoh" || ujianHasil.sumber === "contoh",
+      );
+      setSumberContoh(
+        detail.sumberContoh ||
+          riwayatHasil.sumberContoh ||
+          logHasil.sumberContoh ||
+          harianHasil.sumberContoh ||
+          ujianDiniyyahHasil.sumberContoh ||
+          catatanHasil.sumberContoh,
+      );
+    } catch (e: unknown) {
+      setGalat(e instanceof Error ? e.message : "Gagal memuat detail santri.");
+    } finally {
+      setMemuat(false);
+    }
   }, [id]);
+
+  useEffect(() => {
+    void muat();
+  }, [muat]);
 
   const ringkasan = useMemo(() => {
     const hitung: Record<StatusKehadiran, number> = {
@@ -286,26 +290,25 @@ export default function HalamanDetailSantri({
   }, [logRevisi]);
 
   if (memuat) {
-    return (
-      <>
-        <PenandaTahap teks="MEMUAT…" />
-        <p className="catatan-kaki">Memuat detail santri…</p>
-      </>
-    );
+    return <p className="catatan-kaki">Memuat detail santri…</p>;
   }
 
   if (galat) {
     return (
-      <>
-        <PenandaTahap teks="DATA BELUM BISA DIMUAT" />
-        <section className="kartu">
-          <h2>Terjadi kendala</h2>
-          <p>{galat}</p>
-          <p>
-            <Link href="/santri">Kembali ke daftar santri</Link>
-          </p>
-        </section>
-      </>
+      <section className="kartu">
+        <h2>Data belum bisa dimuat</h2>
+        <p>{galat}</p>
+        <p>
+          <button
+            type="button"
+            className="tombol tombol-sekunder"
+            onClick={() => void muat()}
+          >
+            Coba lagi
+          </button>{" "}
+          <Link href="/santri">Kembali ke daftar santri</Link>
+        </p>
+      </section>
     );
   }
 
@@ -551,7 +554,7 @@ export default function HalamanDetailSantri({
               Kolom rata-rata memakai <strong>rumus sementara</strong>{" "}
               (rata-rata sederhana). {CATATAN_RUMUS_SEMENTARA}
             </p>
-            <div style={{ overflowX: "auto" }}>
+            <div className="tabel-bungkus">
               <table
                 style={{
                   width: "100%",

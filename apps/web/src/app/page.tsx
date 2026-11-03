@@ -306,10 +306,7 @@ export default function HalamanBeranda() {
         )}
 
         {profilLogin && (
-          <section className="kartu kartu-peran">
-            <p className="label-peran">{LABEL_PERAN[profilLogin.peran]}</p>
-            <p>{RINGKASAN_PERAN[profilLogin.peran]}</p>
-          </section>
+          <p className="subjudul">{RINGKASAN_PERAN[profilLogin.peran]}</p>
         )}
 
         {/* Daftar modul hanya dirender SETELAH profil termuat, disaring
@@ -360,9 +357,8 @@ export default function HalamanBeranda() {
         </p>
       </section>
       <p className="subjudul">
-        Aplikasi monitoring santri Ponpes Minhajus Sunnah Magelang, Marhalah
-        Wustha. Setelah masuk, tampilan akan menyesuaikan peran pengguna.
-        Ringkasan tiap peran di bawah ini masih placeholder tahap scaffold.
+        Aplikasi monitoring santri Marhalah Wustha; tampilan menyesuaikan
+        peran pengguna yang masuk.
       </p>
 
       <div className="kisi-peran">

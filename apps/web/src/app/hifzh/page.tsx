@@ -123,18 +123,15 @@ function IsiHalamanHifzh() {
       />
       <h1 className="judul-halaman">Hifzh — Buku Hafalan</h1>
       <p className="subjudul">
-        Setoran hafalan sesuai Buku Hafalan Ponpes Minhajus Sunnah: tanggal
-        Hijriah, jenis BC/BR/TS/LM, halaman, surat dan ayat, kesalahan
-        RG/KK/KB, nilai L/U otomatis, paraf penyimak, dan tugas berikutnya —
-        serta tes semester per juz. Masuk sebagai{" "}
-        {penggunaMasuk.nama} ({penggunaMasuk.labelPeran}).
+        Setoran hafalan (BC, BR, TS, LM) dan tes semester per juz sesuai
+        Buku Hafalan, dengan nilai L/U otomatis.
       </p>
 
       <section className="kartu">
         <h2>Form Setoran</h2>
         <p>
           Nilai L/U dihitung langsung saat mengisi, memakai aturan resmi
-          Buku Hafalan yang sama dengan database.
+          Buku Hafalan.
         </p>
         {memuat ? (
           <p style={gayaPetunjuk}>Memuat daftar santri…</p>

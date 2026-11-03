@@ -7,9 +7,10 @@
  * selama env Supabase belum terisi, yang tampil adalah DATA CONTOH FIKSI
  * dan halaman ini menandainya dengan jelas.
  */
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import PenandaTahap from "@/components/PenandaTahap";
+import KartuGalat from "@/components/KartuGalat";
 import AvatarInisial from "@/components/AvatarInisial";
 import { Ikon } from "@/components/Ikon";
 import {
@@ -30,24 +31,23 @@ export default function HalamanSantri() {
   const [memuat, setMemuat] = useState(true);
   const [galat, setGalat] = useState<string | null>(null);
 
-  useEffect(() => {
-    let aktif = true;
-    ambilSantriPerKelas()
-      .then((hasil) => {
-        if (!aktif) return;
-        setKelompok(hasil.data);
-        setSumberContoh(hasil.sumberContoh);
-        setMemuat(false);
-      })
-      .catch((e: unknown) => {
-        if (!aktif) return;
-        setGalat(e instanceof Error ? e.message : "Gagal memuat data santri.");
-        setMemuat(false);
-      });
-    return () => {
-      aktif = false;
-    };
+  const muat = useCallback(async () => {
+    setMemuat(true);
+    setGalat(null);
+    try {
+      const hasil = await ambilSantriPerKelas();
+      setKelompok(hasil.data);
+      setSumberContoh(hasil.sumberContoh);
+    } catch (e: unknown) {
+      setGalat(e instanceof Error ? e.message : "Gagal memuat data santri.");
+    } finally {
+      setMemuat(false);
+    }
   }, []);
+
+  useEffect(() => {
+    void muat();
+  }, [muat]);
 
   /** Hasil pencarian diterapkan ke tiap kelompok kelas. */
   const kelompokTampil = useMemo(
@@ -67,8 +67,8 @@ export default function HalamanSantri() {
       )}
       <h1 className="judul-halaman">Data Santri</h1>
       <p className="subjudul">
-        Santri dikelompokkan per kelas 1, 2, dan 3. Ketuk nama santri untuk
-        membuka kehadiran, hifzh, diniyyah, dan catatannya.
+        Daftar santri per kelas 1, 2, dan 3; ketuk nama santri untuk
+        membuka detailnya.
       </p>
 
       <div className="pencarian" style={{ marginBottom: 16 }}>
@@ -85,19 +85,20 @@ export default function HalamanSantri() {
       </div>
 
       {memuat && <p className="catatan-kaki">Memuat daftar santri…</p>}
-      {galat && (
-        <section className="kartu">
-          <h2>Data belum bisa dimuat</h2>
-          <p>{galat}</p>
-        </section>
-      )}
-      {!memuat && !galat && totalTampil === 0 && (
+      {galat && <KartuGalat pesan={galat} onCobaLagi={() => void muat()} />}
+      {!memuat && !galat && totalTampil === 0 && pencarian.trim() !== "" && (
         <section className="kartu">
           <h2>Tidak ditemukan</h2>
           <p>
             Tidak ada santri yang cocok dengan pencarian &ldquo;{pencarian}
             &rdquo;. Coba kata lain.
           </p>
+        </section>
+      )}
+      {!memuat && !galat && totalTampil === 0 && pencarian.trim() === "" && (
+        <section className="kartu">
+          <h2>Belum ada data santri</h2>
+          <p>Belum ada santri yang terdaftar pada kelas mana pun.</p>
         </section>
       )}
 

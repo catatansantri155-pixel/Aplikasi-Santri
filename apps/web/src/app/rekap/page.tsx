@@ -12,7 +12,13 @@
  * Selama env Supabase belum terisi, semua angka adalah DATA CONTOH FIKSI
  * dan halaman menandainya dengan jelas.
  */
-import { useEffect, useMemo, useState, type CSSProperties } from "react";
+import {
+  useCallback,
+  useEffect,
+  useMemo,
+  useState,
+  type CSSProperties,
+} from "react";
 import PenandaTahap from "@/components/PenandaTahap";
 import PenjagaModul from "@/components/PenjagaModul";
 import {
@@ -33,7 +39,6 @@ type ModeGrafik = "mingguan" | "bulanan";
 
 /* Gaya tabel setempat (globals.css belum punya kelas tabel; pola yang
    sama dipakai halaman Hifzh di src/app/hifzh/gaya.ts). */
-const gayaPembungkusTabel: CSSProperties = { overflowX: "auto", margin: "0 -4px" };
 const gayaTabel: CSSProperties = {
   width: "100%",
   borderCollapse: "collapse",
@@ -213,7 +218,7 @@ function TabelSantri({ baris }: { baris: RekapSantriInti[] }) {
     return <p>Belum ada baris rekap pada periode ini.</p>;
   }
   return (
-    <div style={gayaPembungkusTabel}>
+    <div className="tabel-bungkus">
       <table style={gayaTabel}>
         <thead>
           <tr>
@@ -263,7 +268,7 @@ function TabelKelas({ baris }: { baris: RekapSantriInti[] }) {
   const ringkasan = useMemo(() => ringkasPerKelas(baris), [baris]);
   if (ringkasan.length === 0) return null;
   return (
-    <div style={gayaPembungkusTabel}>
+    <div className="tabel-bungkus">
       <table style={gayaTabel}>
         <thead>
           <tr>
@@ -327,37 +332,40 @@ function IsiHalamanRekap() {
   const [memuat, setMemuat] = useState(true);
   const [galat, setGalat] = useState<string | null>(null);
 
-  useEffect(() => {
-    let aktif = true;
-    Promise.all([ambilRekapPekanan(), ambilRekapSemester(), ambilAgregatGrafikHifzh()])
-      .then(([hasilPekan, hasilSemester, hasilGrafik]) => {
-        if (!aktif) return;
-        setPekanan(hasilPekan.data);
-        setSemesteran(hasilSemester.data);
-        setGrafik(hasilGrafik.data);
-        setSumberContoh(
-          hasilPekan.sumberContoh ||
-            hasilSemester.sumberContoh ||
-            hasilGrafik.sumberContoh,
-        );
-        // Pilihan awal: pekan terakhir & semester pertama yang tersedia.
-        const pekanTerakhir = hasilPekan.data.reduce<string>(
-          (maks, b) => (b.pekanMulai > maks ? b.pekanMulai : maks),
-          "",
-        );
-        setPekanTerpilih(pekanTerakhir);
-        setSemesterTerpilih(hasilSemester.data[0]?.semesterId ?? "");
-        setMemuat(false);
-      })
-      .catch((e: unknown) => {
-        if (!aktif) return;
-        setGalat(e instanceof Error ? e.message : "Gagal memuat rekap.");
-        setMemuat(false);
-      });
-    return () => {
-      aktif = false;
-    };
+  const muat = useCallback(async () => {
+    setMemuat(true);
+    setGalat(null);
+    try {
+      const [hasilPekan, hasilSemester, hasilGrafik] = await Promise.all([
+        ambilRekapPekanan(),
+        ambilRekapSemester(),
+        ambilAgregatGrafikHifzh(),
+      ]);
+      setPekanan(hasilPekan.data);
+      setSemesteran(hasilSemester.data);
+      setGrafik(hasilGrafik.data);
+      setSumberContoh(
+        hasilPekan.sumberContoh ||
+          hasilSemester.sumberContoh ||
+          hasilGrafik.sumberContoh,
+      );
+      // Pilihan awal: pekan terakhir & semester pertama yang tersedia.
+      const pekanTerakhir = hasilPekan.data.reduce<string>(
+        (maks, b) => (b.pekanMulai > maks ? b.pekanMulai : maks),
+        "",
+      );
+      setPekanTerpilih(pekanTerakhir);
+      setSemesterTerpilih(hasilSemester.data[0]?.semesterId ?? "");
+    } catch (e: unknown) {
+      setGalat(e instanceof Error ? e.message : "Gagal memuat rekap.");
+    } finally {
+      setMemuat(false);
+    }
   }, []);
+
+  useEffect(() => {
+    void muat();
+  }, [muat]);
 
   const daftarPekan = useMemo(
     () =>
@@ -380,7 +388,6 @@ function IsiHalamanRekap() {
   if (memuat) {
     return (
       <>
-        <PenandaTahap teks="MEMUAT…" />
         <h1 className="judul-halaman">Rekap</h1>
         <p className="catatan-kaki">Memuat rekap kehadiran & grafik hifzh…</p>
       </>
@@ -390,11 +397,19 @@ function IsiHalamanRekap() {
   if (galat) {
     return (
       <>
-        <PenandaTahap teks="DATA BELUM BISA DIMUAT" />
         <h1 className="judul-halaman">Rekap</h1>
         <section className="kartu">
-          <h2>Terjadi kendala</h2>
+          <h2>Data belum bisa dimuat</h2>
           <p>{galat}</p>
+          <p>
+            <button
+              type="button"
+              className="tombol tombol-sekunder"
+              onClick={() => void muat()}
+            >
+              Coba lagi
+            </button>
+          </p>
         </section>
       </>
     );
@@ -407,11 +422,8 @@ function IsiHalamanRekap() {
       )}
       <h1 className="judul-halaman">Rekap</h1>
       <p className="subjudul">
-        Rekap kehadiran terjumlah per pekan dan per semester, per santri dan
-        per kelas, beserta grafik perkembangan hifzh. Di database, angka ini
-        dibaca dari view agregat (rekap_kehadiran_pekanan,
-        rekap_kehadiran_semester, grafik_hifzh_mingguan,
-        grafik_hifzh_bulanan) yang mengikuti RLS pembacanya.
+        Rekap kehadiran per pekan dan per semester, beserta grafik
+        perkembangan hifzh.
       </p>
 
       <section className="kartu">

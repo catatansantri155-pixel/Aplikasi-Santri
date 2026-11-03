@@ -21,6 +21,7 @@
  */
 import { useCallback, useEffect, useMemo, useState } from "react";
 import PenandaTahap from "@/components/PenandaTahap";
+import KartuGalat from "@/components/KartuGalat";
 import PenjagaModul from "@/components/PenjagaModul";
 import AvatarInisial from "@/components/AvatarInisial";
 import { LingkaranIkon } from "@/components/Ikon";
@@ -69,7 +70,7 @@ export default function HalamanAdmin() {
 }
 
 function IsiHalamanAdmin() {
-  const [profil, setProfil] = useState<ProfilSaya | null>(null);
+  const [, setProfil] = useState<ProfilSaya | null>(null);
   const [daftarKelas, setDaftarKelas] = useState<KelasRingkasan[]>([]);
   const [semuaSantri, setSemuaSantri] = useState<Santri[]>([]);
   const [daftarSemester, setDaftarSemester] = useState<SemesterLengkap[]>([]);
@@ -132,23 +133,25 @@ function IsiHalamanAdmin() {
     setSantriPilih((lama) => lama || santriHasil.data[0]?.id || "");
   }, []);
 
-  useEffect(() => {
-    let aktif = true;
-    Promise.all([ambilProfilSaya(), muatSemua()])
-      .then(([profilHasil]) => {
-        if (!aktif) return;
-        setProfil(profilHasil.data);
-      })
-      .catch((e: unknown) => {
-        if (!aktif) return;
-        setGalatMuat(
-          e instanceof Error ? e.message : "Gagal memuat data panel admin.",
-        );
-      });
-    return () => {
-      aktif = false;
-    };
+  /* Muat profil + semua data panel; juga target tombol coba lagi. */
+  const muatAwal = useCallback(async () => {
+    setGalatMuat(null);
+    try {
+      const [profilHasil] = await Promise.all([
+        ambilProfilSaya(),
+        muatSemua(),
+      ]);
+      setProfil(profilHasil.data);
+    } catch (e: unknown) {
+      setGalatMuat(
+        e instanceof Error ? e.message : "Gagal memuat data panel admin.",
+      );
+    }
   }, [muatSemua]);
+
+  useEffect(() => {
+    void muatAwal();
+  }, [muatAwal]);
 
   /* Kelompok santri per kelas, mengikuti urutan tingkat kelas. */
   const kelompokSantri = useMemo(() => {
@@ -337,21 +340,11 @@ function IsiHalamanAdmin() {
       )}
       <h1 className="judul-halaman">Panel Admin</h1>
       <p className="subjudul">
-        Kelola data induk aplikasi: santri, semester, dan tautan akun wali
-        ke anaknya. Halaman ini hanya untuk admin.
-        {profil && (
-          <>
-            {" "}
-            Masuk sebagai: <strong>{profil.nama}</strong>.
-          </>
-        )}
+        Kelola santri, semester, dan tautan akun wali ke anaknya.
       </p>
 
       {galatMuat && (
-        <section className="kartu">
-          <h2>Data belum bisa dimuat</h2>
-          <p>{galatMuat}</p>
-        </section>
+        <KartuGalat pesan={galatMuat} onCobaLagi={() => void muatAwal()} />
       )}
 
       {/* ------------ 1) Kelola santri ------------ */}

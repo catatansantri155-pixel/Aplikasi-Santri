@@ -6,6 +6,9 @@ import { Ikon } from "@/components/Ikon";
 export default function Kerangka({ children }: { children: ReactNode }) {
   return (
     <div className="kerangka">
+      <a className="lewati-konten" href="#konten">
+        Lewati ke konten
+      </a>
       <aside className="sidebar">
         <div className="merek">
           <span className="merek-logo">
@@ -35,7 +38,9 @@ export default function Kerangka({ children }: { children: ReactNode }) {
           <InfoPengguna varian="kepala" />
         </header>
 
-        <main className="konten">{children}</main>
+        <main className="konten" id="konten" tabIndex={-1}>
+          {children}
+        </main>
 
         <nav className="nav-bawah" aria-label="Navigasi bawah">
           <NavTautan />

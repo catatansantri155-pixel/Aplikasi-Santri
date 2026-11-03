@@ -26,7 +26,6 @@ import {
   gayaLabel,
   gayaLencanaHasil,
   gayaMasukan,
-  gayaPembungkusTabel,
   gayaPetunjuk,
   gayaSel,
   gayaSelKepala,
@@ -187,7 +186,7 @@ export default function BagianUjian({
           bawah.
         </p>
       ) : (
-        <div style={gayaPembungkusTabel}>
+        <div className="tabel-bungkus">
           <table style={gayaTabel}>
             <thead>
               <tr>
