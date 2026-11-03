@@ -7,17 +7,19 @@
  * - Tab Kehadiran (Jalur C): riwayat + ringkasan status santri ini.
  * - Tab Hifzh (Jalur F): riwayat setoran Buku Hafalan + hasil tes
  *   semester ringkas, dibaca dari src/lib/data/hifzh.ts.
- * - Tab Diniyyah (Jalur F): PENANDA TERSTRUKTUR — daftar mapel & rumus
- *   rata-rata masih menunggu user, jadi TIDAK ada nilai yang dikarang.
- * - Tab Catatan (Jalur F): daftar catatan dari DATA CONTOH LOKAL di
- *   file ini (lihat CATATAN_CONTOH_LOKAL) selama lib/data/catatan
- *   jalur lain belum ada; akan diganti ke lapisan data itu nanti.
+ * - Tab Diniyyah: ringkasan nilai per mapel santri ini dari
+ *   src/lib/data/diniyyah.ts (nilai harian + ujian gasal/genap +
+ *   rata-rata gabungan). Daftar mapel masih CONTOH menunggu PDF
+ *   jadwal dan rata-rata masih RUMUS SEMENTARA — keduanya ditandai
+ *   apa adanya di UI, mengikuti modul Diniyyah.
+ * - Tab Catatan: daftar catatan santri ini dari
+ *   src/lib/data/catatan.ts (ambilCatatanSantri).
  * Data dibaca lewat lapisan data (src/lib/data/); selama env Supabase
  * belum terisi, yang tampil adalah DATA CONTOH FIKSI.
  */
-import { use, useEffect, useMemo, useState } from "react";
+import { use, useEffect, useMemo, useState, type CSSProperties } from "react";
 import Link from "next/link";
-import PenandaTahap, { KartuPlaceholder } from "@/components/PenandaTahap";
+import PenandaTahap from "@/components/PenandaTahap";
 import AvatarInisial from "@/components/AvatarInisial";
 import {
   Ikon,
@@ -50,6 +52,23 @@ import {
   type HasilUjian,
   type NilaiSetoran,
 } from "@/lib/hifzh";
+import {
+  ambilNilaiHarianSantri,
+  ambilNilaiUjianSantri,
+  CATATAN_RUMUS_SEMENTARA,
+  formatNilai,
+  hitungRingkasanMapel,
+  LABEL_MAPEL_CONTOH,
+  MAPEL_DINIYYAH_CONTOH,
+  type NilaiHarian,
+  type NilaiUjian,
+} from "@/lib/data/diniyyah";
+import {
+  ambilCatatanSantri,
+  LABEL_KATEGORI as LABEL_KATEGORI_CATATAN,
+  type CatatanMusyrif,
+  type KategoriCatatan,
+} from "@/lib/data/catatan";
 
 type KunciTab = "kehadiran" | "hifzh" | "diniyyah" | "catatan";
 
@@ -106,26 +125,14 @@ function LencanaHasil({ hasil }: { hasil: HasilUjian }) {
   );
 }
 
+
 /* ------------------------------------------------------------------ */
-/* DATA CONTOH LOKAL — CATATAN MUSYRIF (SEMENTARA)                      */
+/* Tab Catatan & Diniyyah — tampilan                                    */
 /*                                                                      */
-/* Lapisan data catatan (src/lib/data/catatan.ts) dikerjakan jalur      */
-/* Tahap 2 lain dan BELUM ada saat tab ini diisi, jadi daftar catatan   */
-/* di bawah ini adalah contoh fiktif yang tinggal di file ini sendiri,  */
-/* dikunci ke id santri contoh dari src/lib/contoh/santri-contoh.ts.    */
-/* BEGITU lib/data/catatan tersedia, fungsi catatanContohUntukSantri()  */
-/* di bawah WAJIB diganti panggilan ke lapisan data itu dan data lokal  */
-/* ini dihapus. Nama santri/pelapor di sini FIKSI, bukan data asli.     */
+/* Data kedua tab dibaca dari lapisan data (src/lib/data/catatan.ts    */
+/* dan src/lib/data/diniyyah.ts) yang bercabang contoh/Supabase        */
+/* sendiri; halaman ini TIDAK menyimpan data contoh lokal apa pun.     */
 /* ------------------------------------------------------------------ */
-
-type KategoriCatatan = "akhlaq" | "adab" | "ibadah_shalat" | "lainnya";
-
-const LABEL_KATEGORI_CATATAN: Record<KategoriCatatan, string> = {
-  akhlaq: "Akhlaq",
-  adab: "Adab",
-  ibadah_shalat: "Ibadah Shalat",
-  lainnya: "Lainnya",
-};
 
 /** Ikon & warna tint per kategori catatan (Panduan Desain). */
 const IKON_KATEGORI_CATATAN: Record<
@@ -138,67 +145,30 @@ const IKON_KATEGORI_CATATAN: Record<
   lainnya: { ikon: "lapisan", warna: "hijau" },
 };
 
-interface CatatanContohLokal {
-  id: string;
-  santriId: string;
-  /** Format ISO: YYYY-MM-DD */
-  tanggal: string;
-  kategori: KategoriCatatan;
-  isi: string;
-  pelaporNama: string;
-}
+/** Gaya sel tabel ringkasan diniyyah (selaras halaman modul Diniyyah). */
+const GAYA_SEL: CSSProperties = {
+  padding: "8px 10px",
+  borderBottom: "1px solid var(--garis)",
+  fontSize: 14,
+  textAlign: "left",
+  verticalAlign: "top",
+};
 
-const ID_CONTOH_ALIF = "d0000000-0000-4000-8000-000000000001";
-const ID_CONTOH_CANDRA = "d0000000-0000-4000-8000-000000000003";
-const ID_CONTOH_EKO = "d0000000-0000-4000-8000-000000000005";
+const GAYA_SEL_ANGKA: CSSProperties = {
+  ...GAYA_SEL,
+  textAlign: "right",
+  fontVariantNumeric: "tabular-nums",
+};
 
-const CATATAN_CONTOH_LOKAL: CatatanContohLokal[] = [
-  {
-    id: "catatan-lokal-1",
-    santriId: ID_CONTOH_ALIF,
-    tanggal: "2026-11-01",
-    kategori: "akhlaq",
-    isi: "Membantu teman sekelasnya menyiapkan tempat wudu sebelum shalat Zhuhur berjamaah.",
-    pelaporNama: "Ust. Musyrif Contoh",
-  },
-  {
-    id: "catatan-lokal-2",
-    santriId: ID_CONTOH_ALIF,
-    tanggal: "2026-10-30",
-    kategori: "ibadah_shalat",
-    isi: "Berjamaah Subuh di awal waktu dan menjaga kekhusyukan sampai salam.",
-    pelaporNama: "Ust. Musyrif Contoh",
-  },
-  {
-    id: "catatan-lokal-3",
-    santriId: ID_CONTOH_ALIF,
-    tanggal: "2026-10-27",
-    kategori: "adab",
-    isi: "Menjaga adab makan: makan dengan tangan kanan dan tidak berbicara saat mulut penuh.",
-    pelaporNama: "Ust. Pengajar Contoh",
-  },
-  {
-    id: "catatan-lokal-4",
-    santriId: ID_CONTOH_CANDRA,
-    tanggal: "2026-10-31",
-    kategori: "adab",
-    isi: "Perlu diingatkan menjaga kerapian loker dan sandal di depan kamar.",
-    pelaporNama: "Ust. Musyrif Contoh",
-  },
-  {
-    id: "catatan-lokal-5",
-    santriId: ID_CONTOH_EKO,
-    tanggal: "2026-10-29",
-    kategori: "lainnya",
-    isi: "Mengikuti olahraga Kamis pagi dengan semangat; menjadi contoh untuk adik kelasnya.",
-    pelaporNama: "Ust. Musyrif Contoh",
-  },
-];
-
-/** Catatan contoh lokal untuk satu santri, terbaru lebih dulu. */
-function catatanContohUntukSantri(santriId: string): CatatanContohLokal[] {
-  return CATATAN_CONTOH_LOKAL.filter((c) => c.santriId === santriId).sort(
-    (a, b) => b.tanggal.localeCompare(a.tanggal),
+/** Label mapel dengan penanda contoh (daftar mapel resmi belum ada). */
+function LabelMapel({ mapel }: { mapel: string }) {
+  return (
+    <>
+      {mapel}{" "}
+      <span style={{ color: "var(--teks-redup)", fontSize: 12 }}>
+        (contoh)
+      </span>
+    </>
   );
 }
 
@@ -214,6 +184,9 @@ export default function HalamanDetailSantri({
   const [setoran, setSetoran] = useState<SetoranHifzh[]>([]);
   const [ujian, setUjian] = useState<BarisUjianHifzh[]>([]);
   const [jadwalDiniyyah, setJadwalDiniyyah] = useState<JadwalSesi[]>([]);
+  const [harianDiniyyah, setHarianDiniyyah] = useState<NilaiHarian[]>([]);
+  const [ujianDiniyyah, setUjianDiniyyah] = useState<NilaiUjian[]>([]);
+  const [catatan, setCatatan] = useState<CatatanMusyrif[]>([]);
   const [sumberHifzhContoh, setSumberHifzhContoh] = useState(false);
   const [sumberContoh, setSumberContoh] = useState(false);
   const [tabAktif, setTabAktif] = useState<KunciTab>("kehadiran");
@@ -232,6 +205,11 @@ export default function HalamanDetailSantri({
       ambilSetoranTerakhir(50),
       ambilUjianSemester(id),
       ambilJadwalSesi("diniyyah"),
+      // Tab Diniyyah & Catatan: dari lapisan datanya masing-masing
+      // (bercabang contoh/Supabase di dalamnya), BUKAN data lokal.
+      ambilNilaiHarianSantri(id),
+      ambilNilaiUjianSantri(id),
+      ambilCatatanSantri(id),
     ])
       .then(
         ([
@@ -241,6 +219,9 @@ export default function HalamanDetailSantri({
           setoranHasil,
           ujianHasil,
           jadwalHasil,
+          harianHasil,
+          ujianDiniyyahHasil,
+          catatanHasil,
         ]) => {
           if (!aktif) return;
           setSantri(detail.data);
@@ -251,11 +232,19 @@ export default function HalamanDetailSantri({
           );
           setUjian(ujianHasil.data);
           setJadwalDiniyyah(jadwalHasil.data);
+          setHarianDiniyyah(harianHasil.data);
+          setUjianDiniyyah(ujianDiniyyahHasil.data);
+          setCatatan(catatanHasil.data);
           setSumberHifzhContoh(
             setoranHasil.sumber === "contoh" || ujianHasil.sumber === "contoh",
           );
           setSumberContoh(
-            detail.sumberContoh || riwayatHasil.sumberContoh || logHasil.sumberContoh,
+            detail.sumberContoh ||
+              riwayatHasil.sumberContoh ||
+              logHasil.sumberContoh ||
+              harianHasil.sumberContoh ||
+              ujianDiniyyahHasil.sumberContoh ||
+              catatanHasil.sumberContoh,
           );
           setMemuat(false);
         },
@@ -280,6 +269,11 @@ export default function HalamanDetailSantri({
     for (const b of riwayat) hitung[b.status] += 1;
     return hitung;
   }, [riwayat]);
+
+  const ringkasanDiniyyah = useMemo(
+    () => hitungRingkasanMapel(harianDiniyyah, ujianDiniyyah),
+    [harianDiniyyah, ujianDiniyyah],
+  );
 
   const logPerBaris = useMemo(() => {
     const peta = new Map<string, LogRevisi[]>();
@@ -545,14 +539,113 @@ export default function HalamanDetailSantri({
 
       {tabAktif === "diniyyah" && (
         <>
-          <KartuPlaceholder judul="Modul Diniyyah — menunggu ketetapan resmi">
-            <PenandaTahap teks="BELUM ADA NILAI · MENUNGGU PDF JADWAL & RUMUS" />
+          <section className="kartu">
+            <h2>Nilai diniyyah per mapel</h2>
             <p>
-              Tab ini sengaja belum menampilkan angka apa pun: daftar mapel
-              per slot dan rumus nilai rata-rata belum ditetapkan user, jadi
-              tidak ada nilai yang dikarang di sini.
+              <strong>{LABEL_MAPEL_CONTOH}:</strong> daftar mata pelajaran
+              ({MAPEL_DINIYYAH_CONTOH.join(", ")}) adalah contoh umum
+              madrasah, bukan daftar resmi pondok — daftar resmi mengikuti
+              PDF jadwal diniyyah dari user.
             </p>
-          </KartuPlaceholder>
+            <p>
+              Kolom rata-rata memakai <strong>rumus sementara</strong>{" "}
+              (rata-rata sederhana). {CATATAN_RUMUS_SEMENTARA}
+            </p>
+            <div style={{ overflowX: "auto" }}>
+              <table
+                style={{
+                  width: "100%",
+                  borderCollapse: "collapse",
+                  minWidth: 520,
+                }}
+              >
+                <thead>
+                  <tr>
+                    <th style={GAYA_SEL}>Mapel (contoh)</th>
+                    <th style={GAYA_SEL_ANGKA}>Rata-rata harian</th>
+                    <th style={GAYA_SEL_ANGKA}>Ujian gasal</th>
+                    <th style={GAYA_SEL_ANGKA}>Ujian genap</th>
+                    <th style={GAYA_SEL_ANGKA}>
+                      Rata-rata gabungan
+                      <span
+                        style={{
+                          display: "block",
+                          fontSize: 11,
+                          fontWeight: 600,
+                          color: "var(--teks-redup)",
+                        }}
+                      >
+                        rumus sementara
+                      </span>
+                    </th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {ringkasanDiniyyah.map((r) => (
+                    <tr key={r.mapel}>
+                      <td style={GAYA_SEL}>
+                        <LabelMapel mapel={r.mapel} />
+                      </td>
+                      <td style={GAYA_SEL_ANGKA}>
+                        {formatNilai(r.rataHarian)}
+                        {r.jumlahNilaiHarian > 0 && (
+                          <span
+                            style={{
+                              display: "block",
+                              fontSize: 11,
+                              color: "var(--teks-redup)",
+                            }}
+                          >
+                            dari {r.jumlahNilaiHarian} nilai
+                          </span>
+                        )}
+                      </td>
+                      <td style={GAYA_SEL_ANGKA}>
+                        {formatNilai(r.ujianGasal)}
+                      </td>
+                      <td style={GAYA_SEL_ANGKA}>
+                        {formatNilai(r.ujianGenap)}
+                      </td>
+                      <td style={{ ...GAYA_SEL_ANGKA, fontWeight: 700 }}>
+                        {formatNilai(r.rataGabungan)}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+
+            <h3 style={{ margin: "16px 0 6px", fontSize: 15 }}>
+              Rincian nilai harian terakhir
+            </h3>
+            {harianDiniyyah.length === 0 ? (
+              <p>Belum ada nilai harian untuk santri ini.</p>
+            ) : (
+              <div style={{ display: "grid", gap: 6 }}>
+                {harianDiniyyah.slice(0, 10).map((n) => (
+                  <div
+                    key={n.id}
+                    style={{
+                      display: "flex",
+                      justifyContent: "space-between",
+                      gap: 10,
+                      paddingBottom: 6,
+                      borderBottom: "1px solid var(--garis)",
+                      fontSize: 14,
+                    }}
+                  >
+                    <span>
+                      {formatTanggal(n.tanggal)} ·{" "}
+                      <LabelMapel mapel={n.mapel} />
+                    </span>
+                    <strong style={{ fontVariantNumeric: "tabular-nums" }}>
+                      {formatNilai(n.nilai)}
+                    </strong>
+                  </div>
+                ))}
+              </div>
+            )}
+          </section>
 
           <section className="kartu">
             <h2>Slot jadwal diniyyah</h2>
@@ -578,38 +671,17 @@ export default function HalamanDetailSantri({
             </div>
           </section>
 
-          <section className="kartu">
-            <h2>Struktur nilai (per semester)</h2>
-            <div style={{ display: "grid", gap: 6 }}>
-              <div>· Nilai harian per mapel — menunggu daftar mapel resmi</div>
-              <div>· Nilai ujian semester gasal</div>
-              <div>
-                · Nilai rata-rata gasal — rumus menunggu konfirmasi user
-                (rata-rata sederhana atau berbobot)
-              </div>
-              <div>· Nilai ujian semester genap</div>
-              <div>
-                · Nilai rata-rata genap — rumus menunggu konfirmasi user
-              </div>
-            </div>
-            <p className="catatan-kaki" style={{ marginTop: 10 }}>
-              Begitu PDF jadwal diniyyah dan rumus rata-rata diterima, tab
-              ini diisi modul nilai diniyyah tanpa mengubah kerangka
-              halamannya.
-            </p>
-          </section>
         </>
       )}
 
       {tabAktif === "catatan" && (
         <section className="kartu">
           <h2>Catatan keseharian santri ini</h2>
-          <PenandaTahap teks="DATA CONTOH LOKAL · SEMENTARA — MENUNGGU lib/data/catatan" />
-          {catatanContohUntukSantri(santri.id).length === 0 && (
-            <p>Belum ada catatan contoh untuk santri ini.</p>
+          {catatan.length === 0 && (
+            <p>Belum ada catatan untuk santri ini.</p>
           )}
           <div style={{ display: "grid", gap: 14 }}>
-            {catatanContohUntukSantri(santri.id).map((c) => {
+            {catatan.map((c) => {
               const ikonKat = IKON_KATEGORI_CATATAN[c.kategori];
               return (
                 <div
@@ -645,9 +717,9 @@ export default function HalamanDetailSantri({
             })}
           </div>
           <p className="catatan-kaki" style={{ marginTop: 10 }}>
-            Pada aplikasi asli, catatan dibaca dari database dan nama
-            pelapor selalu terisi otomatis dari akun yang masuk — tidak
-            bisa dikosongkan.
+            Catatan dibaca dari lapisan data catatan (database pada mode
+            Supabase) dan nama pelapor selalu terisi otomatis dari akun
+            yang masuk — tidak bisa dikosongkan.
           </p>
         </section>
       )}

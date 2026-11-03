@@ -18,9 +18,9 @@ pelapor diambil dari profil login. GERBANG FITUR PER PERAN di level
 tampilan juga sudah diterapkan dari peta terpusat `src/lib/akses.ts`:
 menu navigasi, kartu modul beranda, dan isi tiap halaman modul disaring
 menurut peran profil login (Kehadiran: admin + kedua pengajar; Hifzh:
-admin + pengajar hifzh; Diniyyah: admin + pengajar diniyyah; Catatan &
-Rekap: admin + kedua pengajar + musyrif; Beranda & Santri: semua peran;
-revisi kehadiran tetap khusus admin). Peran yang membuka URL modul
+admin + pengajar hifzh; Diniyyah: admin + pengajar diniyyah; Catatan,
+Rekap & Olahraga: admin + kedua pengajar + musyrif; Beranda & Santri:
+semua peran; revisi kehadiran tetap khusus admin). Peran yang membuka URL modul
 terlarang menerima pesan penolakan dan form/isinya tidak dirender.
 Gerbang ini hanya tampilan — penegakan sesungguhnya tetap RLS Supabase.
 Lapisan data membaca Supabase asli bila env terisi; bila env kosong,
@@ -33,6 +33,11 @@ semester, halaman menampilkan pesan bahwa semester harus dibuat oleh
 admin terlebih dahulu dan nilai ujian tidak dapat disimpan (semester
 tidak dikarang di klien). Daftar mapel diniyyah masih daftar contoh
 menunggu PDF jadwal, dan rata-rata masih rumus sementara.
+Halaman Olahraga (`/olahraga`, khusus staf) mengelola sesi olahraga —
+satu sesi per tanggal; jadwal rutin Ahad & Kamis pagi, tanggal lain
+tetap boleh — beserta kehadiran per santri (H/S/I/A, upsert per sesi +
+santri). Belum ada isian nilai olahraga: halaman hanya mencatat sesi &
+kehadiran karena format penilaian olahraga belum diputuskan user.
 
 ## Sistem desain
 

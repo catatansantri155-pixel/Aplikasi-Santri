@@ -34,7 +34,8 @@ export type KunciModul =
   | "hifzh"
   | "diniyyah"
   | "catatan"
-  | "rekap";
+  | "rekap"
+  | "olahraga";
 
 /**
  * Peran yang BOLEH membuka tiap modul (mode Supabase).
@@ -46,6 +47,9 @@ export type KunciModul =
  * - catatan: admin + kedua pengajar + musyrif (wali tidak).
  * - rekap: admin + kedua pengajar + musyrif (wali tidak; ringkasan
  *   anaknya tersedia di beranda & detail santri).
+ * - olahraga: admin + kedua pengajar + musyrif (semua staf; wali
+ *   tidak membuka modulnya — kehadiran olahraga anaknya sendiri tetap
+ *   terbaca lewat RLS di database, bukan lewat modul ini).
  */
 export const PETA_AKSES_MODUL: Record<KunciModul, Peran[]> = {
   beranda: [...SEMUA_PERAN],
@@ -60,6 +64,12 @@ export const PETA_AKSES_MODUL: Record<KunciModul, Peran[]> = {
     PERAN.MUSYRIF,
   ],
   rekap: [
+    PERAN.ADMIN,
+    PERAN.PENGAJAR_HIFZH,
+    PERAN.PENGAJAR_DINIYYAH,
+    PERAN.MUSYRIF,
+  ],
+  olahraga: [
     PERAN.ADMIN,
     PERAN.PENGAJAR_HIFZH,
     PERAN.PENGAJAR_DINIYYAH,
@@ -113,5 +123,6 @@ export function modulDariPath(pathname: string): KunciModul | null {
   if (pathname === "/diniyyah") return "diniyyah";
   if (pathname === "/catatan") return "catatan";
   if (pathname === "/rekap") return "rekap";
+  if (pathname === "/olahraga") return "olahraga";
   return null;
 }

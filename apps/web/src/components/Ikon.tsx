@@ -19,6 +19,7 @@ export type NamaIkon =
   | "diniyyah"
   | "catatan"
   | "rekap"
+  | "olahraga"
   | "keluar"
   | "masuk"
   | "cari"
@@ -83,6 +84,13 @@ const JALUR: Record<NamaIkon, ReactNode> = {
       <path d="M8 16v-5" />
       <path d="M13 16V8" />
       <path d="M18 16v-8" />
+    </>
+  ),
+  olahraga: (
+    <>
+      <circle cx="12" cy="12" r="9" />
+      <path d="M12 8.2 15.3 10.6l-1.25 3.9h-4.1L8.7 10.6z" />
+      <path d="M12 3.1v5.1M15.3 10.6l4.5-1.5M14.05 14.5l2.3 3.8M9.95 14.5l-2.3 3.8M8.7 10.6l-4.5-1.5" />
     </>
   ),
   keluar: (

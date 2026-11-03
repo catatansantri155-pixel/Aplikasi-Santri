@@ -105,7 +105,14 @@ const TAUTAN_MODUL: {
   href: string;
   label: string;
   keterangan: string;
-  modul: "santri" | "kehadiran" | "hifzh" | "diniyyah" | "catatan" | "rekap";
+  modul:
+    | "santri"
+    | "kehadiran"
+    | "hifzh"
+    | "diniyyah"
+    | "catatan"
+    | "rekap"
+    | "olahraga";
   ikon: NamaIkon;
   warna: WarnaTint;
 }[] = [
@@ -140,6 +147,14 @@ const TAUTAN_MODUL: {
     modul: "diniyyah",
     ikon: "diniyyah",
     warna: "hijau",
+  },
+  {
+    href: "/olahraga",
+    label: "Olahraga",
+    keterangan: "Sesi olahraga Ahad & Kamis pagi dan kehadiran per santri.",
+    modul: "olahraga",
+    ikon: "olahraga",
+    warna: "emas",
   },
   {
     href: "/catatan",
