@@ -19,8 +19,9 @@ tampilan juga sudah diterapkan dari peta terpusat `src/lib/akses.ts`:
 menu navigasi, kartu modul beranda, dan isi tiap halaman modul disaring
 menurut peran profil login (Kehadiran: admin + kedua pengajar; Hifzh:
 admin + pengajar hifzh; Diniyyah: admin + pengajar diniyyah; Catatan,
-Rekap & Olahraga: admin + kedua pengajar + musyrif; Beranda & Santri:
-semua peran; revisi kehadiran tetap khusus admin). Peran yang membuka URL modul
+Rekap & Olahraga: admin + kedua pengajar + musyrif; Panel Admin: hanya
+admin; Beranda & Santri: semua peran; revisi kehadiran tetap khusus
+admin). Peran yang membuka URL modul
 terlarang menerima pesan penolakan dan form/isinya tidak dirender.
 Gerbang ini hanya tampilan — penegakan sesungguhnya tetap RLS Supabase.
 Lapisan data membaca Supabase asli bila env terisi; bila env kosong,
@@ -38,6 +39,13 @@ satu sesi per tanggal; jadwal rutin Ahad & Kamis pagi, tanggal lain
 tetap boleh — beserta kehadiran per santri (H/S/I/A, upsert per sesi +
 santri). Belum ada isian nilai olahraga: halaman hanya mencatat sesi &
 kehadiran karena format penilaian olahraga belum diputuskan user.
+Panel Admin (`/admin`, hanya admin) mengelola data induk yang
+sebelumnya hanya bisa lewat SQL: santri (daftar semua status per
+kelas, tambah, ubah, aktif/nonaktifkan lewat kolom `status_aktif`),
+semester (daftar lengkap + buat baru; tabel semester tidak punya
+kolom penanda aktif, jadi keadaan semester diturunkan dari rentang
+tanggalnya), dan tautan akun wali ke santrinya (akun login wali tetap
+dibuat lewat panel autentikasi Supabase, panel ini hanya menautkan).
 
 ## Sistem desain
 
@@ -97,7 +105,7 @@ npm run dev                  # http://localhost:3000
 ## Struktur
 
 - `src/app/` — rute App Router: dashboard (`/`), `login/`, `santri/`, `santri/[id]/`,
-  `kehadiran/`, `hifzh/`, `diniyyah/`, `catatan/`, `rekap/`
+  `kehadiran/`, `hifzh/`, `diniyyah/`, `catatan/`, `rekap/`, `olahraga/`, `admin/`
 - `src/components/` — kerangka tampilan (header, navigasi bawah HP, sidebar tablet/PC)
 - `src/lib/supabase/` — klien Supabase pola `@supabase/ssr` (browser & server)
 - `src/lib/peran.ts` — konstanta peran pengguna dan labelnya

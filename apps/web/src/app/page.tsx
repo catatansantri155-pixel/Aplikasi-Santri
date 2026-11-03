@@ -112,7 +112,8 @@ const TAUTAN_MODUL: {
     | "diniyyah"
     | "catatan"
     | "rekap"
-    | "olahraga";
+    | "olahraga"
+    | "admin";
   ikon: NamaIkon;
   warna: WarnaTint;
 }[] = [
@@ -171,6 +172,14 @@ const TAUTAN_MODUL: {
     modul: "rekap",
     ikon: "rekap",
     warna: "biru",
+  },
+  {
+    href: "/admin",
+    label: "Panel Admin",
+    keterangan: "Kelola santri, semester, dan tautan akun wali.",
+    modul: "admin",
+    ikon: "perisai",
+    warna: "emas",
   },
 ];
 

@@ -35,7 +35,8 @@ export type KunciModul =
   | "diniyyah"
   | "catatan"
   | "rekap"
-  | "olahraga";
+  | "olahraga"
+  | "admin";
 
 /**
  * Peran yang BOLEH membuka tiap modul (mode Supabase).
@@ -50,6 +51,10 @@ export type KunciModul =
  * - olahraga: admin + kedua pengajar + musyrif (semua staf; wali
  *   tidak membuka modulnya — kehadiran olahraga anaknya sendiri tetap
  *   terbaca lewat RLS di database, bukan lewat modul ini).
+ * - admin: HANYA admin (panel kelola data induk: santri, semester,
+ *   tautan wali). Semua peran lain ditolak, termasuk lewat URL
+ *   langsung; di database, tulis santri/semester/wali_santri memang
+ *   hanya lolos untuk admin (kebijakan *_tulis_admin di 0003_rls.sql).
  */
 export const PETA_AKSES_MODUL: Record<KunciModul, Peran[]> = {
   beranda: [...SEMUA_PERAN],
@@ -75,6 +80,7 @@ export const PETA_AKSES_MODUL: Record<KunciModul, Peran[]> = {
     PERAN.PENGAJAR_DINIYYAH,
     PERAN.MUSYRIF,
   ],
+  admin: [PERAN.ADMIN],
 };
 
 /**
@@ -124,5 +130,8 @@ export function modulDariPath(pathname: string): KunciModul | null {
   if (pathname === "/catatan") return "catatan";
   if (pathname === "/rekap") return "rekap";
   if (pathname === "/olahraga") return "olahraga";
+  if (pathname === "/admin" || pathname.startsWith("/admin/")) {
+    return "admin";
+  }
   return null;
 }
