@@ -131,24 +131,29 @@ export default function IsiHalamanHifzh({ tab }: { tab: TabHifzh }) {
     peranMasuk !== null &&
     !bolehInput(peranMasuk, "hifzh");
 
+  /* Audit visual user 4 Nov 2026: untuk admin, tab awal yang
+     bermakna adalah RIWAYAT (pekerjaan admin memantau & mengoreksi,
+     bukan mengisi) — tab Setoran yang hanya berisi penjelasan
+     dialihkan tampil sebagai Riwayat. */
+  const tabEfektif: TabHifzh =
+    pantauanAdmin && tab === "setoran" ? "riwayat" : tab;
+
   return (
     <>
-      <PenandaTahap
-        teks={
-          sumber === "contoh"
-            ? "DATA CONTOH — env Supabase belum terisi"
-            : "DATA DARI SUPABASE · LOGIN ASLI"
-        }
-      />
-      <h1 className="judul-halaman">Hifzh — Buku Hafalan</h1>
+      {/* Label teknis sumber data DIHAPUS dari tampilan operasional
+          (audit visual user 4 Nov 2026) — penanda hanya tampil pada
+          mode data contoh, saat isinya memang bukan data asli. */}
+      {sumber === "contoh" && (
+        <PenandaTahap teks="DATA CONTOH — env Supabase belum terisi" />
+      )}
+      <h1 className="judul-halaman">Hifzh</h1>
       <p className="subjudul">
-        Setoran hafalan (BC, BR, TS, LM) dan tes semester per juz sesuai
-        Buku Hafalan, dengan nilai L/U otomatis.
+        Setoran hafalan dan tes semester per juz, dengan nilai otomatis.
       </p>
 
       <div role="tablist" aria-label="Bagian hifzh" className="tab-pil">
         {DAFTAR_TAB_HIFZH.map((t) => {
-          const aktif = tab === t.kunci;
+          const aktif = tabEfektif === t.kunci;
           return (
             <Link
               key={t.kunci}
@@ -167,16 +172,12 @@ export default function IsiHalamanHifzh({ tab }: { tab: TabHifzh }) {
 
       <div
         role="tabpanel"
-        id={`panel-hifzh-${tab}`}
-        aria-labelledby={`tab-hifzh-${tab}`}
+        id={`panel-hifzh-${tabEfektif}`}
+        aria-labelledby={`tab-hifzh-${tabEfektif}`}
       >
-      {tab === "setoran" && (
+      {tabEfektif === "setoran" && (
       <section className="kartu">
-        <h2>Form Setoran</h2>
-        <p>
-          Nilai L/U dihitung langsung saat mengisi, memakai aturan resmi
-          Buku Hafalan.
-        </p>
+        <h2>Setoran baru</h2>
         {memuat ? (
           <p style={gayaPetunjuk}>Memuat daftar santri…</p>
         ) : pantauanAdmin ? (
@@ -202,7 +203,7 @@ export default function IsiHalamanHifzh({ tab }: { tab: TabHifzh }) {
       </section>
       )}
 
-      {tab === "riwayat" && (
+      {tabEfektif === "riwayat" && (
       <section className="kartu">
         <h2>Setoran Terakhir</h2>
         {memuat ? (
@@ -261,12 +262,12 @@ export default function IsiHalamanHifzh({ tab }: { tab: TabHifzh }) {
       </section>
       )}
 
-      {tab === "ujian" && (
+      {tabEfektif === "ujian" && (
       <section className="kartu">
         <h2>Tes Semester Hifzhul Qur&apos;an</h2>
         <p>
-          Penilaian per juz dari lembar tes semester: hasil M (Mutqin)
-          sampai G (Goncang) dihitung otomatis dari kesalahan RG/KK/KB.
+          Hasil per juz (M sampai G) dihitung otomatis dari kesalahan
+          RG/KK/KB.
         </p>
         {memuat ? (
           <p style={gayaPetunjuk}>Memuat daftar santri…</p>

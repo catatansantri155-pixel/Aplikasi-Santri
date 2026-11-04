@@ -9,6 +9,20 @@
  * Nilai (kolom 6) TIDAK diisi manual: dihitung LIVE oleh fungsi resmi
  * di src/lib/hifzh.ts dan ditampilkan sebagai pratinjau sebelum kirim.
  * Paraf (kolom 7) TERKUNCI pada nama akun yang masuk.
+ *
+ * Perapian audit visual user (4 Nov 2026) — halaman ini acuan desain:
+ * - Alur pencatatan mobile: santri → tanggal & jenis → surat/ayat →
+ *   kesalahan → catatan & tugas; tanggal Hijriah menjadi info
+ *   pendamping tanggal, bukan kolom besar.
+ * - Jenis hafalan memakai chip singkat BC/BR/TS/LM; arti pilihan
+ *   aktif tampil di bawahnya.
+ * - RG/KK/KB memakai kontrol tambah/kurang (angka tetap bisa
+ *   diketik); penjelasan & aturan nilai pindah ke panel "Lihat
+ *   aturan penilaian" yang bisa dibuka.
+ * - Desktop: formulir di kiri, panel ringkasan (hasil penilaian,
+ *   aturan, penyimak ringkas) di kanan (.tata-form-hifzh).
+ * - Tombol Simpan pada bilah melekat (.bilah-simpan) dengan
+ *   ringkasan santri terpilih, mudah dijangkau di HP.
  */
 import { useMemo, useState } from "react";
 import {
@@ -27,13 +41,10 @@ import {
 } from "@/lib/data/hifzh";
 import { formatHijriahLengkap } from "@/lib/tanggal";
 import {
-  gayaFormulirLebar,
   gayaKisiDua,
-  gayaKisiTiga,
   gayaLabel,
   gayaLencanaNilai,
   gayaMasukan,
-  gayaMasukanTerkunci,
   gayaPetunjuk,
 } from "./gaya";
 
@@ -76,6 +87,50 @@ export function formatHijriah(tanggalMasehi: string): string {
 function keAngka(teks: string): number {
   const n = Number.parseInt(teks, 10);
   return Number.isFinite(n) ? n : 0;
+}
+
+/** Kontrol tambah/kurang untuk jumlah kesalahan RG/KK/KB. */
+function StepperKesalahan({
+  label,
+  nilai,
+  onUbah,
+}: {
+  label: string;
+  nilai: string;
+  onUbah: (teks: string) => void;
+}) {
+  const n = keAngka(nilai);
+  return (
+    <label style={gayaLabel}>
+      {label}
+      <span className="stepper">
+        <button
+          type="button"
+          aria-label={`Kurangi ${label}`}
+          disabled={n <= 0}
+          onClick={() => onUbah(String(Math.max(0, n - 1)))}
+        >
+          −
+        </button>
+        <input
+          type="number"
+          min={0}
+          inputMode="numeric"
+          value={nilai}
+          onChange={(e) => onUbah(e.target.value)}
+          style={gayaMasukan}
+          aria-label={`Jumlah ${label}`}
+        />
+        <button
+          type="button"
+          aria-label={`Tambah ${label}`}
+          onClick={() => onUbah(String(n + 1))}
+        >
+          +
+        </button>
+      </span>
+    </label>
+  );
 }
 
 export default function FormSetoran({
@@ -211,257 +266,241 @@ export default function FormSetoran({
   }
 
   return (
-    <form onSubmit={tanganiKirim} style={gayaFormulirLebar}>
-      <label style={gayaLabel}>
-        Santri
-        <select
-          value={santriId}
-          onChange={(e) => setSantriId(e.target.value)}
-          style={gayaMasukan}
-          required
-        >
-          <option value="">
-            {daftarSantri.length === 0
-              ? "Belum ada santri"
-              : "Pilih santri…"}
-          </option>
-          {daftarSantri.map((s) => (
-            <option key={s.id} value={s.id}>
-              {s.nama}
-              {s.kelasTingkat ? ` — Kelas ${s.kelasTingkat}` : ""}
-            </option>
-          ))}
-        </select>
-      </label>
-
-      <div style={gayaKisiDua}>
-        <label style={gayaLabel}>
-          1 · Tanggal (Masehi)
-          <input
-            type="date"
-            value={tanggalMasehi}
-            onChange={(e) => setTanggalMasehi(e.target.value)}
-            style={gayaMasukan}
-            required
-          />
-        </label>
-        <label style={gayaLabel}>
-          Tanggal Hijriah (otomatis)
-          <input
-            type="text"
-            value={tanggalHijriah}
-            readOnly
-            style={gayaMasukanTerkunci}
-            aria-readonly="true"
-          />
-        </label>
-      </div>
-
-      <label style={gayaLabel}>
-        2 · Jenis Hafalan
-        <select
-          value={jenis}
-          onChange={(e) => setJenis(e.target.value as JenisSetoran)}
-          style={gayaMasukan}
-        >
-          {SEMUA_JENIS_SETORAN.map((j) => (
-            <option key={j} value={j}>
-              {LABEL_JENIS_SETORAN[j]}
-            </option>
-          ))}
-        </select>
-      </label>
-
-      <div style={gayaKisiDua}>
-        <label style={gayaLabel}>
-          3 · Halaman
-          <input
-            type="number"
-            min={1}
-            inputMode="numeric"
-            value={halaman}
-            onChange={(e) => setHalaman(e.target.value)}
-            style={gayaMasukan}
-            placeholder="mis. 214"
-            required
-          />
-        </label>
-        <label style={gayaLabel}>
-          4 · Surat
-          <input
-            type="text"
-            value={surat}
-            onChange={(e) => setSurat(e.target.value)}
-            style={gayaMasukan}
-            placeholder="mis. Al-Kahf"
-            required
-          />
-        </label>
-      </div>
-
-      <div style={gayaKisiDua}>
-        <label style={gayaLabel}>
-          Ayat Dari
-          <input
-            type="number"
-            min={1}
-            inputMode="numeric"
-            value={ayatDari}
-            onChange={(e) => setAyatDari(e.target.value)}
-            style={gayaMasukan}
-            required
-          />
-        </label>
-        <label style={gayaLabel}>
-          Ayat Sampai
-          <input
-            type="number"
-            min={1}
-            inputMode="numeric"
-            value={ayatSampai}
-            onChange={(e) => setAyatSampai(e.target.value)}
-            style={gayaMasukan}
-            required
-          />
-        </label>
-      </div>
-
-      <fieldset style={{ border: "1px solid var(--garis)", borderRadius: 10, padding: 12, margin: 0 }}>
-        <legend style={{ fontSize: 14, fontWeight: 600, padding: "0 6px" }}>
-          5 · Kesalahan
-        </legend>
-        <div style={gayaKisiTiga}>
+    <form onSubmit={tanganiKirim}>
+      <div className="tata-form-hifzh">
+        <div className="kolom-form-utama">
           <label style={gayaLabel}>
-            RG
-            <input
-              type="number"
-              min={0}
-              inputMode="numeric"
-              value={rg}
-              onChange={(e) => setRg(e.target.value)}
+            Santri
+            <select
+              value={santriId}
+              onChange={(e) => setSantriId(e.target.value)}
               style={gayaMasukan}
-            />
+              required
+            >
+              <option value="">
+                {daftarSantri.length === 0
+                  ? "Belum ada santri"
+                  : "Pilih santri…"}
+              </option>
+              {daftarSantri.map((s) => (
+                <option key={s.id} value={s.id}>
+                  {s.nama}
+                  {s.kelasTingkat ? ` — Kelas ${s.kelasTingkat}` : ""}
+                </option>
+              ))}
+            </select>
           </label>
+
           <label style={gayaLabel}>
-            KK
+            Tanggal
             <input
-              type="number"
-              min={0}
-              inputMode="numeric"
-              value={kk}
-              onChange={(e) => setKk(e.target.value)}
+              type="date"
+              value={tanggalMasehi}
+              onChange={(e) => setTanggalMasehi(e.target.value)}
               style={gayaMasukan}
+              required
             />
+            <span style={gayaPetunjuk}>{tanggalHijriah} (Hijriah)</span>
           </label>
+
+          <div>
+            <span
+              style={{ display: "block", fontSize: 13, fontWeight: 600, marginBottom: 6 }}
+            >
+              Jenis hafalan
+            </span>
+            <div className="grup-chip" role="radiogroup" aria-label="Jenis hafalan">
+              {SEMUA_JENIS_SETORAN.map((j) => (
+                <button
+                  key={j}
+                  type="button"
+                  role="radio"
+                  aria-checked={jenis === j}
+                  aria-pressed={jenis === j}
+                  className="chip"
+                  onClick={() => setJenis(j)}
+                >
+                  {j}
+                </button>
+              ))}
+            </div>
+            <p style={{ ...gayaPetunjuk, marginTop: 8 }}>
+              {LABEL_JENIS_SETORAN[jenis]}
+            </p>
+          </div>
+
+          <div style={gayaKisiDua}>
+            <label style={gayaLabel}>
+              Halaman
+              <input
+                type="number"
+                min={1}
+                inputMode="numeric"
+                value={halaman}
+                onChange={(e) => setHalaman(e.target.value)}
+                style={gayaMasukan}
+                placeholder="mis. 214"
+                required
+              />
+            </label>
+            <label style={gayaLabel}>
+              Surat
+              <input
+                type="text"
+                value={surat}
+                onChange={(e) => setSurat(e.target.value)}
+                style={gayaMasukan}
+                placeholder="mis. Al-Kahf"
+                required
+              />
+            </label>
+          </div>
+
+          <div style={gayaKisiDua}>
+            <label style={gayaLabel}>
+              Ayat dari
+              <input
+                type="number"
+                min={1}
+                inputMode="numeric"
+                value={ayatDari}
+                onChange={(e) => setAyatDari(e.target.value)}
+                style={gayaMasukan}
+                required
+              />
+            </label>
+            <label style={gayaLabel}>
+              Ayat sampai
+              <input
+                type="number"
+                min={1}
+                inputMode="numeric"
+                value={ayatSampai}
+                onChange={(e) => setAyatSampai(e.target.value)}
+                style={gayaMasukan}
+                required
+              />
+            </label>
+          </div>
+
+          <fieldset style={{ border: "1px solid var(--garis)", borderRadius: 12, padding: 12, margin: 0 }}>
+            <legend style={{ fontSize: 14, fontWeight: 600, padding: "0 6px" }}>
+              Kesalahan
+            </legend>
+            <div className="kisi-kesalahan">
+              <StepperKesalahan label="RG" nilai={rg} onUbah={setRg} />
+              <StepperKesalahan label="KK" nilai={kk} onUbah={setKk} />
+              <StepperKesalahan label="KB" nilai={kb} onUbah={setKb} />
+            </div>
+            <label style={{ ...gayaLabel, marginTop: 12 }}>
+              Catatan hafalan — rincian kesalahan (nomor ayat &amp; lafazh)
+              <textarea
+                value={catatanRincian}
+                onChange={(e) => setCatatanRincian(e.target.value)}
+                style={{ ...gayaMasukan, minHeight: 64, resize: "vertical" }}
+                placeholder="mis. Ayat 47: lafazh …"
+              />
+            </label>
+          </fieldset>
+
           <label style={gayaLabel}>
-            KB
+            Tugas berikutnya
             <input
-              type="number"
-              min={0}
-              inputMode="numeric"
-              value={kb}
-              onChange={(e) => setKb(e.target.value)}
+              type="text"
+              value={tugasBerikutnya}
+              onChange={(e) => setTugasBerikutnya(e.target.value)}
               style={gayaMasukan}
+              placeholder="Hafalan yang disiapkan untuk setoran selanjutnya"
             />
           </label>
         </div>
-        <p style={{ ...gayaPetunjuk, marginTop: 8 }}>
-          RG = ragu (membaik sendiri / diingatkan 1x) · KK = kesalahan kecil
-          (membaik setelah diingatkan minimal 2x) · KB = kesalahan besar
-          (tidak membaik setelah diingatkan 3x). Konversi bertahap:
-          3 RG = 1 KK, 3 KK = 1 KB.
-        </p>
-        <label style={{ ...gayaLabel, marginTop: 10 }}>
-          Catatan Hafalan — rincian kesalahan (nomor ayat &amp; lafazh)
-          <textarea
-            value={catatanRincian}
-            onChange={(e) => setCatatanRincian(e.target.value)}
-            style={{ ...gayaMasukan, minHeight: 64, resize: "vertical" }}
-            placeholder="mis. Ayat 47: lafazh …"
-          />
-        </label>
-      </fieldset>
 
-      <div aria-live="polite" className="pratinjau-nilai">
-        <span style={{ fontSize: 14, fontWeight: 600 }}>
-          6 · Pratinjau Nilai:
-        </span>
-        <span style={gayaLencanaNilai(nilaiLive)}>
-          {nilaiLive} — {LABEL_NILAI_SETORAN[nilaiLive]}
-        </span>
-        <span style={gayaPetunjuk}>
-          {jenis === "BR" || jenis === "TS"
-            ? "BR/TS: L hanya bila RG, KK, KB semuanya 0."
-            : `KB hasil konversi: ${rincian.kbTotal} (KK total ${rincian.kkTotal}) — L bila KB konversi ≤ 3.`}
-        </span>
+        <aside className="kolom-samping-form">
+          <div className="kartu-samping" aria-live="polite">
+            <h3>Hasil penilaian</h3>
+            <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
+              <span style={{ ...gayaLencanaNilai(nilaiLive), fontSize: 15, padding: "4px 14px" }}>
+                {nilaiLive} — {LABEL_NILAI_SETORAN[nilaiLive]}
+              </span>
+            </div>
+            <p style={{ ...gayaPetunjuk, marginTop: 8 }}>
+              {jenis === "BR" || jenis === "TS"
+                ? "BR/TS: L hanya bila RG, KK, KB semuanya 0."
+                : `KB hasil konversi: ${rincian.kbTotal} (KK total ${rincian.kkTotal}) — L bila KB konversi ≤ 3.`}
+            </p>
+          </div>
+
+          <details className="rincian" style={{ margin: 0 }}>
+            <summary>Lihat aturan penilaian</summary>
+            <div>
+              <p>
+                <strong>RG</strong> = ragu (membaik sendiri / diingatkan
+                1x) · <strong>KK</strong> = kesalahan kecil (membaik
+                setelah diingatkan minimal 2x) · <strong>KB</strong> =
+                kesalahan besar (tidak membaik setelah diingatkan 3x).
+              </p>
+              <p>
+                Konversi bertahap: 3 RG = 1 KK, 3 KK = 1 KB. Nilai BR
+                dan TS: L (Lancar) hanya bila RG, KK, KB semuanya 0,
+                selain itu U (Ulang). Nilai BC dan LM: L bila KB hasil
+                konversi ≤ 3.
+              </p>
+            </div>
+          </details>
+
+          <div className="kartu-samping">
+            <h3>Penyimak</h3>
+            <p style={{ margin: 0, fontSize: 14 }}>
+              {namaPenyimak} — {labelPeranPenyimak}
+            </p>
+            <p style={{ ...gayaPetunjuk, marginTop: 4 }}>
+              Paraf tercatat otomatis dari akun yang masuk.
+            </p>
+          </div>
+        </aside>
       </div>
 
-      <label style={gayaLabel}>
-        7 · Paraf Penyimak (terkunci)
-        <input
-          type="text"
-          value={`${namaPenyimak} — ${labelPeranPenyimak}`}
-          readOnly
-          style={gayaMasukanTerkunci}
-          aria-readonly="true"
-        />
-        <span style={gayaPetunjuk}>
-          Paraf selalu nama akun yang masuk dan tidak bisa diganti nama orang
-          lain.
-        </span>
-      </label>
-
-      <label style={gayaLabel}>
-        8 · Tugas Berikutnya
-        <input
-          type="text"
-          value={tugasBerikutnya}
-          onChange={(e) => setTugasBerikutnya(e.target.value)}
-          style={gayaMasukan}
-          placeholder="Hafalan yang disiapkan untuk setoran selanjutnya"
-        />
-      </label>
-
       {ralat && (
-        <p role="alert" style={{ margin: 0, color: "#8e2f24", fontSize: 14 }}>
+        <p role="alert" style={{ margin: "12px 0 0", color: "#8e2f24", fontSize: 14 }}>
           {ralat}
         </p>
       )}
       {pesan && (
-        <p role="status" style={{ margin: 0, color: "var(--hijau-gelap)", fontSize: 14 }}>
+        <p role="status" style={{ margin: "12px 0 0", color: "var(--hijau-gelap)", fontSize: 14 }}>
           {pesan}
         </p>
       )}
       {sumber === "contoh" && (
-        <p style={gayaPetunjuk}>
+        <p style={{ ...gayaPetunjuk, marginTop: 12 }}>
           Mode data contoh: setoran yang dikirim hanya tampil di daftar
           halaman ini, tidak tersimpan ke mana pun.
         </p>
       )}
 
-      <p style={{ ...gayaPetunjuk, margin: 0 }}>
-        {santriTerpilih ? (
-          <>
-            Santri terpilih:{" "}
-            <strong>
-              {santriTerpilih.nama}
-              {santriTerpilih.kelasTingkat
-                ? ` — Kelas ${santriTerpilih.kelasTingkat}`
-                : ""}
-            </strong>
-          </>
-        ) : (
-          "Pilih santri terlebih dahulu — setoran tidak akan tersimpan sebelum santri dipilih."
-        )}
-      </p>
-
-      <button
-        type="submit"
-        className="tombol"
-        disabled={mengirim || !santriTerpilih}
-      >
-        {mengirim ? "Menyimpan…" : "Simpan setoran"}
-      </button>
+      <div className="bilah-simpan">
+        <span className="ringkas-simpan">
+          {santriTerpilih ? (
+            <>
+              Setoran untuk{" "}
+              <strong>
+                {santriTerpilih.nama}
+                {santriTerpilih.kelasTingkat
+                  ? ` · Kelas ${santriTerpilih.kelasTingkat}`
+                  : ""}
+              </strong>
+            </>
+          ) : (
+            "Pilih santri terlebih dahulu"
+          )}
+        </span>
+        <button
+          type="submit"
+          className="tombol tombol-besar"
+          disabled={mengirim || !santriTerpilih}
+        >
+          {mengirim ? "Menyimpan…" : "Simpan setoran"}
+        </button>
+      </div>
     </form>
   );
 }

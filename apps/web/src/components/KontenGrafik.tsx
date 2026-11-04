@@ -101,6 +101,15 @@ function BelumAdaData() {
   return <p style={{ margin: 0 }}>Belum ada data.</p>;
 }
 
+/**
+ * Data deret waktu yang baru punya SATU periode (audit visual user
+ * 4 Nov 2026): grafik besar menyesatkan — tampilkan angka ringkas;
+ * tren muncul setelah beberapa periode tercatat.
+ */
+function DataMasihSatuPeriode({ teks }: { teks: string }) {
+  return <p style={{ margin: 0 }}>{teks}</p>;
+}
+
 /* ------------------------------------------------------------------ */
 /* a & f — Batang vertikal (dua gaya: polos dan bulat bergradasi)     */
 /* ------------------------------------------------------------------ */
@@ -773,11 +782,15 @@ export default function KontenGrafik() {
           </p>
           {hadirPerPekan === null ? (
             <p className="catatan-kaki">Memuat grafik…</p>
-          ) : hadirPerPekan.length > 0 ? (
+          ) : hadirPerPekan.length > 1 ? (
             <GrafikBatangVertikal
               data={hadirPerPekan}
               gaya="polos"
               satuan="catatan hadir"
+            />
+          ) : hadirPerPekan.length === 1 ? (
+            <DataMasihSatuPeriode
+              teks={`${hadirPerPekan[0].nilai} catatan hadir tercatat pada pekan ${hadirPerPekan[0].label}. Grafik tren akan tampil setelah beberapa periode tercatat.`}
             />
           ) : (
             <BelumAdaData />
@@ -851,8 +864,12 @@ export default function KontenGrafik() {
             </p>
             {progresHifzh === null ? (
               <p className="catatan-kaki">Memuat grafik…</p>
-            ) : progresHifzh.length > 0 ? (
+            ) : progresHifzh.length > 1 ? (
               <GrafikGaris data={progresHifzh} />
+            ) : progresHifzh.length === 1 ? (
+              <DataMasihSatuPeriode
+                teks={`${progresHifzh[0].nilai} setoran tercatat pada pekan ${progresHifzh[0].label}. Grafik tren akan tampil setelah beberapa periode tercatat.`}
+              />
             ) : (
               <BelumAdaData />
             )}

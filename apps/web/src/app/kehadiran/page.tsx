@@ -68,6 +68,28 @@ function tanggalHariIni(): string {
   return `${d.getFullYear()}-${dua(d.getMonth() + 1)}-${dua(d.getDate())}`;
 }
 
+/** Label ringkas tanggal untuk baris konteks filter di HP. */
+function formatTanggalRingkas(tanggalIso: string): string {
+  const cocok = /^(\d{4})-(\d{2})-(\d{2})$/.exec(tanggalIso);
+  if (!cocok) return tanggalIso;
+  const tanggal = new Date(
+    Number(cocok[1]),
+    Number(cocok[2]) - 1,
+    Number(cocok[3]),
+    12,
+  );
+  try {
+    return new Intl.DateTimeFormat("id-ID", {
+      weekday: "short",
+      day: "numeric",
+      month: "short",
+      year: "numeric",
+    }).format(tanggal);
+  } catch {
+    return tanggalIso;
+  }
+}
+
 /**
  * Gerbang peran modul (src/lib/akses.ts): halaman Kehadiran hanya
  * dirender untuk admin & kedua pengajar; musyrif/wali menerima pesan
@@ -91,6 +113,9 @@ function IsiHalamanKehadiran() {
   // Pilihan formulir
   const [tanggal, setTanggal] = useState<string>(() => tanggalHariIni());
   const [sesi, setSesi] = useState<SesiKehadiran>("hifzh");
+  /** Filter tanggal/sesi terbuka di HP (audit visual 4 Nov 2026:
+      konteks ringkas + tombol Ubah; di desktop selalu tampil). */
+  const [filterTerbuka, setFilterTerbuka] = useState(false);
   const [daftarJadwal, setDaftarJadwal] = useState<JadwalSesi[]>([]);
   const [jadwalId, setJadwalId] = useState<string | null>(null);
   const [tingkat, setTingkat] = useState<number>(1);
@@ -319,8 +344,23 @@ function IsiHalamanKehadiran() {
 
       {/* ------------ Pilihan tanggal & sesi ------------ */}
       <section className="kartu">
+        <div className="filter-ringkas">
+          <span className="teks-konteks">
+            {formatTanggalRingkas(tanggal)} · {LABEL_SESI[sesi]} · Kelas{" "}
+            {tingkat}
+          </span>
+          <button
+            type="button"
+            className="tombol tombol-kecil"
+            aria-expanded={filterTerbuka}
+            onClick={() => setFilterTerbuka((v) => !v)}
+          >
+            {filterTerbuka ? "Tutup" : "Ubah"}
+          </button>
+        </div>
+        <div className="filter-isi" data-terbuka={filterTerbuka ? "true" : "false"}>
         <h2>Tanggal & sesi</h2>
-        <div className="formulir" style={{ maxWidth: "100%" }}>
+        <div className="formulir formulir-filter" style={{ maxWidth: "100%" }}>
           <label>
             Tanggal
             <input
@@ -370,6 +410,9 @@ function IsiHalamanKehadiran() {
                 mintaGantiKonteks(() => setJadwalId(nilai));
               }}
             >
+              {daftarJadwal.length === 0 && (
+                <option value="">Belum ada jadwal tersedia</option>
+              )}
               {daftarJadwal.map((j) => (
                 <option key={j.id} value={j.id}>
                   {j.jamLabel}
@@ -377,6 +420,12 @@ function IsiHalamanKehadiran() {
                 </option>
               ))}
             </select>
+            {daftarJadwal.length === 0 && (
+              <span className="catatan-kaki">
+                Belum ada jadwal tersedia untuk sesi ini — pencatatan
+                tetap dapat dilanjutkan.
+              </span>
+            )}
           </label>
           <label>
             Kelas
@@ -392,6 +441,7 @@ function IsiHalamanKehadiran() {
               ))}
             </select>
           </label>
+        </div>
         </div>
       </section>
 
@@ -428,6 +478,7 @@ function IsiHalamanKehadiran() {
             return (
             <div
               key={s.id}
+              className="baris-kehadiran"
               style={{
                 display: "grid",
                 gap: 8,
@@ -505,6 +556,7 @@ function IsiHalamanKehadiran() {
         </div>
 
         {!pantauanAdmin && (
+        <>
         <div className="bilah-aksi">
           <button
             type="button"
@@ -518,28 +570,9 @@ function IsiHalamanKehadiran() {
           </button>
           <button
             type="button"
-            className="tombol tombol-kecil tombol-sekunder"
-            onClick={() => {
-              const tertimpa = hitungTertimpa(pilihan, idBisaDiubah);
-              if (
-                tertimpa > 0 &&
-                !window.confirm(
-                  `${tertimpa} status yang sudah dipilih akan tertimpa menjadi Hadir. Lanjutkan?`,
-                )
-              ) {
-                return;
-              }
-              setPilihan((lama) => timpaSemuaJadiHadir(lama, idBisaDiubah));
-              setKotor(true);
-            }}
-          >
-            Timpa semua jadi Hadir
-          </button>
-          <button
-            type="button"
             className="tombol tombol-besar"
             onClick={tanganiSimpan}
-            disabled={sedangMenyimpan}
+            disabled={sedangMenyimpan || jumlahAkanDisimpan === 0}
           >
             {sedangMenyimpan
               ? "Menyimpan…"
@@ -551,6 +584,33 @@ function IsiHalamanKehadiran() {
               : "Semua santri kelas ini sudah terisi"}
           </span>
         </div>
+        {/* Tindakan penimpaan total dipindah ke menu tindakan lain
+            (audit visual user 4 Nov 2026): tidak sejajar aksi rutin. */}
+        <details className="tindakan-lain">
+          <summary>Tindakan lain</summary>
+          <div className="isi-tindakan">
+            <button
+              type="button"
+              className="tombol tombol-kecil tombol-sekunder"
+              onClick={() => {
+                const tertimpa = hitungTertimpa(pilihan, idBisaDiubah);
+                if (
+                  tertimpa > 0 &&
+                  !window.confirm(
+                    `${tertimpa} status yang sudah dipilih akan tertimpa menjadi Hadir. Lanjutkan?`,
+                  )
+                ) {
+                  return;
+                }
+                setPilihan((lama) => timpaSemuaJadiHadir(lama, idBisaDiubah));
+                setKotor(true);
+              }}
+            >
+              Timpa semua jadi Hadir
+            </button>
+          </div>
+        </details>
+        </>
         )}
         {pesanSimpan && (
           <p className="catatan-kaki" role="status" style={{ marginTop: 10 }}>
@@ -625,14 +685,7 @@ function IsiHalamanKehadiran() {
             </p>
           )}
         </section>
-      ) : (
-        profil && (
-          <p className="catatan-kaki">
-            Bagian revisi kehadiran hanya tampil untuk Admin Utama; peran
-            Anda saat ini bukan admin.
-          </p>
-        )
-      )}
+      ) : null}
     </>
   );
 }

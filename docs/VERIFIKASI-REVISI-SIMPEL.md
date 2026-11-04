@@ -98,6 +98,34 @@ Permintaan user (4 Nov 2026, 6 tangkapan layar + teks):
   CSS terbit memuat penanda `data-tema=gelap` (18×), `--skala-teks`,
   `tombol-pil`, `login-langkah`, `baris-atur`, `kartu-semester`,
   `banner-motivasi`.
-- Verifikasi live pasca-deploy: MENUNGGU (cek penanda build baru di
-  /login + pemeriksaan visual login, beranda, olahraga, akun
-  dengan akun uji).
+- Push GitHub: lokal 032ccc5 → remote main 302ba143 (4 Nov ±09:20
+  WIB, kartu persetujuan user disetujui). Deploy terkonfirmasi dari
+  penanda: /login memuat `login-split`, `logo-login--hero` hilang.
+
+## Verifikasi live (4 Nov 2026, 09:28–09:30 WIB, akun uji.hifzh)
+
+1. **/login LOLOS** — tanpa logo/judul hero; judul "Masuk", sub
+   sapaan + baris pondok kecil, kolom + placeholder benar, tombol
+   Masuk; viewport PC menampilkan panel gradien kiri (ilustrasi
+   tumpukan buku + 3 langkah bernomor persis teks kode).
+2. **Masuk akun uji BERHASIL** (email diketik manual terakhir,
+   sandi via layanan login tersimpan) → beranda Ust. Uji Hifzh.
+3. **Beranda LOLOS** — pita persis "Pengajar Hifzh · Rab, 4 Nov
+   2026 · 24 Jumadilawal 1448 H" (Hijriah BENAR, tanpa "Mei"/"SM");
+   4 kartu Ringkasan hari ini tampil (Santri aktif 2; Kehadiran/
+   Setoran/Catatan hari ini 0 — memang belum ada input tanggal 4
+   Nov); kisi Modul 6 untuk pengajar hifzh; strip "Semester Uji
+   Gasal · 2026/2027 — Rab, 1 Jul 2026 – Kam, 31 Des 2026 · Sedang
+   berjalan"; banner motivasi HR. Bukhari tampil. Slot nav bawah
+   terakhir "Akun": terverifikasi di level bundel JS terbit
+   (label:"Akun" ada 2×, label:"Menu" TIDAK ada) + sidebar PC tanpa
+   label Menu; belum dilihat pada viewport HP secara visual.
+4. **/olahraga LOLOS** — kartu sesi "Uji Olahraga Sore" tampil
+   UTUH di dalam kartu induk, tidak melebar keluar layar.
+5. **/akun LOLOS** — Pengaturan tampilan (Terang/Gelap, Kecil/
+   Standar/Besar) + Lainnya ("Lihat perkenalan aplikasi") tampil;
+   klik Gelap mengubah halaman jadi gelap, klik Terang memulihkan;
+   preferensi akhir ditinggal Terang + Standar; sandi tidak diubah,
+   Keluar tidak diklik.
+
+Status paket revisi: SELESAI & LIVE.

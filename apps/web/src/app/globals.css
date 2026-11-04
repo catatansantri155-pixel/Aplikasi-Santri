@@ -52,8 +52,10 @@
   --hasil-k: #e67e22;
   --hasil-g: #d9534f;
 
-  /* Netral */
-  --latar: #eaf4fe;
+  /* Netral — latar abu sangat muda polos (audit visual user
+     4 Nov 2026: aplikasi operasional yang bersih; gradasi seluruh
+     halaman dikurangi, biru hanya sebagai penekanan). */
+  --latar: #f2f5f8;
   --permukaan: #ffffff;
   --teks: #132433;
   /* Teks redup menjaga kontras ≥4,5:1 di atas putih maupun latar
@@ -63,13 +65,15 @@
   --teks-redup: #52677a;
   --garis: #dde8f2;
 
-  /* Bentuk & bayangan */
-  --jari: 20px;
-  --jari-besar: 24px;
-  --jari-tombol: 14px;
+  /* Bentuk & bayangan — dirampingkan (audit visual user 4 Nov
+     2026): radius kartu 12–16px, garis batas tipis, bayangan
+     minimal; penekanan tidak lagi menumpuk di semua komponen. */
+  --jari: 14px;
+  --jari-besar: 16px;
+  --jari-tombol: 12px;
   --jari-masukan: 12px;
-  --bayang: 0 6px 20px rgba(13, 71, 161, 0.1);
-  --bayang-halus: 0 2px 10px rgba(13, 71, 161, 0.07);
+  --bayang: 0 1px 3px rgba(19, 36, 51, 0.08);
+  --bayang-halus: 0 1px 2px rgba(19, 36, 51, 0.05);
 
   /* Ukuran */
   --tinggi-sentuh: 44px;
@@ -95,9 +99,8 @@ body {
 }
 
 body {
-  /* Latar gradien biru sangat muda ke putih (arah UNPIX), tetap
-     dari atas ke bawah halaman. */
-  background: linear-gradient(180deg, #eaf4fe 0%, #ffffff 100%) fixed;
+  /* Latar polos abu sangat muda (audit visual user 4 Nov 2026). */
+  background: var(--latar);
   color: var(--teks);
   font-family:
     "Plus Jakarta Sans", system-ui, -apple-system, "Segoe UI", Roboto,
@@ -671,6 +674,7 @@ a.info-pengguna-samping .info-pengguna-baris {
   margin-bottom: 14px;
   padding: 16px;
   background: var(--permukaan);
+  border: 1px solid var(--garis);
   border-radius: var(--jari);
   box-shadow: var(--bayang);
 }
@@ -825,7 +829,7 @@ a.info-pengguna-samping .info-pengguna-baris {
 .kisi-menu--keterangan .item-menu {
   padding: 14px 10px;
   background: var(--permukaan);
-  box-shadow: var(--bayang-halus);
+  border: 1px solid var(--garis);
 }
 
 .kisi-menu--keterangan .item-menu:hover {
@@ -914,8 +918,8 @@ h1.judul-halaman {
   max-width: 100%;
   padding: 12px 14px;
   background: var(--permukaan);
-  border-radius: 18px;
-  box-shadow: var(--bayang-halus);
+  border: 1px solid var(--garis);
+  border-radius: var(--jari);
   color: var(--teks);
   text-decoration: none;
 }
@@ -987,7 +991,6 @@ h1.judul-halaman {
   background: var(--hijau-kop);
   border-color: var(--hijau-kop);
   color: #fff;
-  box-shadow: inset 0 -3px 0 var(--emas);
 }
 
 .segmen {
@@ -1013,36 +1016,50 @@ h1.judul-halaman {
 
 .segmen button[aria-pressed="true"],
 .segmen button[data-aktif="true"] {
-  background: linear-gradient(135deg, var(--hijau-kop), var(--hijau-gelap));
+  background: var(--hijau-kop);
   color: #fff;
-  box-shadow: 0 3px 8px rgba(13, 71, 161, 0.25);
 }
 
+/* Tab sederhana (audit visual user 4 Nov 2026): bilah bidang
+   warna ringan, tab aktif = bidang putih + penanda garis bawah
+   biru tipis. TIDAK membungkus: semua tab selalu SATU baris
+   dengan lebar sama (memperbaiki susunan 3+1 di detail santri);
+   label boleh menyusut di layar sempit, bukan pindah baris. */
 .tab-pil {
   display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
+  flex-wrap: nowrap;
+  gap: 4px;
   padding: 4px;
   margin-bottom: 16px;
-  border-radius: 24px;
-  background: var(--permukaan);
-  box-shadow: var(--bayang-halus);
+  border-radius: var(--jari);
+  background: #e7edf3;
 }
 
 .tab-pil button,
 .tab-pil a {
-  flex: 1 1 30%;
+  flex: 1 1 0;
+  min-width: 0;
   min-height: var(--tinggi-sentuh);
-  padding: 9px 16px;
+  padding: 9px 10px;
   border: none;
-  border-radius: 999px;
+  border-radius: 10px;
   background: transparent;
   color: var(--teks-redup);
   font: inherit;
   font-size: 14px;
   font-weight: 600;
   white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
   cursor: pointer;
+}
+
+@media (max-width: 480px) {
+  .tab-pil button,
+  .tab-pil a {
+    padding: 9px 6px;
+    font-size: 13px;
+  }
 }
 
 /* Tab berupa tautan (halaman Laporan): samakan tampilannya dengan
@@ -1056,12 +1073,10 @@ h1.judul-halaman {
 
 .tab-pil button[aria-selected="true"],
 .tab-pil a[aria-selected="true"] {
-  background: linear-gradient(135deg, var(--hijau-kop), var(--hijau-gelap));
-  color: #fff;
+  background: var(--permukaan);
+  color: var(--hijau-gelap);
   font-weight: 700;
-  box-shadow:
-    inset 0 -3px 0 var(--emas),
-    0 3px 8px rgba(13, 71, 161, 0.25);
+  box-shadow: inset 0 -3px 0 var(--hijau-kop);
 }
 
 /* ---------- Lencana status & hasil ---------- */
@@ -1241,7 +1256,9 @@ h1.judul-halaman {
   gap: 8px;
   min-height: 48px;
   padding: 11px 20px;
-  background: linear-gradient(135deg, var(--hijau-kop), var(--hijau-gelap));
+  /* Tombol utama biru SOLID tanpa gradasi/bayangan (audit visual
+     user 4 Nov 2026): satu aksi utama yang jelas per bagian. */
+  background: var(--hijau-kop);
   color: #fff;
   font-size: 14px;
   font-weight: 600;
@@ -1249,7 +1266,6 @@ h1.judul-halaman {
   border: none;
   border-radius: var(--jari-tombol);
   cursor: pointer;
-  box-shadow: 0 4px 12px rgba(21, 101, 192, 0.28);
 }
 
 .tombol:hover {
@@ -1285,7 +1301,7 @@ h1.judul-halaman {
   background: var(--hijau-muda);
   color: var(--hijau-gelap);
   font-size: 13px;
-  border-radius: 999px;
+  border-radius: var(--jari-tombol);
   box-shadow: none;
 }
 
@@ -1409,7 +1425,6 @@ textarea.masukan {
   background: var(--permukaan);
   border: 1.5px solid var(--garis);
   border-radius: 999px;
-  box-shadow: var(--bayang-halus);
 }
 
 .pencarian input:focus {
@@ -1463,8 +1478,8 @@ textarea.masukan {
   gap: 12px;
   padding: 14px;
   background: var(--permukaan);
+  border: 1px solid var(--garis);
   border-radius: var(--jari);
-  box-shadow: var(--bayang-halus);
 }
 
 .kartu-stat .stat-angka {
@@ -1788,8 +1803,8 @@ textarea.masukan {
   margin-bottom: 14px;
   padding: 6px 16px 10px;
   background: var(--permukaan);
+  border: 1px solid var(--garis);
   border-radius: var(--jari);
-  box-shadow: var(--bayang);
 }
 
 .rincian summary {
@@ -2189,26 +2204,22 @@ textarea.masukan {
   font-size: 14px;
 }
 
-/* Banner motivasi kecil di beranda agar halaman tidak kosong:
-   gradien biru + kutipan muhasabah singkat. */
+/* Banner motivasi di beranda DIKECILKAN menjadi bagian
+   pendamping (audit visual user 4 Nov 2026): biru solid, bantalan
+   lebih ramping, agar pekerjaan utama lebih menonjol. */
 .banner-motivasi {
   margin-top: 14px;
-  padding: 16px 18px;
+  padding: 12px 14px;
   border-radius: var(--jari);
-  background: linear-gradient(
-    135deg,
-    var(--hijau-gelap),
-    var(--hijau-kop) 60%,
-    var(--biru-terang)
-  );
+  background: var(--hijau-kop);
   color: #fff;
 }
 
 .banner-motivasi .motivasi-teks {
   margin: 0;
-  font-size: 14.5px;
+  font-size: 13.5px;
   font-weight: 600;
-  line-height: 1.55;
+  line-height: 1.5;
 }
 
 .banner-motivasi .motivasi-sumber {
@@ -2275,16 +2286,20 @@ html[data-tema="gelap"] {
   --teks-redup: #a9c0d8;
   --garis: #2a4763;
   --hijau-muda: #1d3d5f;
-  --bayang: 0 6px 20px rgba(0, 0, 0, 0.45);
-  --bayang-halus: 0 2px 10px rgba(0, 0, 0, 0.35);
+  --bayang: 0 1px 3px rgba(0, 0, 0, 0.4);
+  --bayang-halus: 0 1px 2px rgba(0, 0, 0, 0.3);
 }
 
 html[data-tema="gelap"] body {
-  background: linear-gradient(180deg, #0a1727 0%, #0d2138 100%) fixed;
+  background: var(--latar);
 }
 
 html[data-tema="gelap"] .segmen {
   background: #1d3d5f;
+}
+
+html[data-tema="gelap"] .tab-pil {
+  background: #10233a;
 }
 
 html[data-tema="gelap"] .catatan-pantauan {
@@ -2393,4 +2408,209 @@ body {
 
 .formulir label {
   font-size: calc(13px * var(--skala-teks, 1));
+}
+
+/* ---------- Perapian audit visual user (4 Nov 2026) ---------- */
+
+/* Tata letak formulir Hifzh: satu kolom di HP; di desktop (≥1024px)
+   formulir utama di kiri dan panel ringkasan (hasil penilaian,
+   aturan, penyimak) di kanan — mengisi lebar 960px yang sebelumnya
+   kosong karena formulir dibatasi 560px di kiri. */
+.tata-form-hifzh {
+  display: grid;
+  gap: 14px;
+}
+
+@media (min-width: 1024px) {
+  .tata-form-hifzh {
+    grid-template-columns: minmax(0, 1fr) 320px;
+    align-items: start;
+  }
+}
+
+.kolom-form-utama {
+  display: grid;
+  gap: 12px;
+  min-width: 0;
+}
+
+.kolom-samping-form {
+  display: grid;
+  gap: 14px;
+  min-width: 0;
+}
+
+.kartu-samping {
+  padding: 14px;
+  background: var(--permukaan);
+  border: 1px solid var(--garis);
+  border-radius: var(--jari);
+}
+
+.kartu-samping h3 {
+  margin: 0 0 8px;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+/* Di HP panel samping tampil SETELAH isian utama (hasil penilaian
+   tetap dekat tombol simpan); urutan visual dijaga lewat order. */
+@media (max-width: 1023px) {
+  .kolom-samping-form {
+    order: 2;
+  }
+}
+
+/* Kontrol tambah/kurang untuk RG/KK/KB: angka tetap bisa diketik,
+   tombol − / + di kedua sisi untuk ubah cepat saat menyimak. */
+.stepper {
+  display: flex;
+  gap: 6px;
+  align-items: stretch;
+}
+
+.stepper button {
+  flex: 0 0 44px;
+  min-height: 48px;
+  border: 1.5px solid var(--garis);
+  border-radius: var(--jari-masukan);
+  background: var(--permukaan);
+  color: var(--hijau-gelap);
+  font-size: 19px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.stepper button:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+
+.stepper input {
+  flex: 1;
+  min-width: 0;
+  text-align: center;
+}
+
+/* Bilah simpan melekat (formulir panjang, mis. Setoran): di HP
+   menempel di atas navigasi bawah berisi ringkasan konteks +
+   tombol simpan; di desktop kembali statis sejajar alur halaman. */
+.bilah-simpan {
+  position: sticky;
+  bottom: calc(72px + env(safe-area-inset-bottom));
+  z-index: 5;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 14px;
+  padding: 10px 12px;
+  border: 1px solid var(--garis);
+  border-radius: var(--jari);
+  background: rgba(255, 255, 255, 0.97);
+  box-shadow: 0 -2px 10px rgba(19, 36, 51, 0.07);
+}
+
+.bilah-simpan .ringkas-simpan {
+  flex: 1;
+  min-width: 0;
+  font-size: 13px;
+  color: var(--teks-redup);
+  line-height: 1.45;
+}
+
+.bilah-simpan .tombol {
+  flex: 0 0 auto;
+}
+
+@media (min-width: 768px) {
+  .bilah-simpan {
+    position: static;
+    padding: 0;
+    border: none;
+    background: transparent;
+    box-shadow: none;
+  }
+}
+
+html[data-tema="gelap"] .bilah-simpan {
+  background: rgba(21, 42, 66, 0.97);
+}
+
+/* Filter Kehadiran ringkas: di HP tampil satu baris konteks +
+   tombol Ubah (isi filter tersembunyi sampai dibuka); di desktop
+   empat kolom sebaris. */
+.filter-ringkas {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.filter-ringkas .teks-konteks {
+  flex: 1;
+  min-width: 0;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+@media (min-width: 768px) {
+  .filter-ringkas {
+    display: none;
+  }
+}
+
+@media (max-width: 767px) {
+  .filter-isi[data-terbuka="false"] {
+    display: none;
+  }
+}
+
+@media (min-width: 768px) {
+  .formulir-filter {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    align-items: end;
+  }
+}
+
+/* Baris santri Kehadiran di desktop: nama di kiri, pilihan status
+   di kanan satu baris (di HP tetap menumpuk: nama di atas, status
+   di bawah). */
+@media (min-width: 768px) {
+  .baris-kehadiran {
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: center;
+  }
+}
+
+/* Menu tindakan tambahan (mis. "Timpa semua jadi Hadir"): tindakan
+   yang jarang & berisiko tidak sejajar dengan aksi rutin. */
+.tindakan-lain {
+  margin-top: 10px;
+}
+
+.tindakan-lain summary {
+  display: inline-flex;
+  align-items: center;
+  min-height: var(--tinggi-sentuh);
+  font-size: 13.5px;
+  font-weight: 600;
+  color: var(--teks-redup);
+  cursor: pointer;
+}
+
+.tindakan-lain .isi-tindakan {
+  padding: 4px 0 2px;
+}
+
+/* Kisi tiga stepper kesalahan Hifzh: menumpuk di layar sempit
+   (stepper − angka + butuh lebar), tiga kolom mulai 560px. */
+.kisi-kesalahan {
+  display: grid;
+  gap: 12px;
+  grid-template-columns: minmax(0, 1fr);
+}
+
+@media (min-width: 560px) {
+  .kisi-kesalahan {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
 }
