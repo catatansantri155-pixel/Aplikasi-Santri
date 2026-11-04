@@ -25,6 +25,7 @@ import {
   type SetoranHifzh,
   type SumberData,
 } from "@/lib/data/hifzh";
+import { formatHijriahLengkap } from "@/lib/tanggal";
 import {
   gayaFormulirLebar,
   gayaKisiDua,
@@ -52,7 +53,14 @@ function tanggalHariIni(): string {
   return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
 }
 
-/** Format Hijriah dari tanggal Masehi (kalender Islam Umm al-Qura). */
+/**
+ * Format Hijriah dari tanggal Masehi — memakai helper bersama
+ * lib/tanggal.ts: nama bulan dipetakan sendiri dari bagian ANGKA
+ * Intl, karena month long kalender Islam terbukti mengembalikan
+ * nama bulan Masehi yang salah di sebagian perangkat (kasus user
+ * 4 Nov 2026). Nilai inilah yang DISIMPAN sebagai tanggal_hijriah
+ * setoran, jadi kebenarannya penting.
+ */
 export function formatHijriah(tanggalMasehi: string): string {
   const cocok = /^(\d{4})-(\d{2})-(\d{2})$/.exec(tanggalMasehi);
   if (!cocok) return "—";
@@ -62,19 +70,7 @@ export function formatHijriah(tanggalMasehi: string): string {
     Number(cocok[3]),
     12, // tengah hari setempat, menghindari geser hari karena zona waktu
   );
-  for (const kalender of ["islamic-umalqura", "islamic"]) {
-    try {
-      return new Intl.DateTimeFormat(`id-ID-u-ca-${kalender}`, {
-        weekday: "long",
-        day: "numeric",
-        month: "long",
-        year: "numeric",
-      }).format(tanggal);
-    } catch {
-      // coba kalender berikutnya
-    }
-  }
-  return "—";
+  return formatHijriahLengkap(tanggal) || "—";
 }
 
 function keAngka(teks: string): number {

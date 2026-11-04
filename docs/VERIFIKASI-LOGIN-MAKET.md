@@ -78,6 +78,21 @@ presentasi, className, placeholder, alt, dan komentar.
   ("Masukkan alamat surel", "Masukkan kata sandi"), tautan "Daftar
   di sini", alt ilustrasi baru, dan penanda MODE CONTOH.
 
+## Verifikasi live (4 Nov 2026, 08:23–08:24 WIB)
+
+Push main b17321f2 TERBUKTI LIVE: HTML /login memuat "Masukkan alamat
+surel" dan "tim kepesantrenan"; chunk CSS baru
+`_next/static/chunks/3j3sjfo003l-o.css` memuat `tombol-masuk` dan
+`login-aksen` (chunk lama `2tz17w3rd2-4i.css` sudah tidak dipakai).
+Pemeriksaan visual tanpa login, tanpa mengisi/mengirim formulir,
+mengonfirmasi 6/6 item maket: (1) logo buku dalam kotak berbingkai
+emas, (2) garis aksen emas di bawah baris nama pondok, (3) ilustrasi
+tumpukan buku sebagai spanduk, (4) label kolom berikon + placeholder,
+(5) tombol Masuk sempit di tengah kartu, (6) kalimat bantuan "tim
+kepesantrenan" + tautan Lupa kata sandi / Lihat perkenalan /
+Daftar di sini. Detail di goal hidden_files
+`cek-deploy-login-maket-2026-11-04.md`. Status tugas maket: SELESAI.
+
 ## Penyimpangan dari brief
 - Bingkai emas memakai token `--emas` (#f0b000) yang sudah ada,
   sesuai instruksi brief ("ikuti warna emas yang sudah ada"), bukan

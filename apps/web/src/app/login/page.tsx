@@ -35,6 +35,15 @@
  *   melengkapi profil dari penanda pendaftaran (peran selalu 'wali').
  * - Tautan: "Lupa kata sandi?" (/lupa-sandi), "Daftar" khusus wali
  *   (/daftar), dan "Lihat perkenalan" (/sambutan).
+ *
+ * Redesain simpel (arahan user 4 Nov 2026, menggantikan tampilan
+ * maket berhero besar pagi harinya): logo & teks merek besar
+ * DIHAPUS; di HP halaman tampil polos seperti aplikasi profesional
+ * (judul "Masuk" ringkas, kolom berlabel ikon, tombol pil selebar
+ * kolom). Di PC (≥1024px) tampil gaya panel belah seperti image 4
+ * dari user: panel gradien berisi ilustrasi + tiga langkah di kiri,
+ * formulir di kanan. Baris nama pondok dipertahankan sebagai sub
+ * kecil (ketok user 3 Nov 2026). Logika masuk tidak berubah.
  */
 import { useEffect, useState, type FormEvent } from "react";
 import Link from "next/link";
@@ -197,37 +206,51 @@ export default function HalamanLogin() {
   }
 
   return (
-    <div className="login-bungkus">
-      {/* Hero (arah UI UNPIX, revisi biru; diselaraskan maket user
-          4 Nov 2026): pita gradien biru BERSIH tanpa ornamen berisi
-          logo buku berbingkai emas, judul aplikasi, sapaan, garis
-          aksen emas, dan ilustrasi tumpukan buku; formulir masuk
-          berada di lembar putih melengkung yang menimpa hero. Judul
-          aplikasi tetap tampil di sini karena pengguna belum masuk. */}
-      <div className="login-hero">
-        <span className="logo-login logo-login--hero">
-          <Ikon nama="hifzh" ukuran={38} />
-        </span>
-        <h1 className="login-judul">Aplikasi Santri</h1>
-        <p className="login-sapaan">
-          Assalamu&rsquo;alaikum, selamat datang
-        </p>
-        <p className="login-sub">
-          Ponpes Minhajus Sunnah Magelang · Marhalah Wustha
-        </p>
-        <span className="login-aksen" aria-hidden="true" />
+    <div className="login-split">
+      {/* Panel kiri KHUSUS PC (gaya image 4 dari user, 4 Nov 2026):
+          gradien biru + ilustrasi tumpukan buku + tiga langkah
+          singkat di dalam kartu membulat besar. Di HP panel ini
+          tidak tampil sama sekali — halaman masuk tampil polos dan
+          simpel tanpa logo & teks merek besar (arahan user 4 Nov:
+          "hapus aja logo dan tulisannya, dibuat simpel aja"). */}
+      <aside className="login-panel" aria-hidden="true">
         {/* Ilustrasi tumpukan buku dan lentera (data URI WebP). */}
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
-          className="login-ilustrasi"
+          className="login-panel-ilustrasi"
           src={ILUSTRASI_LOGIN}
-          alt="Ilustrasi tumpukan buku dan lentera"
+          alt=""
           width={1200}
           height={670}
         />
-      </div>
+        <p className="login-panel-judul">
+          Pantau hafalan, nilai, dan keseharian santri dalam satu
+          aplikasi.
+        </p>
+        <ol className="login-langkah">
+          <li>
+            <span>1</span>
+            Masuk dengan akun dari tim kepesantrenan
+          </li>
+          <li>
+            <span>2</span>
+            Setoran, nilai &amp; kehadiran tercatat rapi
+          </li>
+          <li>
+            <span>3</span>
+            Wali hanya melihat data anaknya sendiri
+          </li>
+        </ol>
+      </aside>
 
-      <div className="login-lembar">
+      <div className="login-isi">
+        <h1 className="auth-judul">Masuk</h1>
+        <p className="auth-sub">
+          Assalamu&rsquo;alaikum, selamat datang kembali.
+          <span className="auth-sub-kecil">
+            Ponpes Minhajus Sunnah Magelang · Marhalah Wustha
+          </span>
+        </p>
         {!modeSupabase && (
           <PenandaTahap teks="MODE CONTOH · LOGIN ASLI MENUNGGU ENV SUPABASE" />
         )}
@@ -289,7 +312,7 @@ export default function HalamanLogin() {
           )}
           <button
             type="submit"
-            className="tombol tombol-besar tombol-masuk"
+            className="tombol tombol-besar tombol-penuh tombol-pil"
             disabled={mengirim}
           >
             {mengirim ? (

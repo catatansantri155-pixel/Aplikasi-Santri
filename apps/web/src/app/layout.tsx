@@ -15,10 +15,20 @@ export const viewport: Viewport = {
   themeColor: "#1565c0",
 };
 
+/**
+ * Skrip penerapan tampilan SEBELUM gambar pertama: membaca pilihan
+ * mode Terang/Gelap & ukuran teks dari localStorage (Pengaturan di
+ * halaman Akun, lib/tampilan.ts) dan menyetel atribut data-tema /
+ * data-teks pada <html>, agar tidak ada kedipan tema saat halaman
+ * dibuka. Tanpa pilihan tersimpan, tema mengikuti setelan sistem.
+ */
+const SKRIP_TAMPILAN_AWAL = `(function(){try{var t=localStorage.getItem("santri.tampilan.tema");if(t!=="gelap"&&t!=="terang"){t=window.matchMedia("(prefers-color-scheme: dark)").matches?"gelap":"terang";}document.documentElement.dataset.tema=t;var u=localStorage.getItem("santri.tampilan.teks");if(u==="kecil"||u==="standar"||u==="besar"){document.documentElement.dataset.teks=u;}}catch(e){}})();`;
+
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
-    <html lang="id">
+    <html lang="id" suppressHydrationWarning>
       <head>
+        <script dangerouslySetInnerHTML={{ __html: SKRIP_TAMPILAN_AWAL }} />
         {/*
           Huruf sistem desain: Plus Jakarta Sans (Panduan Desain).
           Dimuat lewat <link> Google Fonts agar tidak menambah

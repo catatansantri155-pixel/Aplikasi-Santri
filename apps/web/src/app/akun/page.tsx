@@ -25,6 +25,11 @@ import AvatarInisial from "@/components/AvatarInisial";
 import KolomSandi from "@/components/KolomSandi";
 import { Ikon } from "@/components/Ikon";
 import { buatKlienBrowser } from "@/lib/supabase/client";
+import {
+  bacaTampilan,
+  terapkanTampilan,
+  type PilihanTampilan,
+} from "@/lib/tampilan";
 import { LABEL_PERAN, RINGKASAN_PERAN } from "@/lib/peran";
 import { supabaseTerhubung } from "@/lib/data/santri";
 import {
@@ -38,6 +43,115 @@ export default function HalamanAkun() {
     <PenjagaModul modul="akun">
       <IsiAkun />
     </PenjagaModul>
+  );
+}
+
+/**
+ * Pengaturan tampilan (arahan user 4 Nov 2026: slot nav Menu diganti
+ * Akun, dan di Akun "ada banyak pengaturan — mode malam dan mode
+ * siang, atur sandi, atur ini itu seluruhnya"). Mode Terang/Gelap &
+ * ukuran teks adalah preferensi PERANGKAT (lib/tampilan.ts):
+ * diterapkan seketika ke seluruh aplikasi dan tersimpan di
+ * localStorage, berlaku juga sebelum masuk.
+ */
+function BagianPengaturan() {
+  const [tampilan, setTampilan] = useState<PilihanTampilan>({
+    tema: "terang",
+    ukuranTeks: "standar",
+  });
+
+  useEffect(() => {
+    setTampilan(bacaTampilan());
+  }, []);
+
+  function ubah(patch: Partial<PilihanTampilan>) {
+    const baru = { ...tampilan, ...patch };
+    setTampilan(baru);
+    terapkanTampilan(baru);
+  }
+
+  return (
+    <section className="kartu">
+      <h2>Pengaturan tampilan</h2>
+      <div className="baris-atur">
+        <span>
+          <span className="atur-label">Mode tampilan</span>
+          <span className="atur-ket">
+            Siang (terang) atau malam (gelap), tersimpan di perangkat
+            ini.
+          </span>
+        </span>
+        <span className="segmen" role="group" aria-label="Mode tampilan">
+          <button
+            type="button"
+            aria-pressed={tampilan.tema === "terang"}
+            onClick={() => ubah({ tema: "terang" })}
+          >
+            <span className="label-ikon">
+              <Ikon nama="matahari" ukuran={16} />
+              Terang
+            </span>
+          </button>
+          <button
+            type="button"
+            aria-pressed={tampilan.tema === "gelap"}
+            onClick={() => ubah({ tema: "gelap" })}
+          >
+            <span className="label-ikon">
+              <Ikon nama="bulan" ukuran={16} />
+              Gelap
+            </span>
+          </button>
+        </span>
+      </div>
+      <div className="baris-atur">
+        <span>
+          <span className="atur-label">Ukuran teks</span>
+          <span className="atur-ket">
+            Kecilkan atau besarkan huruf di seluruh aplikasi.
+          </span>
+        </span>
+        <span className="segmen" role="group" aria-label="Ukuran teks">
+          {(
+            [
+              ["kecil", "Kecil"],
+              ["standar", "Standar"],
+              ["besar", "Besar"],
+            ] as const
+          ).map(([nilai, label]) => (
+            <button
+              key={nilai}
+              type="button"
+              aria-pressed={tampilan.ukuranTeks === nilai}
+              onClick={() => ubah({ ukuranTeks: nilai })}
+            >
+              {label}
+            </button>
+          ))}
+        </span>
+      </div>
+    </section>
+  );
+}
+
+/** Tautan perkenalan ulang + keterangan aplikasi. */
+function BagianLainnya() {
+  return (
+    <section className="kartu">
+      <h2>Lainnya</h2>
+      <Link href="/sambutan" className="tautan-baris">
+        <Ikon nama="bintang" ukuran={19} />
+        Lihat perkenalan aplikasi
+        <span className="baris-kanan">
+          <Ikon nama="chevron-kanan" ukuran={16} />
+        </span>
+      </Link>
+      <p className="catatan-kaki" style={{ marginTop: 8 }}>
+        Aplikasi Santri — pemantauan hifzh, diniyyah, kehadiran,
+        olahraga, dan catatan musyrif. Ponpes Minhajus Sunnah Magelang
+        · Marhalah Wustha.
+      </p>
+    </section>
   );
 }
 
@@ -136,6 +250,7 @@ function IsiAkun() {
             Ke halaman masuk
           </Link>
         </section>
+        <BagianPengaturan />
       </>
     );
   }
@@ -172,6 +287,8 @@ function IsiAkun() {
               ditolak langsung oleh database.
             </p>
           </section>
+
+          <BagianPengaturan />
 
           <section className="kartu">
             <h2>Ubah kata sandi</h2>
@@ -211,6 +328,8 @@ function IsiAkun() {
               </button>
             </form>
           </section>
+
+          <BagianLainnya />
 
           <button
             type="button"

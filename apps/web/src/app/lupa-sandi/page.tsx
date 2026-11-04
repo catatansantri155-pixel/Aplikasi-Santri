@@ -59,18 +59,17 @@ export default function HalamanLupaSandi() {
   }
 
   return (
-    <div className="login-bungkus">
-      <div className="login-hero">
-        <span className="logo-login logo-login--hero">
-          <Ikon nama="perisai" ukuran={38} />
-        </span>
-        <h1 className="login-judul">Lupa Kata Sandi</h1>
-        <p className="login-sub">
-          Kami kirimkan tautan untuk mengatur ulang kata sandi Anda.
-        </p>
-      </div>
+    <div className="auth-bungkus">
+      <Link href="/login" className="auth-kembali">
+        <Ikon nama="panah-kiri" ukuran={16} />
+        Kembali masuk
+      </Link>
+      <h1 className="auth-judul">Lupa Kata Sandi</h1>
+      <p className="auth-sub">
+        Kami kirimkan tautan untuk mengatur ulang kata sandi Anda.
+      </p>
 
-      <div className="login-lembar">
+      <div className="auth-isi">
         {!modeSupabase && (
           <PenandaTahap teks="MODE CONTOH · FITUR ASLI MENUNGGU ENV SUPABASE" />
         )}

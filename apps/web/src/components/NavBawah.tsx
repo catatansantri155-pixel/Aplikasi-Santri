@@ -7,15 +7,17 @@
  *
  * Staf & admin: TEPAT 5 slot, slot tengah lingkaran besar gradien
  * biru terangkat berisi AKSI INTI peran:
- * - admin          : Beranda · Santri · [Kehadiran] · Laporan · Menu
+ * - admin          : Beranda · Santri · [Kehadiran] · Laporan · Akun
  * - pengajar hifzh : Beranda · Santri · [Setoran→/hifzh] ·
- *                    Kehadiran · Menu
+ *                    Kehadiran · Akun
  * - pengajar diniyyah: Beranda · Santri · [Nilai→/diniyyah] ·
- *                      Kehadiran · Menu
- * - musyrif        : Beranda · Santri · [Catatan] · Olahraga · Menu
- * Menu membuka /menu (kisi semua modul yang boleh dibuka peran
- * itu); akun staf dijangkau lewat avatar header (blok identitas
- * menaut ke /akun), bukan slot bawah.
+ *                      Kehadiran · Akun
+ * - musyrif        : Beranda · Santri · [Catatan] · Olahraga · Akun
+ * Slot terakhir kini AKUN (arahan user 4 Nov 2026: "tombol menu
+ * hapus aja, ganti akun") — halaman Menu gugur karena kisi modul
+ * yang sama sudah ada di beranda; /menu kini mengalihkan ke /akun.
+ * Halaman Akun memuat profil + seluruh pengaturan (mode terang/
+ * gelap, ukuran teks, ubah sandi, perkenalan, keluar).
  *
  * Wali: EMPAT slot datar tanpa lingkaran menonjol:
  *   Beranda · Anak Saya · Perkembangan · Akun
@@ -54,7 +56,7 @@ interface SlotNav {
 
 const SLOT_BERANDA: SlotNav = { href: "/", label: "Beranda", ikon: "beranda" };
 const SLOT_SANTRI: SlotNav = { href: "/santri", label: "Santri", ikon: "santri" };
-const SLOT_MENU: SlotNav = { href: "/menu", label: "Menu", ikon: "menu" };
+const SLOT_AKUN: SlotNav = { href: "/akun", label: "Akun", ikon: "akun" };
 const SLOT_KEHADIRAN: SlotNav = {
   href: "/kehadiran",
   label: "Kehadiran",
@@ -70,7 +72,7 @@ function slotUntukStaf(peran: Peran): SlotNav[] {
         SLOT_SANTRI,
         { href: "/hifzh", label: "Setoran", ikon: "hifzh", tengah: true },
         SLOT_KEHADIRAN,
-        SLOT_MENU,
+        SLOT_AKUN,
       ];
     case PERAN.PENGAJAR_DINIYYAH:
       return [
@@ -78,7 +80,7 @@ function slotUntukStaf(peran: Peran): SlotNav[] {
         SLOT_SANTRI,
         { href: "/diniyyah", label: "Nilai", ikon: "diniyyah", tengah: true },
         SLOT_KEHADIRAN,
-        SLOT_MENU,
+        SLOT_AKUN,
       ];
     case PERAN.MUSYRIF:
       return [
@@ -86,7 +88,7 @@ function slotUntukStaf(peran: Peran): SlotNav[] {
         SLOT_SANTRI,
         { href: "/catatan", label: "Catatan", ikon: "pena", tengah: true },
         { href: "/olahraga", label: "Olahraga", ikon: "olahraga" },
-        SLOT_MENU,
+        SLOT_AKUN,
       ];
     default:
       // admin (dan cadangan peran staf lain)
@@ -95,7 +97,7 @@ function slotUntukStaf(peran: Peran): SlotNav[] {
         SLOT_SANTRI,
         { ...SLOT_KEHADIRAN, tengah: true },
         { href: "/laporan", label: "Laporan", ikon: "rekap" },
-        SLOT_MENU,
+        SLOT_AKUN,
       ];
   }
 }

@@ -19,13 +19,11 @@
  * /daftar (sign up wali), /lupa-sandi, dan /atur-sandi memakai
  * perlakuan yang sama — semuanya halaman pra/di luar sesi.
  */
-import { useEffect, useState, type ReactNode } from "react";
+import type { ReactNode } from "react";
 import { usePathname } from "next/navigation";
 import InfoPengguna from "@/components/InfoPengguna";
 import NavTautan from "@/components/NavTautan";
 import NavBawah from "@/components/NavBawah";
-import { supabaseTerhubung } from "@/lib/data/santri";
-import { ambilProfilLogin } from "@/lib/sesi";
 
 /** Pathname halaman polos tanpa kerangka (pra-sesi / alur akun). */
 const PATH_TANPA_KERANGKA = [
@@ -39,31 +37,17 @@ const PATH_TANPA_KERANGKA = [
 export default function Kerangka({ children }: { children: ReactNode }) {
   const pathname = usePathname();
 
-  /* Beranda (audit Fase 3): blok identitas di kepala HP disembunyikan
-     karena pita sapaan beranda sudah memuat identitas yang sama —
-     identitas tampil dua kali itu mubazir. Kepala hanya ada di HP
-     (di desktop digantikan sidebar). Kepala BARU disembunyikan
-     setelah profil login terkonfirmasi ada: bagi pengunjung yang
-     belum masuk, isi kepala adalah tautan "Masuk" — pintu masuk
-     utama — yang tidak boleh hilang. Mode contoh tidak pernah
-     menyembunyikan (tidak ada sesi; isinya selalu tautan "Masuk"). */
-  const [sudahMasuk, setSudahMasuk] = useState(false);
-  useEffect(() => {
-    if (!supabaseTerhubung() || pathname !== "/") return;
-    let batal = false;
-    ambilProfilLogin().then((p) => {
-      if (!batal) setSudahMasuk(Boolean(p));
-    });
-    return () => {
-      batal = true;
-    };
-  }, [pathname]);
-
   if (PATH_TANPA_KERANGKA.includes(pathname)) {
     return <>{children}</>;
   }
 
-  const sembunyikanKepala = pathname === "/" && sudahMasuk;
+  /* Kepala HP kini tampil di SEMUA halaman termasuk beranda
+     (arahan user 4 Nov 2026): bilah ramping berprofil kecil di
+     pojok kiri atas menggantikan pita gradien besar; penyembunyian
+     kepala khusus beranda dari audit Fase 3 gugur karena pita
+     sapaan beranda sendiri sudah dirampingkan (nama tidak lagi
+     dobel besar — kepala memuat profil kecil, pita memuat sapaan
+     + tanggal ringkas). */
 
   return (
     <div className="kerangka">
@@ -78,11 +62,9 @@ export default function Kerangka({ children }: { children: ReactNode }) {
       </aside>
 
       <div className="kolom-utama">
-        {!sembunyikanKepala && (
-          <header className="kepala">
-            <InfoPengguna varian="kepala" />
-          </header>
-        )}
+        <header className="kepala">
+          <InfoPengguna varian="kepala" />
+        </header>
 
         <main className="konten" id="konten" tabIndex={-1}>
           {children}

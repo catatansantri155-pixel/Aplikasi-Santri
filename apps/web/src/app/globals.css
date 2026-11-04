@@ -74,6 +74,9 @@
   /* Ukuran */
   --tinggi-sentuh: 44px;
   --lebar-sidebar: 240px;
+  /* Skala huruf dari Pengaturan ukuran teks (Akun); diubah oleh
+     atribut data-teks pada <html> di bagian akhir berkas ini. */
+  --skala-teks: 1;
 }
 
 * {
@@ -167,11 +170,11 @@ a {
   min-height: 100dvh;
 }
 
-/* Kepala HP: pita gradien biru (arah UI UNPIX, revisi biru)
-   berisi IDENTITAS pengguna yang masuk (avatar + nama + peran,
-   menaut ke /akun) — tanpa teks merek aplikasi/pondok dan tanpa
-   ornamen, bersih seperti halaman referensi. Sapaan personal
-   lengkap ada di pita beranda. */
+/* Kepala HP RAMPING (arahan user 4 Nov 2026): bilah permukaan
+   polos TANPA pita gradien biru besar — profil pengguna KECIL di
+   pojok kiri atas (avatar 34px + nama 13px + peran 11px, menaut ke
+   /akun). Latar biru besar di atas halaman selain beranda dihapus;
+   sapaan personal lengkap hanya ada di pita beranda. */
 .kepala {
   position: sticky;
   top: 0;
@@ -179,30 +182,26 @@ a {
   display: flex;
   align-items: center;
   justify-content: flex-start;
-  gap: 12px;
-  padding: 10px 16px;
-  background: linear-gradient(
-    135deg,
-    var(--hijau-gelap),
-    var(--hijau-kop) 55%,
-    var(--biru-terang)
-  );
-  border-bottom: none;
-  box-shadow: 0 4px 14px rgba(13, 71, 161, 0.2);
-  color: #fff;
+  gap: 10px;
+  padding: 6px 14px;
+  background: var(--permukaan);
+  border-bottom: 1px solid var(--garis);
+  box-shadow: var(--bayang-halus);
+  color: var(--teks);
+}
+
+.kepala .avatar-inisial--kecil {
+  width: 34px;
+  height: 34px;
+  font-size: 12.5px;
 }
 
 .kepala .info-pengguna-nama {
-  color: #fff;
+  color: var(--teks);
 }
 
 .kepala .info-pengguna-peran {
-  color: rgba(255, 255, 255, 0.85);
-}
-
-.kepala .tombol-kecil {
-  background: rgba(255, 255, 255, 0.16);
-  color: #fff;
+  color: var(--teks-redup);
 }
 
 .konten {
@@ -455,12 +454,12 @@ a.info-pengguna-kepala {
   padding: 2px 8px 2px 2px;
   margin-left: -2px;
   border-radius: 12px;
-  color: #fff;
+  color: inherit;
   text-decoration: none;
 }
 
 a.info-pengguna-kepala:hover {
-  background: rgba(255, 255, 255, 0.12);
+  background: var(--hijau-muda);
 }
 
 .info-pengguna-kepala .info-pengguna-teks {
@@ -471,7 +470,7 @@ a.info-pengguna-kepala:hover {
 }
 
 .info-pengguna-kepala .info-pengguna-nama {
-  font-size: 13.5px;
+  font-size: 13px;
   font-weight: 700;
   white-space: nowrap;
   overflow: hidden;
@@ -734,7 +733,7 @@ a.info-pengguna-samping .info-pengguna-baris {
 
 .banner-nama {
   margin: 2px 0;
-  font-size: 20px;
+  font-size: 18px;
   font-weight: 800;
   line-height: 1.25;
 }
@@ -768,7 +767,7 @@ a.info-pengguna-samping .info-pengguna-baris {
 
 .banner--pita {
   margin: 0;
-  padding: 22px 20px 48px;
+  padding: 16px 20px 42px;
   border-radius: 0;
   box-shadow: none;
 }
@@ -851,15 +850,17 @@ a.info-pengguna-samping .info-pengguna-baris {
 
 h1.judul-halaman {
   margin: 0 0 4px;
-  font-size: 22px;
+  font-size: 20px;
   font-weight: 700;
   letter-spacing: -0.01em;
+  line-height: 1.3;
 }
 
 .subjudul {
   margin: 0 0 16px;
   color: var(--teks-redup);
-  font-size: 14px;
+  font-size: 13.5px;
+  line-height: 1.55;
 }
 
 .kepala-seksi {
@@ -909,6 +910,8 @@ h1.judul-halaman {
   display: flex;
   align-items: center;
   gap: 12px;
+  width: 100%;
+  max-width: 100%;
   padding: 12px 14px;
   background: var(--permukaan);
   border-radius: 18px;
@@ -950,6 +953,11 @@ h1.judul-halaman {
 
 .daftar-tumpuk {
   display: grid;
+  /* minmax(0,1fr) WAJIB: tanpa batas 0, kolom grid membesar
+     mengikuti isi min-content (teks satu baris panjang pada kartu
+     sesi Olahraga) dan kartu melebar keluar layar — terlihat di
+     tangkapan layar user 4 Nov 2026. */
+  grid-template-columns: minmax(0, 1fr);
   gap: 10px;
 }
 
@@ -1846,7 +1854,8 @@ textarea.masukan {
   color: var(--teks);
   border: 1px solid #bcd8f5;
   border-radius: var(--jari-masukan);
-  font-size: 14px;
+  font-size: 13.5px;
+  line-height: 1.55;
 }
 
 /* Halaman Sambutan (/sambutan): halaman polos tanpa kerangka,
@@ -1982,4 +1991,406 @@ textarea.masukan {
   .sambutan-isi {
     padding: 12px 0;
   }
+}
+
+/* ============================================================
+   REVISI SIMPEL & PENGATURAN TAMPILAN (arahan user 4 Nov 2026)
+   - Login polos & simpel di HP (tanpa logo/teks merek besar);
+     PC memakai panel belah gaya image 4 dari user.
+   - Halaman auth lain (daftar/lupa/atur sandi) ikut polos.
+   - Mode Gelap/Terang + ukuran teks dari Pengaturan Akun
+     (atribut data-tema / data-teks pada <html>, lib/tampilan.ts).
+   ============================================================ */
+
+/* ---------- Halaman auth polos (login/daftar/lupa/atur sandi) ---------- */
+
+.auth-bungkus {
+  max-width: 430px;
+  margin: 0 auto;
+  width: 100%;
+  padding: 26px 20px 40px;
+}
+
+.auth-kembali {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: var(--tinggi-sentuh);
+  margin-bottom: 6px;
+  font-size: 13.5px;
+  font-weight: 600;
+  color: var(--teks-redup);
+  text-decoration: none;
+}
+
+.auth-judul {
+  margin: 0 0 6px;
+  font-size: 24px;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+}
+
+.auth-sub {
+  margin: 0 0 22px;
+  font-size: 14px;
+  line-height: 1.55;
+  color: var(--teks-redup);
+}
+
+.auth-sub-kecil {
+  display: block;
+  margin-top: 2px;
+  font-size: 12.5px;
+}
+
+.auth-isi .formulir {
+  max-width: 100%;
+}
+
+/* Tombol pil (sudut penuh) untuk tombol utama halaman auth. */
+.tombol-pil {
+  border-radius: 999px;
+}
+
+/* ---------- Login: polos di HP, panel belah di PC ---------- */
+
+.login-split {
+  width: 100%;
+  max-width: 430px;
+  margin: 0 auto;
+  padding: 26px 20px 40px;
+}
+
+/* Panel kiri hanya tampil di PC; di HP tidak dirender visualnya. */
+.login-panel {
+  display: none;
+}
+
+.login-isi .formulir {
+  max-width: 100%;
+}
+
+.login-isi .catatan-kaki {
+  margin: 14px 0 0;
+}
+
+@media (min-width: 1024px) {
+  .login-split {
+    max-width: 1060px;
+    min-height: 100dvh;
+    display: grid;
+    grid-template-columns: 1.05fr 1fr;
+    gap: 0;
+    align-items: stretch;
+    padding: 28px 20px;
+  }
+
+  /* Panel gradien besar membulat (image 4): ilustrasi di atas,
+     judul ajakan, lalu tiga kartu langkah di bawah. */
+  .login-panel {
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    gap: 18px;
+    padding: 30px;
+    border-radius: 28px;
+    background: linear-gradient(
+      155deg,
+      var(--hijau-gelap) 0%,
+      var(--hijau-kop) 55%,
+      var(--biru-terang) 100%
+    );
+    color: #fff;
+    box-shadow: 0 16px 36px rgba(13, 71, 161, 0.28);
+    overflow: hidden;
+  }
+
+  .login-panel-ilustrasi {
+    display: block;
+    width: 100%;
+    height: auto;
+    max-height: 300px;
+    object-fit: cover;
+    border-radius: 20px;
+  }
+
+  .login-panel-judul {
+    margin: 0;
+    font-size: 24px;
+    font-weight: 800;
+    line-height: 1.3;
+    max-width: 420px;
+  }
+
+  .login-langkah {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .login-langkah li {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    padding: 14px;
+    border-radius: 16px;
+    background: rgba(255, 255, 255, 0.14);
+    font-size: 13px;
+    line-height: 1.45;
+    font-weight: 600;
+  }
+
+  .login-langkah li:first-child {
+    background: #fff;
+    color: var(--hijau-gelap);
+  }
+
+  .login-langkah li span {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+    background: var(--hijau-kop);
+    color: #fff;
+    font-size: 13px;
+    font-weight: 800;
+  }
+
+  .login-isi {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding: 12px 12px 12px 52px;
+  }
+}
+
+/* ---------- Beranda: banner semester & motivasi ---------- */
+
+/* Strip semester berjalan di bawah kisi modul: satu baris ringkas
+   berisi ikon kalender, nama semester, dan rentang tanggalnya. */
+.kartu-semester {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 16px;
+  padding: 14px 16px;
+  background: var(--hijau-muda);
+  border-radius: var(--jari);
+  color: var(--teks);
+  text-decoration: none;
+}
+
+.kartu-semester .baris-judul {
+  font-size: 14px;
+}
+
+/* Banner motivasi kecil di beranda agar halaman tidak kosong:
+   gradien biru + kutipan muhasabah singkat. */
+.banner-motivasi {
+  margin-top: 14px;
+  padding: 16px 18px;
+  border-radius: var(--jari);
+  background: linear-gradient(
+    135deg,
+    var(--hijau-gelap),
+    var(--hijau-kop) 60%,
+    var(--biru-terang)
+  );
+  color: #fff;
+}
+
+.banner-motivasi .motivasi-teks {
+  margin: 0;
+  font-size: 14.5px;
+  font-weight: 600;
+  line-height: 1.55;
+}
+
+.banner-motivasi .motivasi-sumber {
+  margin: 6px 0 0;
+  font-size: 12px;
+  opacity: 0.88;
+}
+
+/* ---------- Halaman Akun: baris pengaturan ---------- */
+
+/* Satu baris pengaturan: label + keterangan kecil di kiri, kendali
+   segmen di kanan; menumpuk rapi di layar sempit. */
+.baris-atur {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px 14px;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--garis);
+}
+
+.baris-atur:last-child {
+  border-bottom: none;
+  padding-bottom: 2px;
+}
+
+.baris-atur .atur-label {
+  display: block;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.baris-atur .atur-ket {
+  display: block;
+  font-size: 12.5px;
+  color: var(--teks-redup);
+  line-height: 1.45;
+}
+
+/* Tautan baris (Lihat perkenalan, dsb.) dengan chevron kanan. */
+.tautan-baris {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: var(--tinggi-sentuh);
+  padding: 10px 0;
+  color: var(--teks);
+  text-decoration: none;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.tautan-baris .baris-kanan {
+  margin-left: auto;
+}
+
+/* ---------- Mode gelap (data-tema="gelap") ---------- */
+
+html[data-tema="gelap"] {
+  --latar: #0a1727;
+  --permukaan: #152a42;
+  --teks: #e9f2fb;
+  --teks-redup: #a9c0d8;
+  --garis: #2a4763;
+  --hijau-muda: #1d3d5f;
+  --bayang: 0 6px 20px rgba(0, 0, 0, 0.45);
+  --bayang-halus: 0 2px 10px rgba(0, 0, 0, 0.35);
+}
+
+html[data-tema="gelap"] body {
+  background: linear-gradient(180deg, #0a1727 0%, #0d2138 100%) fixed;
+}
+
+html[data-tema="gelap"] .segmen {
+  background: #1d3d5f;
+}
+
+html[data-tema="gelap"] .catatan-pantauan {
+  background: #12283f;
+  border-color: #2a4763;
+}
+
+html[data-tema="gelap"] .kolom-terkunci {
+  background: #1d3d5f;
+  border-color: #2a4763;
+  color: var(--teks);
+}
+
+html[data-tema="gelap"] .bilah {
+  background: #1d3d5f;
+}
+
+html[data-tema="gelap"] .penanda-tahap {
+  background: #3a2f10;
+  color: #f5cf6b;
+  border-color: #6b5518;
+}
+
+html[data-tema="gelap"] .pesan-galat {
+  background: #3d1d1a;
+  color: #f3b8b2;
+  border-color: #6e352f;
+}
+
+html[data-tema="gelap"] .pesan-sukses {
+  background: #123526;
+  color: #a9ddbe;
+  border-color: #1f5c3d;
+}
+
+html[data-tema="gelap"] .ikon-lingkaran--hijau {
+  background: #1d3d5f;
+  color: #8fc3f2;
+}
+
+html[data-tema="gelap"] .ikon-lingkaran--biru {
+  background: #1d3d5f;
+  color: #9ecdf5;
+}
+
+html[data-tema="gelap"] .ikon-lingkaran--emas,
+html[data-tema="gelap"] .ikon-lingkaran--kuning {
+  background: #3a2f10;
+  color: #f5cf6b;
+}
+
+html[data-tema="gelap"] .ikon-lingkaran--merah {
+  background: #3d1d1a;
+  color: #f3a49d;
+}
+
+html[data-tema="gelap"] .tombol-keluar {
+  background: transparent;
+  color: #f3a49d;
+  border-color: #6e352f;
+}
+
+html[data-tema="gelap"] .tombol-sekunder {
+  color: var(--teks);
+}
+
+html[data-tema="gelap"] .kartu-semester {
+  color: var(--teks);
+}
+
+/* Lingkaran slot tengah nav bawah: bingkai mengikuti permukaan
+   di mode gelap agar tetap menyatu dengan bilah navigasi. */
+html[data-tema="gelap"] .nav-tengah-lingkaran {
+  border-color: var(--permukaan);
+}
+
+/* ---------- Ukuran teks (data-teks pada <html>) ---------- */
+
+html[data-teks="kecil"] {
+  --skala-teks: 0.92;
+}
+
+html[data-teks="besar"] {
+  --skala-teks: 1.14;
+}
+
+body {
+  font-size: calc(14px * var(--skala-teks, 1));
+}
+
+.subjudul {
+  font-size: calc(13.5px * var(--skala-teks, 1));
+}
+
+.catatan-kaki {
+  font-size: calc(12.5px * var(--skala-teks, 1));
+}
+
+.baris-ket {
+  font-size: calc(12px * var(--skala-teks, 1));
+}
+
+.item-menu-ket {
+  font-size: calc(11px * var(--skala-teks, 1));
+}
+
+.formulir label {
+  font-size: calc(13px * var(--skala-teks, 1));
 }

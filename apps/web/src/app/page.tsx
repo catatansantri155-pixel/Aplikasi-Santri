@@ -18,7 +18,6 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import PenandaTahap from "@/components/PenandaTahap";
-import AvatarInisial from "@/components/AvatarInisial";
 import {
   Ikon,
   LingkaranIkon,
@@ -36,11 +35,23 @@ import {
 } from "@/lib/data/santri";
 import { ambilProfilLogin, type ProfilLogin } from "@/lib/sesi";
 import {
+  ambilKehadiran,
   ambilRiwayatKehadiranSantri,
   LABEL_STATUS,
   STATUS_KEHADIRAN,
   type StatusKehadiran,
 } from "@/lib/data/kehadiran";
+import { ambilCatatanTerbaru } from "@/lib/data/catatan";
+import {
+  ambilSemesterAdmin,
+  statusSemester,
+  type SemesterLengkap,
+} from "@/lib/data/admin";
+import {
+  formatHijriahRingkas,
+  formatTanggalRingkas,
+  tanggalIsoHariIni,
+} from "@/lib/tanggal";
 import {
   ambilSetoranTerakhir,
   type SetoranHifzh,
@@ -69,27 +80,18 @@ function formatTanggal(iso: string): string {
   });
 }
 
-/** Tanggal hari ini versi Masehi lengkap, untuk banner beranda. */
+/** Tanggal hari ini versi Masehi RINGKAS, untuk banner beranda. */
 function formatTanggalHariIni(): string {
-  return new Date().toLocaleDateString("id-ID", {
-    weekday: "long",
-    day: "numeric",
-    month: "long",
-    year: "numeric",
-  });
+  return formatTanggalRingkas();
 }
 
-/** Tanggal Hijriah hari ini (kalender Islam bawaan Intl); kosong bila gagal. */
+/**
+ * Tanggal Hijriah hari ini RINGKAS — dari lib/tanggal.ts, yang
+ * memetakan nama bulan sendiri dari bagian angka Intl (nama bulan
+ * long dari Intl terbukti salah di perangkat user: "Mei 1448 SM H").
+ */
 function formatTanggalHijriahHariIni(): string {
-  try {
-    return new Intl.DateTimeFormat("id-ID-u-ca-islamic", {
-      day: "numeric",
-      month: "long",
-      year: "numeric",
-    }).format(new Date());
-  } catch {
-    return "";
-  }
+  return formatHijriahRingkas();
 }
 
 interface RingkasanKehadiranWali {
@@ -117,6 +119,19 @@ export default function HalamanBeranda() {
   const [memuatWali, setMemuatWali] = useState(true);
   const [profilLogin, setProfilLogin] = useState<ProfilLogin | null>(null);
   const [memuatProfil, setMemuatProfil] = useState(!modeContoh);
+  // Ringkasan beranda (arahan user 4 Nov 2026: beranda jangan
+  // kosong) — angka NYATA dari lapisan data ber-RLS, bukan karangan:
+  // staf/admin melihat hitungan HARI INI, wali melihat total
+  // tercatat untuk anaknya sendiri (RLS memang hanya meloloskan
+  // baris anaknya). null = belum termuat/gagal (bagian disembunyikan).
+  const [statistik, setStatistik] = useState<{
+    santri: number;
+    kehadiran: number;
+    setoran: number;
+    catatan: number;
+  } | null>(null);
+  const [semesterBerjalan, setSemesterBerjalan] =
+    useState<SemesterLengkap | null>(null);
 
   // MODE SUPABASE: muat profil pengguna yang login untuk sapaan beranda.
   useEffect(() => {
@@ -132,6 +147,67 @@ export default function HalamanBeranda() {
       aktif = false;
     };
   }, [modeContoh]);
+
+  // MODE SUPABASE: muat ringkasan beranda setelah profil diketahui.
+  useEffect(() => {
+    if (modeContoh || !profilLogin) return;
+    let aktif = true;
+    (async () => {
+      try {
+        const hariIni = tanggalIsoHariIni();
+        const untukWali = profilLogin.peran === "wali";
+        const [daftarSantri, setoran, catatan, semester] =
+          await Promise.all([
+            ambilDaftarSantri(),
+            ambilSetoranTerakhir(100),
+            ambilCatatanTerbaru(50),
+            ambilSemesterAdmin(),
+          ]);
+        let kehadiran = 0;
+        if (untukWali) {
+          // Total tercatat per anak (RLS hanya meloloskan anaknya).
+          const perAnak = await Promise.all(
+            daftarSantri.data.map((s) =>
+              ambilRiwayatKehadiranSantri(s.id),
+            ),
+          );
+          kehadiran = perAnak.reduce((j, h) => j + h.data.length, 0);
+        } else {
+          const [hifzh, diniyyah] = await Promise.all([
+            ambilKehadiran(hariIni, "hifzh"),
+            ambilKehadiran(hariIni, "diniyyah"),
+          ]);
+          kehadiran = hifzh.data.length + diniyyah.data.length;
+        }
+        if (!aktif) return;
+        setStatistik({
+          santri: daftarSantri.data.length,
+          kehadiran,
+          setoran: untukWali
+            ? setoran.data.length
+            : setoran.data.filter((s) => s.tanggalMasehi === hariIni)
+                .length,
+          catatan: untukWali
+            ? catatan.data.length
+            : catatan.data.filter((c) => c.tanggal === hariIni).length,
+        });
+        setSemesterBerjalan(
+          semester.data.find((s) => statusSemester(s) === "berjalan") ??
+            null,
+        );
+      } catch {
+        // Ringkasan gagal dimuat: bagian ini disembunyikan saja,
+        // beranda tetap berfungsi tanpa angka.
+        if (aktif) {
+          setStatistik(null);
+          setSemesterBerjalan(null);
+        }
+      }
+    })();
+    return () => {
+      aktif = false;
+    };
+  }, [modeContoh, profilLogin]);
 
   useEffect(() => {
     // Tampilan wali contoh hanya berjalan pada mode contoh.
@@ -189,35 +265,23 @@ export default function HalamanBeranda() {
     const hijriah = formatTanggalHijriahHariIni();
     return (
       <>
-        {/* Pita sapaan (arah UI UNPIX): pita gradien biru selebar
-            tepi konten; isi utama berada di lembar putih melengkung
-            yang menimpanya. */}
+        {/* Pita sapaan RAMPING (arahan user 4 Nov 2026): tanpa
+            avatar besar — profil kecil sudah ada di kepala aplikasi.
+            Isinya sapaan + nama + peran kecil + tanggal RINGKAS
+            (Masehi pendek + Hijriah pendek). */}
         <div className="pita">
           <section className="banner banner--pita">
-            <div className="banner-baris">
-              {profilLogin && (
-                <AvatarInisial
-                  nama={profilLogin.nama}
-                  ukuran="besar"
-                  diBanner
-                />
-              )}
-              <div>
-                <p className="banner-sapaan">Assalamu&rsquo;alaikum,</p>
-                <p className="banner-nama">
-                  {memuatProfil
-                    ? "Memuat profil…"
-                    : (profilLogin?.nama ?? "Pengguna")}
-                </p>
-                <p className="banner-sub">
-                  {profilLogin
-                    ? `${LABEL_PERAN[profilLogin.peran]} · `
-                    : ""}
-                  {formatTanggalHariIni()}
-                  {hijriah ? ` · ${hijriah} H` : ""}
-                </p>
-              </div>
-            </div>
+            <p className="banner-sapaan">Assalamu&rsquo;alaikum,</p>
+            <p className="banner-nama">
+              {memuatProfil
+                ? "Memuat profil…"
+                : (profilLogin?.nama ?? "Pengguna")}
+            </p>
+            <p className="banner-sub">
+              {profilLogin ? `${LABEL_PERAN[profilLogin.peran]} · ` : ""}
+              {formatTanggalHariIni()}
+              {hijriah ? ` · ${hijriah}` : ""}
+            </p>
           </section>
         </div>
 
@@ -229,11 +293,71 @@ export default function HalamanBeranda() {
             </p>
           )}
 
-          {/* Beranda mode Supabase kini ringkas (revisi biru): pita
-              sapaan + lembar berisi kisi Fast Menu saja — paragraf
-              ringkasan peran dan kartu ringkasan (santri terdaftar,
-              sesi olahraga, semester berjalan) DIHAPUS atas arahan
-              user; ringkasan angka tersedia di halaman Grafik. */}
+          {/* Ringkasan angka NYATA (arahan user 4 Nov 2026: beranda
+              jangan kosong): staf/admin = hitungan hari ini; wali =
+              total tercatat anaknya. Gagal muat → bagian hilang diam-
+              diam, beranda tetap jalan. */}
+          {profilLogin && statistik && (
+            <>
+              <div className="kepala-seksi" style={{ marginTop: 4 }}>
+                <h2 className="judul-seksi">
+                  {profilLogin.peran === "wali"
+                    ? "Ringkasan anak Anda"
+                    : "Ringkasan hari ini"}
+                </h2>
+              </div>
+              <div className="kisi-stat">
+                {(
+                  [
+                    {
+                      ikon: "santri" as NamaIkon,
+                      warna: "hijau" as WarnaTint,
+                      angka: statistik.santri,
+                      label:
+                        profilLogin.peran === "wali"
+                          ? "Anak tertaut"
+                          : "Santri aktif",
+                    },
+                    {
+                      ikon: "kehadiran" as NamaIkon,
+                      warna: "biru" as WarnaTint,
+                      angka: statistik.kehadiran,
+                      label:
+                        profilLogin.peran === "wali"
+                          ? "Kehadiran tercatat"
+                          : "Kehadiran terisi hari ini",
+                    },
+                    {
+                      ikon: "hifzh" as NamaIkon,
+                      warna: "emas" as WarnaTint,
+                      angka: statistik.setoran,
+                      label:
+                        profilLogin.peran === "wali"
+                          ? "Setoran tercatat"
+                          : "Setoran hari ini",
+                    },
+                    {
+                      ikon: "catatan" as NamaIkon,
+                      warna: "kuning" as WarnaTint,
+                      angka: statistik.catatan,
+                      label:
+                        profilLogin.peran === "wali"
+                          ? "Catatan tercatat"
+                          : "Catatan hari ini",
+                    },
+                  ] as const
+                ).map((s) => (
+                  <div key={s.label} className="kartu-stat">
+                    <LingkaranIkon nama={s.ikon} warna={s.warna} />
+                    <span>
+                      <span className="stat-angka">{s.angka}</span>
+                      <span className="stat-label">{s.label}</span>
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </>
+          )}
 
           {/* Kisi Fast Menu: modul hanya dirender SETELAH profil
               termuat, disaring per peran dari peta terpusat
@@ -262,6 +386,34 @@ export default function HalamanBeranda() {
                   </Link>
                 ))}
               </div>
+
+              {/* Strip semester berjalan + banner motivasi agar
+                  beranda tidak terasa kosong (arahan user 4 Nov). */}
+              {semesterBerjalan && (
+                <div className="kartu-semester">
+                  <LingkaranIkon nama="kalender" warna="biru" />
+                  <span className="baris-teks">
+                    <span className="baris-judul">
+                      {semesterBerjalan.nama} ·{" "}
+                      {semesterBerjalan.tahunAjaran}
+                    </span>
+                    <span className="baris-ket">
+                      {formatTanggal(semesterBerjalan.tanggalMulai)} –{" "}
+                      {formatTanggal(semesterBerjalan.tanggalSelesai)} ·
+                      Sedang berjalan
+                    </span>
+                  </span>
+                </div>
+              )}
+              <div className="banner-motivasi">
+                <p className="motivasi-teks">
+                  &ldquo;Sebaik-baik kalian adalah yang mempelajari
+                  Al-Qur&rsquo;an dan mengajarkannya.&rdquo;
+                </p>
+                <p className="motivasi-sumber">
+                  HR. Bukhari — pengingat bagi pengajar dan santri
+                </p>
+              </div>
             </>
           )}
         </div>
@@ -278,7 +430,7 @@ export default function HalamanBeranda() {
         <p className="banner-sub">
           {formatTanggalHariIni()}
           {formatTanggalHijriahHariIni()
-            ? ` · ${formatTanggalHijriahHariIni()} H`
+            ? ` · ${formatTanggalHijriahHariIni()}`
             : ""}
         </p>
       </section>

@@ -127,19 +127,18 @@ export default function HalamanDaftar() {
   }
 
   return (
-    <div className="login-bungkus">
-      <div className="login-hero">
-        <span className="logo-login logo-login--hero">
-          <Ikon nama="santri" ukuran={38} />
-        </span>
-        <h1 className="login-judul">Daftar sebagai Wali</h1>
-        <p className="login-sub">
-          Khusus orang tua / wali santri. Pengajar dan musyrif
-          menggunakan akun yang dibuatkan admin.
-        </p>
-      </div>
+    <div className="auth-bungkus">
+      <Link href="/login" className="auth-kembali">
+        <Ikon nama="panah-kiri" ukuran={16} />
+        Kembali masuk
+      </Link>
+      <h1 className="auth-judul">Daftar sebagai Wali</h1>
+      <p className="auth-sub">
+        Khusus orang tua / wali santri. Pengajar dan musyrif
+        menggunakan akun yang dibuatkan admin.
+      </p>
 
-      <div className="login-lembar">
+      <div className="auth-isi">
         {!modeSupabase && (
           <PenandaTahap teks="MODE CONTOH · PENDAFTARAN ASLI MENUNGGU ENV SUPABASE" />
         )}
