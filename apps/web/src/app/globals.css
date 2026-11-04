@@ -1508,11 +1508,13 @@ textarea.masukan {
 
 .login-bungkus {
   max-width: 430px;
-  margin: 8px auto 0;
+  margin: 0 auto;
   width: 100%;
   /* Halaman login kini TANPA kerangka aplikasi (audit Fase 1), jadi
-     bantalan yang dulu berasal dari .konten tinggal di sini. */
-  padding: 18px 16px 40px;
+     bantalan yang dulu berasal dari .konten tinggal di sini. Jarak
+     dirapatkan (maket user 4 Nov 2026) agar halaman tampil utuh
+     satu layar pada ponsel umum. */
+  padding: 10px 16px 24px;
 }
 
 /* Bungkus kolom kata sandi + tombol tampilkan/sembunyikan (audit
@@ -1564,7 +1566,7 @@ textarea.masukan {
 .login-hero {
   position: relative;
   overflow: hidden;
-  padding: 24px 20px 22px;
+  padding: 18px 18px 18px;
   border-radius: var(--jari-besar);
   background: linear-gradient(
     150deg,
@@ -1577,15 +1579,26 @@ textarea.masukan {
   box-shadow: 0 10px 24px rgba(13, 71, 161, 0.22);
 }
 
+/* Logo hero mengikuti maket user (4 Nov 2026): kotak bersudut
+   membulat (bukan lingkaran) berisi ikon buku putih di atas gradien
+   biru, DENGAN bingkai emas tegas menggantikan cincin bayangan lama.
+   Emas di sini murni dekoratif di atas gradien. */
 .logo-login--hero {
-  background: rgba(255, 255, 255, 0.16);
-  box-shadow:
-    0 10px 24px rgba(0, 0, 0, 0.18),
-    0 0 0 3px rgba(240, 176, 0, 0.75);
+  width: 76px;
+  height: 76px;
+  border-radius: 20px;
+  border: 3px solid var(--emas);
+  background: linear-gradient(
+    155deg,
+    var(--biru-terang) 0%,
+    var(--hijau-kop) 55%,
+    var(--hijau-gelap) 100%
+  );
+  box-shadow: 0 10px 24px rgba(13, 71, 161, 0.3);
 }
 
 .login-judul {
-  margin: 14px 0 2px;
+  margin: 10px 0 2px;
   font-size: 22px;
   font-weight: 800;
 }
@@ -1606,12 +1619,28 @@ textarea.masukan {
   color: rgba(255, 255, 255, 0.88);
 }
 
+/* Garis aksen emas kecil di tengah, antara baris pondok dan
+   ilustrasi (maket user 4 Nov 2026) — murni dekoratif. */
+.login-aksen {
+  display: block;
+  width: 56px;
+  height: 4px;
+  margin: 12px auto 0;
+  border-radius: 999px;
+  background: var(--emas);
+}
+
+/* Ilustrasi sebagai spanduk membulat selebar kolom hero; tinggi
+   dibatasi dan gambar dipotong rapi (cover) agar halaman tetap
+   satu layar di ponsel. */
 .login-ilustrasi {
   display: block;
   width: 100%;
   height: auto;
-  margin-top: 16px;
-  border-radius: 16px;
+  max-height: 170px;
+  object-fit: cover;
+  margin-top: 14px;
+  border-radius: 20px;
 }
 
 /* Lembar putih melengkung yang menimpa hero, berisi formulir masuk. */
@@ -1619,7 +1648,7 @@ textarea.masukan {
   position: relative;
   z-index: 1;
   margin: -14px 10px 0;
-  padding: 18px 16px 20px;
+  padding: 16px 16px 18px;
   background: var(--permukaan);
   border-radius: var(--jari-besar);
   box-shadow: var(--bayang);
@@ -1627,6 +1656,61 @@ textarea.masukan {
 
 .login-lembar .formulir {
   max-width: 100%;
+}
+
+/* Label kolom berikon (maket user 4 Nov 2026): ikon kecil sejajar
+   teks label di dalam <label> formulir. */
+.label-ikon {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+/* Tombol Masuk SEMPIT di tengah kartu (permintaan eksplisit user),
+   tidak lagi selebar kartu; tinggi mengikuti .tombol-besar (52px). */
+.tombol-masuk {
+  justify-self: center;
+  width: min(260px, 72%);
+}
+
+/* Garis pemisah tipis di atas baris daftar wali pada kaki kartu. */
+.login-pemisah {
+  border: none;
+  border-top: 1px solid var(--garis);
+  margin: 14px 0 0;
+}
+
+.login-lembar .catatan-kaki {
+  margin: 12px 0 0;
+}
+
+/* Ponsel berlayar pendek: rapatkan hero lebih jauh agar halaman
+   login tetap utuh satu layar; target sentuh kolom dan tombol
+   tidak berubah. */
+@media (max-height: 700px) {
+  .login-hero {
+    padding: 14px 16px;
+  }
+
+  .logo-login--hero {
+    width: 64px;
+    height: 64px;
+    border-radius: 17px;
+  }
+
+  .login-judul {
+    margin-top: 8px;
+    font-size: 20px;
+  }
+
+  .login-aksen {
+    margin-top: 9px;
+  }
+
+  .login-ilustrasi {
+    max-height: 118px;
+    margin-top: 10px;
+  }
 }
 
 /* ---------- Halaman akun ---------- */

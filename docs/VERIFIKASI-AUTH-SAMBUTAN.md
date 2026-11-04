@@ -148,3 +148,29 @@ migrasi 0006 BELUM dijalankan ke produksi (lihat "Aktivasi produksi" di bawah).
    & deploy seperti biasa, lalu uji per peran (wali daftar sendiri → belum
    melihat data → admin menautkan → data anak tampil; admin membuka modul
    dalam mode pantauan; staf dibuatkan admin menerima sandi sementara).
+
+## Verifikasi LIVE 4 Nov 2026, 05:38–05:41 WIB (pasca-deploy 77e799db + migrasi 0006)
+- Migrasi 0006 TERJALAN & terverifikasi di Supabase: kebijakan profiles memuat profiles_tambah_wali_sendiri (INSERT). Login dasbor Supabase via "Continue with GitHub" (LAST USED) — tidak ada tombol Google di halaman sign-in.
+- Rute baru live: /sambutan, /daftar, /lupa-sandi, /atur-sandi semua 200; CSS live memuat kelas sambutan.
+- Item 1 Sambutan: LULUS — 5 slide persis rancangan ("Selamat datang di Aplikasi Santri", "Hafalan tercatat rapi", "Diniyyah & kehadiran jelas", "Catatan & olahraga terpantau", "Wali hanya melihat data anaknya"), titik indikator, Lewati/Berikutnya, slide terakhir hanya "Masuk". Gerbang login→sambutan ikut terbukti (akses /login awal dialihkan ke /sambutan, Lewati diklik untuk lanjut).
+- Item 2 Daftar wali: GAGAL pada email uji — "Alamat surel tidak valid." Diagnosis induk via API Auth langsung: (a) signUp PUBLIK Supabase memvalidasi surel lebih ketat daripada pembuatan akun via panel admin; domain uji fiktif @catatansantri.id ditolak (akun uji lama lolos karena dibuat admin). (b) Alamat format asli (gmail) LOLOS validasi dan memicu pengiriman surel konfirmasi → konfirmasi surel produksi AKTIF, dan jalur kode berjalan sampai pengiriman. (c) Pengiriman surel bawaan Supabase kena 429 over_email_send_rate_limit akibat rangkaian percobaan uji — batas kirim bawaan sangat kecil; CATATAN PRODUKSI: sebelum rilis ramai, pertimbangkan SMTP khusus dan/atau mematikan konfirmasi surel (gerbang tautan admin adalah pengaman utama data). Rantai penuh (klik konfirmasi → masuk pertama → profil wali otomatis → tampilan kosong sebelum ditautkan) BELUM terbukti; menunggu keputusan user soal konfirmasi surel.
+- Item 3 Lupa sandi: LULUS tampilan (judul, teks, kolom Email, tombol "Kirim tautan"; tombol tidak diklik).
+- Item 4 Login: LULUS — tautan "Lupa kata sandi?", "Lihat perkenalan", "Daftar di sini" tampil.
+- Item 5 Regresi pengajar hifzh: LULUS — /hifzh formulir setoran tampil penuh untuk peran pemilik (mode pantauan hanya admin).
+- Mode pantauan admin & tab Akun admin: belum diuji live (memerlukan login Admin Utama asli — kata sandi hanya dipegang user; logika teruji lokal + mode contoh).
+
+## Rantai penuh daftar wali — TUNTAS 4 Nov 2026, 05:49–05:52 WIB
+- Keputusan user: konfirmasi surel DIMATIKAN di Supabase (Authentication → Email: "Confirm email" dari aktif → nonaktif, tersimpan; pengaturan lain tidak diubah).
+- Daftar wali uji (uji.daftar@catatansantri.com, "Wali Uji Daftar") di /daftar: pesan "Pendaftaran berhasil. Akun Anda sudah aktif sebagai wali." — sesi langsung aktif, profil wali otomatis terbentuk, beranda normal peran wali.
+- Sebelum ditautkan: /santri menampilkan "Belum ada anak tertaut" + "Menampilkan 0 santri." (gerbang RLS terbukti di UI).
+- Penautan disimulasikan via SQL (wali_santri kolom FK wali = profile_id): 1 baris tertaut ke Santri Uji A, hitungan verifikasi = 1.
+- Sesudah ditautkan: wali melihat Santri Uji A (Kelas 1, NIS S-1001) dan detailnya (ringkasan kehadiran Hadir 1, riwayat 3 Nov Hifzh Hadir).
+- Akun uji.daftar@catatansantri.com masuk kolam data uji produksi (menunggu keputusan hapus/keep bersama data uji lain).
+
+## Aktivasi kunci layanan & uji tab Akun — TUNTAS 4 Nov 2026, 06:07–06:13 WIB
+- User memasang SUPABASE_SERVICE_ROLE_KEY di Cloudflare (panduan terpisah di goal files).
+- Route /api/admin/buat-akun live: tanpa token → 401; token peran pengajar → 403 "Hanya Admin Utama yang dapat membuat akun." (kunci terbaca, gerbang peran benar; bukan lagi 501).
+- Temuan penjaga peran: update peran langsung dari SQL Editor DITOLAK pemicu profiles_jaga_peran (apakah_admin() berbasis auth.uid()); jalur sah yang dipakai: set_config klaim sesi Admin Utama dalam satu transaksi.
+- Bukti pembuatan akun: peran uji.hifzh dinaikkan sementara → admin, route membuat akun uji.buatakun@catatansantri.com ("Ust. Uji Buat Akun", musyrif) → HTTP 201 + kata sandi sementara dari server; akun baru langsung bisa masuk (token terbit); baris profiles terverifikasi di SQL.
+- Penutup: peran uji.hifzh DITURUNKAN kembali ke pengajar_hifzh dan terverifikasi; tidak ada peran uji yang tertinggal sebagai admin.
+- Sisa celah jujur: tampilan visual tab Akun & mode pantauan dengan login Admin Utama asli belum dilihat (kata sandi admin hanya dipegang user); jalur servernya sudah terbukti.

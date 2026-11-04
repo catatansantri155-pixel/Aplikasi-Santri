@@ -12,7 +12,8 @@
  * - Halaman ini TIDAK dibungkus kerangka aplikasi (lihat Kerangka):
  *   tidak ada sidebar/header/navigasi bawah di sini.
  * - Tombol tampilkan/sembunyikan kata sandi (ikon mata).
- * - Kalimat bantuan singkat: "Gunakan akun yang diberikan admin."
+ * - Kalimat bantuan singkat: "Pengguna dan kata sandi memakai akun
+ *   yang diberikan oleh tim kepesantrenan."
  * - Keadaan khusus "masuk tetapi profil belum disiapkan": sesi Auth
  *   berhasil tetapi baris profiles belum ada → pesan khusus tampil
  *   di halaman ini ("Akun berhasil masuk, tetapi akses belum
@@ -197,11 +198,12 @@ export default function HalamanLogin() {
 
   return (
     <div className="login-bungkus">
-      {/* Hero (arah UI UNPIX, revisi biru): pita gradien biru
-          BERSIH tanpa ornamen berisi logo, judul aplikasi, sapaan,
-          dan ilustrasi santri mengaji; formulir masuk berada di
-          lembar putih melengkung yang menimpa hero. Judul aplikasi
-          tetap tampil di sini karena pengguna belum masuk. */}
+      {/* Hero (arah UI UNPIX, revisi biru; diselaraskan maket user
+          4 Nov 2026): pita gradien biru BERSIH tanpa ornamen berisi
+          logo buku berbingkai emas, judul aplikasi, sapaan, garis
+          aksen emas, dan ilustrasi tumpukan buku; formulir masuk
+          berada di lembar putih melengkung yang menimpa hero. Judul
+          aplikasi tetap tampil di sini karena pengguna belum masuk. */}
       <div className="login-hero">
         <span className="logo-login logo-login--hero">
           <Ikon nama="hifzh" ukuran={38} />
@@ -213,12 +215,13 @@ export default function HalamanLogin() {
         <p className="login-sub">
           Ponpes Minhajus Sunnah Magelang · Marhalah Wustha
         </p>
-        {/* Ilustrasi datar dua santri mengaji (data URI WebP, palet kop). */}
+        <span className="login-aksen" aria-hidden="true" />
+        {/* Ilustrasi tumpukan buku dan lentera (data URI WebP). */}
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
           className="login-ilustrasi"
           src={ILUSTRASI_LOGIN}
-          alt="Ilustrasi dua santri sedang mengaji bersama"
+          alt="Ilustrasi tumpukan buku dan lentera"
           width={1200}
           height={670}
         />
@@ -235,23 +238,31 @@ export default function HalamanLogin() {
         )}
         <form className="formulir" onSubmit={tanganiKirim}>
           <label>
-            Alamat surel
+            <span className="label-ikon">
+              <Ikon nama="akun" ukuran={16} />
+              Alamat surel
+            </span>
             <input
               type="email"
               name="email"
               autoComplete="username"
+              placeholder="Masukkan alamat surel"
               required
               value={email}
               onChange={(e) => setEmail(e.target.value)}
             />
           </label>
           <label>
-            Kata sandi
+            <span className="label-ikon">
+              <Ikon nama="gembok" ukuran={16} />
+              Kata sandi
+            </span>
             <span className="bungkus-sandi">
               <input
                 type={sandiTerlihat ? "text" : "password"}
                 name="kata-sandi"
                 autoComplete="current-password"
+                placeholder="Masukkan kata sandi"
                 required
                 value={kataSandi}
                 onChange={(e) => setKataSandi(e.target.value)}
@@ -278,22 +289,31 @@ export default function HalamanLogin() {
           )}
           <button
             type="submit"
-            className="tombol tombol-besar tombol-penuh"
+            className="tombol tombol-besar tombol-masuk"
             disabled={mengirim}
           >
-            {mengirim ? "Memproses…" : "Masuk"}
+            {mengirim ? (
+              "Memproses…"
+            ) : (
+              <>
+                <Ikon nama="masuk" ukuran={20} />
+                Masuk
+              </>
+            )}
           </button>
         </form>
 
         <p className="catatan-kaki" style={{ textAlign: "center" }}>
-          Pengajar dan musyrif menggunakan akun yang diberikan admin.{" "}
-          <Link href="/lupa-sandi">Lupa kata sandi?</Link>
-        </p>
-        <p className="catatan-kaki" style={{ textAlign: "center" }}>
-          Wali santri belum punya akun?{" "}
-          <Link href="/daftar">Daftar di sini</Link>
+          Pengguna dan kata sandi memakai akun yang diberikan oleh tim
+          kepesantrenan. <Link href="/lupa-sandi">Lupa kata sandi?</Link>
           {" · "}
           <Link href="/sambutan">Lihat perkenalan</Link>
+        </p>
+        <hr className="login-pemisah" />
+        <p className="catatan-kaki" style={{ textAlign: "center" }}>
+          Wali santri belum mempunyai akun?{" "}
+          <Link href="/daftar">Daftar di sini</Link> untuk mendapatkan
+          akses.
         </p>
       </div>
     </div>

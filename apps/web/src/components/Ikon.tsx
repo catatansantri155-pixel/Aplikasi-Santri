@@ -39,7 +39,8 @@ export type NamaIkon =
   | "jam"
   | "pena"
   | "mata"
-  | "mata-silang";
+  | "mata-silang"
+  | "gembok";
 
 const JALUR: Record<NamaIkon, ReactNode> = {
   beranda: (
@@ -139,6 +140,13 @@ const JALUR: Record<NamaIkon, ReactNode> = {
       <path d="M4 4l16 16" />
       <path d="M10.6 6.1A9.8 9.8 0 0 1 12 6c6 0 9.5 6 9.5 6a17.6 17.6 0 0 1-3.3 3.7M6.6 8A16.9 16.9 0 0 0 2.5 12s3.5 6 9.5 6c1.2 0 2.3-.3 3.3-.7" />
       <path d="M9.9 9.9a3.2 3.2 0 0 0 4.2 4.2" />
+    </>
+  ),
+  gembok: (
+    <>
+      <rect x="5" y="10.5" width="14" height="10" rx="2" />
+      <path d="M8 10.5V7.8a4 4 0 0 1 8 0v2.7" />
+      <path d="M12 14.6v2" />
     </>
   ),
   masuk: (
