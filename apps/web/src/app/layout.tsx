@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import type { ReactNode } from "react";
 import Kerangka from "@/components/Kerangka";
 import "./globals.css";
+import "./ui.css";
 
 export const metadata: Metadata = {
   title: "Aplikasi Santri",

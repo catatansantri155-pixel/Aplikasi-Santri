@@ -9,11 +9,7 @@
  * ≥ 11 = G (Goncang). Jumlah setoran sekali majelis: 2 lembar.
  */
 import { useEffect, useMemo, useState } from "react";
-import {
-  LABEL_HASIL_UJIAN,
-  hasilUjian,
-  kbKonversi,
-} from "@/lib/hifzh";
+import { LABEL_HASIL_UJIAN, hasilUjian, kbKonversi } from "@/lib/hifzh";
 import {
   ambilUjianSemester,
   simpanBarisUjian,
@@ -62,8 +58,7 @@ export default function BagianUjian({
   // Santri TIDAK dipilih otomatis (audit Fase 1, pola sama dengan
   // FormSetoran): tanpa pilihan sadar, tabel juz kosong dan tombol
   // simpan nonaktif — baris ujian tidak boleh masuk ke anak yang salah.
-  const santriTerpilih =
-    daftarSantri.find((s) => s.id === santriId) ?? null;
+  const santriTerpilih = daftarSantri.find((s) => s.id === santriId) ?? null;
 
   useEffect(() => {
     if (!santriTerpilih) {
@@ -181,9 +176,7 @@ export default function BagianUjian({
           style={gayaMasukan}
         >
           <option value="">
-            {daftarSantri.length === 0
-              ? "Belum ada santri"
-              : "Pilih santri…"}
+            {daftarSantri.length === 0 ? "Belum ada santri" : "Pilih santri…"}
           </option>
           {daftarSantri.map((s) => (
             <option key={s.id} value={s.id}>
@@ -196,16 +189,15 @@ export default function BagianUjian({
 
       <p style={{ ...gayaPetunjuk, marginBottom: 10 }}>
         Lembar tes semester{sumber === "contoh" ? " (contoh)" : ""}: hasil per
-        juz dihitung dari KB hasil konversi bertahap (3 RG = 1 KK,
-        3 KK = 1 KB). Jumlah hafalan yang disetorkan sekali majelis adalah
-        2 lembar.
+        juz dihitung dari KB hasil konversi bertahap (3 RG = 1 KK, 3 KK = 1 KB).
+        Jumlah hafalan yang disetorkan sekali majelis adalah 2 lembar.
         {ringkasan ? ` ${ringkasan}.` : ""}
       </p>
 
       {!santriTerpilih ? (
         <p style={gayaPetunjuk}>
-          Pilih santri terlebih dahulu untuk melihat dan mengisi baris
-          juz tes semesternya.
+          Pilih santri terlebih dahulu untuk melihat dan mengisi baris juz tes
+          semesternya.
         </p>
       ) : memuat ? (
         <p style={gayaPetunjuk}>Memuat tabel juz…</p>
@@ -215,7 +207,7 @@ export default function BagianUjian({
           bawah.
         </p>
       ) : (
-        <div className="tabel-bungkus">
+        <div className="tabel-bungkus tabel-adaptif">
           <table style={gayaTabel}>
             <thead>
               <tr>
@@ -231,15 +223,29 @@ export default function BagianUjian({
             <tbody>
               {baris.map((b) => (
                 <tr key={b.id}>
-                  <td style={gayaSel}>{b.juz}</td>
-                  <td style={gayaSel}>{b.halaman}</td>
-                  <td style={gayaSel}>{b.rg}</td>
-                  <td style={gayaSel}>{b.kk}</td>
-                  <td style={gayaSel}>{b.kb}</td>
-                  <td style={gayaSel}>{kbKonversi(b.rg, b.kk, b.kb)}</td>
-                  <td style={gayaSel}>
+                  <td data-label="Juz" style={gayaSel}>
+                    {b.juz}
+                  </td>
+                  <td data-label="Halaman" style={gayaSel}>
+                    {b.halaman}
+                  </td>
+                  <td data-label="RG" style={gayaSel}>
+                    {b.rg}
+                  </td>
+                  <td data-label="KK" style={gayaSel}>
+                    {b.kk}
+                  </td>
+                  <td data-label="KB" style={gayaSel}>
+                    {b.kb}
+                  </td>
+                  <td data-label="KB konversi" style={gayaSel}>
+                    {kbKonversi(b.rg, b.kk, b.kb)}
+                  </td>
+                  <td data-label="Hasil" style={gayaSel}>
                     <span style={gayaLencanaHasil(b.hasil)}>{b.hasil}</span>{" "}
-                    <span style={gayaPetunjuk}>{LABEL_HASIL_UJIAN[b.hasil]}</span>
+                    <span style={gayaPetunjuk}>
+                      {LABEL_HASIL_UJIAN[b.hasil]}
+                    </span>
                   </td>
                 </tr>
               ))}
@@ -250,9 +256,10 @@ export default function BagianUjian({
 
       <form
         onSubmit={tanganiKirim}
-        style={{ display: "grid", gap: 12, maxWidth: 560, marginTop: 16 }}
+        className="form-ujian"
+        style={{ display: "grid", gap: 16, marginTop: 20 }}
       >
-        <div style={gayaKisiTiga}>
+        <div className="kisi-ujian" style={gayaKisiTiga}>
           <label style={gayaLabel}>
             Juz
             <input
@@ -337,7 +344,10 @@ export default function BagianUjian({
           </p>
         )}
         {pesan && (
-          <p role="status" style={{ margin: 0, color: "var(--hijau-gelap)", fontSize: 14 }}>
+          <p
+            role="status"
+            style={{ margin: 0, color: "var(--hijau-gelap)", fontSize: 14 }}
+          >
             {pesan}
           </p>
         )}
@@ -360,11 +370,11 @@ export default function BagianUjian({
 
         {barisJuzIni && (
           <p style={{ ...gayaPetunjuk, margin: 0 }} aria-live="polite">
-            Baris Juz {barisJuzIni.juz} sudah ada untuk santri ini:
-            halaman {barisJuzIni.halaman} · RG {barisJuzIni.rg} · KK{" "}
-            {barisJuzIni.kk} · KB {barisJuzIni.kb} · hasil{" "}
-            {barisJuzIni.hasil} ({LABEL_HASIL_UJIAN[barisJuzIni.hasil]}).
-            Menyimpan akan memperbarui baris tersebut.
+            Baris Juz {barisJuzIni.juz} sudah ada untuk santri ini: halaman{" "}
+            {barisJuzIni.halaman} · RG {barisJuzIni.rg} · KK {barisJuzIni.kk} ·
+            KB {barisJuzIni.kb} · hasil {barisJuzIni.hasil} (
+            {LABEL_HASIL_UJIAN[barisJuzIni.hasil]}). Menyimpan akan memperbarui
+            baris tersebut.
           </p>
         )}
 

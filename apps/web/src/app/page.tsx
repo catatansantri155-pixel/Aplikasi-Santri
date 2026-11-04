@@ -46,26 +46,16 @@ import {
   LABEL_KATEGORI,
   type CatatanMusyrif,
 } from "@/lib/data/catatan";
-import {
-  ambilDaftarSesi,
-  formatTanggalPanjang,
-} from "@/lib/data/olahraga";
+import { ambilDaftarSesi, formatTanggalPanjang } from "@/lib/data/olahraga";
 import BannerMotivasi from "@/components/BannerMotivasi";
 import AvatarInisial from "@/components/AvatarInisial";
-import Pola from "@/components/Pola";
 import {
   ambilSemesterAdmin,
   statusSemester,
   type SemesterLengkap,
 } from "@/lib/data/admin";
-import {
-  formatHijriahRingkas,
-  tanggalIsoHariIni,
-} from "@/lib/tanggal";
-import {
-  ambilSetoranTerakhir,
-  type SetoranHifzh,
-} from "@/lib/data/hifzh";
+import { formatHijriahRingkas, tanggalIsoHariIni } from "@/lib/tanggal";
+import { ambilSetoranTerakhir, type SetoranHifzh } from "@/lib/data/hifzh";
 import { LABEL_NILAI_SETORAN } from "@/lib/hifzh";
 
 /**
@@ -184,8 +174,9 @@ export default function HalamanBeranda() {
   // wali) — semuanya dari respons lapisan data yang SAMA dengan
   // hitungan statistik di atas, tanpa panggilan tambahan.
   const [setoranTerbaru, setSetoranTerbaru] = useState<SetoranHifzh[]>([]);
-  const [catatanTerbaru, setCatatanTerbaru] =
-    useState<CatatanMusyrif | null>(null);
+  const [catatanTerbaru, setCatatanTerbaru] = useState<CatatanMusyrif | null>(
+    null,
+  );
   const [daftarAnak, setDaftarAnak] = useState<Santri[]>([]);
   const [ringkasanAnak, setRingkasanAnak] = useState<
     Record<string, { kehadiran: number; setoran: number }>
@@ -237,9 +228,7 @@ export default function HalamanBeranda() {
         if (untukWali) {
           // Total tercatat per anak (RLS hanya meloloskan anaknya).
           const perAnak = await Promise.all(
-            daftarSantri.data.map((s) =>
-              ambilRiwayatKehadiranSantri(s.id),
-            ),
+            daftarSantri.data.map((s) => ambilRiwayatKehadiranSantri(s.id)),
           );
           kehadiran = perAnak.reduce((j, h) => j + h.data.length, 0);
           if (!aktif) return;
@@ -251,8 +240,7 @@ export default function HalamanBeranda() {
           daftarSantri.data.forEach((s, i) => {
             perAnakMap[s.id] = {
               kehadiran: perAnak[i]?.data.length ?? 0,
-              setoran: setoran.data.filter((x) => x.santriId === s.id)
-                .length,
+              setoran: setoran.data.filter((x) => x.santriId === s.id).length,
             };
           });
           setRingkasanAnak(perAnakMap);
@@ -271,16 +259,14 @@ export default function HalamanBeranda() {
           kehadiran,
           setoran: untukWali
             ? setoran.data.length
-            : setoran.data.filter((s) => s.tanggalMasehi === hariIni)
-                .length,
+            : setoran.data.filter((s) => s.tanggalMasehi === hariIni).length,
           catatan: untukWali
             ? catatan.data.length
             : catatan.data.filter((c) => c.tanggal === hariIni).length,
           olahraga: olahragaPekanIni,
         });
         setSemesterBerjalan(
-          semester.data.find((s) => statusSemester(s) === "berjalan") ??
-            null,
+          semester.data.find((s) => statusSemester(s) === "berjalan") ?? null,
         );
       } catch {
         // Ringkasan gagal dimuat: bagian ini disembunyikan saja,
@@ -464,8 +450,8 @@ export default function HalamanBeranda() {
         </h1>
         {!memuatProfil && !profilLogin && (
           <p className="pesan-galat" role="alert">
-            Profil pengguna belum ditemukan di tabel profiles. Hubungi
-            admin agar akun Anda didaftarkan profil dan perannya.
+            Profil pengguna belum ditemukan di tabel profiles. Hubungi admin
+            agar akun Anda didaftarkan profil dan perannya.
           </p>
         )}
       </>
@@ -523,9 +509,9 @@ export default function HalamanBeranda() {
                 <section className="kartu">
                   <h2>Belum ada anak tertaut</h2>
                   <p>
-                    Akun Anda belum ditautkan ke santri mana pun.
-                    Sampaikan ke admin pondok agar anak Anda ditautkan;
-                    setelah itu data anak tampil di sini.
+                    Akun Anda belum ditautkan ke santri mana pun. Sampaikan ke
+                    admin pondok agar anak Anda ditautkan; setelah itu data anak
+                    tampil di sini.
                   </p>
                 </section>
               ) : (
@@ -571,9 +557,8 @@ export default function HalamanBeranda() {
                         </span>
                         <span className="baris-ket">
                           Setoran tercatat{" "}
-                          {ringkasanAnak[anak.id]?.setoran ?? 0} ·
-                          Kehadiran tercatat{" "}
-                          {ringkasanAnak[anak.id]?.kehadiran ?? 0}
+                          {ringkasanAnak[anak.id]?.setoran ?? 0} · Kehadiran
+                          tercatat {ringkasanAnak[anak.id]?.kehadiran ?? 0}
                         </span>
                       </span>
                       <span className="baris-kanan">
@@ -680,15 +665,33 @@ export default function HalamanBeranda() {
             rapi 2×2 (.kisi-stat: 2 kolom di HP, 4 kolom di PC). */}
         {profilLogin && statistik && (
           <>
-            <div className="kartu-hero" style={{ marginBottom: 12 }}>
-              <Pola className="hero-pola" />
-              <p className="hero-label">{hero.label}</p>
-              <p className="hero-nilai">{hero.nilai}</p>
-              <p className="hero-sub">{hero.sub}</p>
-              <Link href={hero.href} className="tombol hero-aksi">
+            <section className="aksi-beranda" aria-label="Aktivitas utama">
+              <span className="aksi-beranda-ikon">
+                <Ikon
+                  nama={
+                    profilLogin.peran === "musyrif"
+                      ? "catatan"
+                      : profilLogin.peran === "pengajar_diniyyah"
+                        ? "diniyyah"
+                        : profilLogin.peran === "admin"
+                          ? "santri"
+                          : "hifzh"
+                  }
+                  ukuran={24}
+                />
+              </span>
+              <div className="aksi-beranda-teks">
+                <span className="aksi-beranda-label">Aktivitas Anda</span>
+                <h2>{hero.label}</h2>
+                <p>
+                  <strong>{hero.nilai}</strong> · {hero.sub}
+                </p>
+              </div>
+              <Link href={hero.href} className="tombol">
                 {hero.cta}
+                <Ikon nama="chevron-kanan" ukuran={16} />
               </Link>
-            </div>
+            </section>
             <div className="kisi-stat">
               {kartuLain.map((s) => (
                 <div key={s.label} className="kartu-stat">
@@ -704,9 +707,9 @@ export default function HalamanBeranda() {
         {profilLogin && (
           <>
             <div className="kepala-seksi">
-              <h2 className="judul-seksi">Modul</h2>
+              <h2 className="judul-seksi">Akses cepat</h2>
             </div>
-            <div className="kisi-menu">
+            <div className="kisi-menu kisi-menu--kerja">
               {DAFTAR_MODUL.filter((modul) =>
                 bolehAksesModul(profilLogin.peran, modul.modul),
               ).map((modul) => (
@@ -716,7 +719,13 @@ export default function HalamanBeranda() {
                     ikon={modul.ikon}
                     warna={modul.warna}
                   />
-                  <span className="item-menu-label">{modul.label}</span>
+                  <span className="item-menu-teks">
+                    <span className="item-menu-label">{modul.label}</span>
+                    <span className="item-menu-ket">{modul.keterangan}</span>
+                  </span>
+                  <span className="item-menu-panah">
+                    <Ikon nama="chevron-kanan" ukuran={16} />
+                  </span>
                 </Link>
               ))}
             </div>
@@ -726,7 +735,7 @@ export default function HalamanBeranda() {
                 <>
                   <div className="kepala-seksi">
                     <h2 className="judul-seksi">Setoran terakhir</h2>
-                    <Link href="/hifzh" className="aksi-seksi">
+                    <Link href="/hifzh?tab=riwayat" className="aksi-seksi">
                       Semua
                     </Link>
                   </div>
@@ -737,15 +746,13 @@ export default function HalamanBeranda() {
                         <span className="baris-teks">
                           <span className="baris-judul">{s.santriNama}</span>
                           <span className="baris-ket">
-                            {s.jenis} · {s.surat} {s.ayatDari}–{s.ayatSampai}{" "}
-                            · {formatTanggal(s.tanggalMasehi)}
+                            {s.jenis} · {s.surat} {s.ayatDari}–{s.ayatSampai} ·{" "}
+                            {formatTanggal(s.tanggalMasehi)}
                           </span>
                         </span>
                         <span
                           className={`lencana ${
-                            s.nilaiHuruf === "L"
-                              ? "lencana--l"
-                              : "lencana--u"
+                            s.nilaiHuruf === "L" ? "lencana--l" : "lencana--u"
                           }`}
                         >
                           {s.nilaiHuruf} · {LABEL_NILAI_SETORAN[s.nilaiHuruf]}
@@ -782,8 +789,8 @@ export default function HalamanBeranda() {
         Assalamu&rsquo;alaikum, selamat datang di Aplikasi Santri
       </h1>
       <p className="subjudul">
-        Aplikasi monitoring santri Marhalah Wustha; tampilan menyesuaikan
-        peran pengguna yang masuk.
+        Aplikasi monitoring santri Marhalah Wustha; tampilan menyesuaikan peran
+        pengguna yang masuk.
       </p>
 
       {/* Kartu peran mode contoh: ikon + label saja (revisi biru —
@@ -817,17 +824,14 @@ export default function HalamanBeranda() {
         <PenandaTahap teks="TAMPILAN WALI (CONTOH) · HANYA-LIHAT" />
         <h2>Beranda wali: hanya anaknya sendiri</h2>
         {memuatWali && <p>Memuat contoh tampilan wali…</p>}
-        {!memuatWali && !anakWali && (
-          <p>Data contoh santri belum tersedia.</p>
-        )}
+        {!memuatWali && !anakWali && <p>Data contoh santri belum tersedia.</p>}
         {!memuatWali && anakWali && (
           <>
             <p>
-              Contoh akun wali <strong>{anakWali.namaAyahWali}</strong>{" "}
-              hanya melihat satu anaknya:{" "}
-              <strong>{anakWali.nama}</strong> ({anakWali.kelasNama}).
-              Santri lain tidak tampil sama sekali, dan di sini tidak ada
-              tombol ubah — wali hanya membaca.
+              Contoh akun wali <strong>{anakWali.namaAyahWali}</strong> hanya
+              melihat satu anaknya: <strong>{anakWali.nama}</strong> (
+              {anakWali.kelasNama}). Santri lain tidak tampil sama sekali, dan
+              di sini tidak ada tombol ubah — wali hanya membaca.
             </p>
             <div style={{ display: "grid", gap: 12 }}>
               <div>
@@ -836,9 +840,7 @@ export default function HalamanBeranda() {
                 </div>
                 {ringkasanWali ? (
                   <>
-                    <div
-                      style={{ display: "flex", flexWrap: "wrap", gap: 8 }}
-                    >
+                    <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
                       {STATUS_KEHADIRAN.map((s) => (
                         <span
                           key={s}
@@ -912,9 +914,9 @@ export default function HalamanBeranda() {
                 ) : (
                   <p style={{ margin: 0 }}>
                     Belum ada setoran yang tampil untuk anak ini pada data
-                    contoh tahap ini (modul hifzh memakai daftar santri
-                    contoh tersendiri; pada data asli setoran anak langsung
-                    tampil di sini).
+                    contoh tahap ini (modul hifzh memakai daftar santri contoh
+                    tersendiri; pada data asli setoran anak langsung tampil di
+                    sini).
                   </p>
                 )}
               </div>
@@ -948,8 +950,8 @@ export default function HalamanBeranda() {
           Pembatasnya bukan tampilan ini: di database, aturan RLS hanya
           meloloskan baris santri yang tertaut ke akun wali di tabel
           wali_santri. Wali lain tidak bisa membuka data anak ini walau
-          mengetahui alamat halamannya — penolakan itu akan dibuktikan
-          pada uji negatif Tahap 4.
+          mengetahui alamat halamannya — penolakan itu akan dibuktikan pada uji
+          negatif Tahap 4.
         </p>
       </section>
     </>

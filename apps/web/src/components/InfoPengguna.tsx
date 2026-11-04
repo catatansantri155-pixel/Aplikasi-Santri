@@ -121,17 +121,20 @@ export default function InfoPengguna({
     );
   }
 
-  // Sidebar (desktop): identitas di DASAR sidebar mengikuti
-  // prototipe — dua baris teks polos (nama + peran), tanpa avatar
-  // dan tanpa chevron; tetap tautan ke halaman Akun.
+  // Identitas di dasar sidebar; nama panjang membungkus tanpa
+  // menggeser ikon dan avatar. Tautan membuka pengaturan akun.
   return (
     <Link
       href="/akun"
       className="info-pengguna-samping"
       aria-current={pathname === "/akun" ? "page" : undefined}
     >
-      <span className="info-pengguna-nama">{profil.nama}</span>
-      <span className="info-pengguna-peran">{LABEL_PERAN[profil.peran]}</span>
+      <AvatarInisial nama={profil.nama} ukuran="kecil" />
+      <span className="profil-sidebar-teks">
+        <span className="info-pengguna-nama">{profil.nama}</span>
+        <span className="info-pengguna-peran">{LABEL_PERAN[profil.peran]}</span>
+      </span>
+      <Ikon nama="chevron-kanan" ukuran={16} />
     </Link>
   );
 }

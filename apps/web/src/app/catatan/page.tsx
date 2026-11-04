@@ -177,9 +177,7 @@ function IsiHalamanCatatan() {
      riwayat tetap tampil. Profil contoh adalah musyrif, jadi mode
      contoh tidak tersentuh. */
   const pantauanAdmin =
-    !sumberContoh &&
-    profil !== null &&
-    !bolehInput(profil.peran, "catatan");
+    !sumberContoh && profil !== null && !bolehInput(profil.peran, "catatan");
   const formulirSiap = pelaporSiap && santriId !== "" && isi.trim().length > 0;
   /** Identitas santri terpilih, ditampilkan dekat tombol Simpan. */
   const santriTerpilih = semuaSantri.find((s) => s.id === santriId) ?? null;
@@ -258,9 +256,7 @@ function IsiHalamanCatatan() {
       );
       await muatCatatan();
     } catch (e: unknown) {
-      setPesanAksi(
-        e instanceof Error ? e.message : "Gagal mengubah catatan.",
-      );
+      setPesanAksi(e instanceof Error ? e.message : "Gagal mengubah catatan.");
     } finally {
       setSibukAksi(false);
     }
@@ -284,9 +280,7 @@ function IsiHalamanCatatan() {
       );
       await muatCatatan();
     } catch (e: unknown) {
-      setPesanAksi(
-        e instanceof Error ? e.message : "Gagal menghapus catatan.",
-      );
+      setPesanAksi(e instanceof Error ? e.message : "Gagal menghapus catatan.");
     } finally {
       setSibukAksi(false);
     }
@@ -326,106 +320,112 @@ function IsiHalamanCatatan() {
         <h2>Tulis catatan</h2>
         {pantauanAdmin ? (
           <p className="catatan-pantauan" role="note">
-            {pesanModePantauan("pengajar hifzh, pengajar diniyyah, dan musyrif")}
-          </p>
-        ) : (
-        <div className="formulir" style={{ maxWidth: "100%" }}>
-          {!pelaporSiap && profil !== null && (
-            <p className="catatan-kaki" role="alert">
-              Nama pelapor kosong pada akun yang masuk, jadi penyimpanan
-              dinonaktifkan sampai profil dilengkapi.
-            </p>
-          )}
-          <label>
-            Santri
-            <select
-              value={santriId}
-              onChange={(e) => setSantriId(e.target.value)}
-              style={GAYA_PILIH}
-            >
-              <option value="">
-                {semuaSantri.length === 0
-                  ? "Belum ada santri"
-                  : "Pilih santri…"}
-              </option>
-              {semuaSantri.map((s) => (
-                <option key={s.id} value={s.id}>
-                  {s.nama} — Kelas {s.kelasTingkat}
-                </option>
-              ))}
-            </select>
-          </label>
-          <div>
-            <span
-              style={{
-                display: "block",
-                fontSize: 13,
-                fontWeight: 600,
-                marginBottom: 6,
-              }}
-            >
-              Kategori
-            </span>
-            <div className="grup-chip" role="group" aria-label="Kategori catatan">
-              {KATEGORI_CATATAN.map((k) => (
-                <button
-                  key={k}
-                  type="button"
-                  className="chip"
-                  aria-pressed={kategori === k}
-                  onClick={() => setKategori(k)}
-                >
-                  {LABEL_KATEGORI[k]}
-                </button>
-              ))}
-            </div>
-          </div>
-          <label>
-            Tanggal
-            <input
-              type="date"
-              value={tanggal}
-              onChange={(e) => setTanggal(e.target.value)}
-            />
-          </label>
-          <label>
-            Isi catatan
-            <textarea
-              value={isi}
-              onChange={(e) => setIsi(e.target.value)}
-              required
-              rows={4}
-              placeholder="Tulis catatan keseharian santri…"
-              style={GAYA_AREA_TEKS}
-            />
-          </label>
-          <p className="catatan-kaki" style={{ margin: 0 }}>
-            {santriTerpilih ? (
-              <>
-                Santri terpilih:{" "}
-                <strong>
-                  {santriTerpilih.nama} — Kelas {santriTerpilih.kelasTingkat}
-                </strong>
-              </>
-            ) : (
-              "Pilih santri terlebih dahulu — catatan tidak akan tersimpan sebelum santri dipilih."
+            {pesanModePantauan(
+              "pengajar hifzh, pengajar diniyyah, dan musyrif",
             )}
           </p>
-          <p className="catatan-kaki" style={{ margin: 0 }}>
-            Pelapor:{" "}
-            <strong>{profil ? profil.nama : "Memuat profil…"}</strong> —
-            tercatat otomatis dari akun yang masuk dan tidak dapat
-            diganti di formulir ini.
-          </p>
-          <button
-            type="button"
-            className="tombol"
-            onClick={tanganiSimpan}
-            disabled={sedangMenyimpan || !formulirSiap}
-          >
-            {sedangMenyimpan ? "Menyimpan…" : "Simpan catatan"}
-          </button>
-        </div>
+        ) : (
+          <div className="formulir" style={{ maxWidth: "100%" }}>
+            {!pelaporSiap && profil !== null && (
+              <p className="catatan-kaki" role="alert">
+                Nama pelapor kosong pada akun yang masuk, jadi penyimpanan
+                dinonaktifkan sampai profil dilengkapi.
+              </p>
+            )}
+            <label>
+              Santri
+              <select
+                value={santriId}
+                onChange={(e) => setSantriId(e.target.value)}
+                style={GAYA_PILIH}
+              >
+                <option value="">
+                  {semuaSantri.length === 0
+                    ? "Belum ada santri"
+                    : "Pilih santri…"}
+                </option>
+                {semuaSantri.map((s) => (
+                  <option key={s.id} value={s.id}>
+                    {s.nama} — Kelas {s.kelasTingkat}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <div>
+              <span
+                style={{
+                  display: "block",
+                  fontSize: 13,
+                  fontWeight: 600,
+                  marginBottom: 6,
+                }}
+              >
+                Kategori
+              </span>
+              <div
+                className="grup-chip"
+                role="group"
+                aria-label="Kategori catatan"
+              >
+                {KATEGORI_CATATAN.map((k) => (
+                  <button
+                    key={k}
+                    type="button"
+                    className="chip"
+                    aria-pressed={kategori === k}
+                    onClick={() => setKategori(k)}
+                  >
+                    {LABEL_KATEGORI[k]}
+                  </button>
+                ))}
+              </div>
+            </div>
+            <label>
+              Tanggal
+              <input
+                type="date"
+                value={tanggal}
+                onChange={(e) => setTanggal(e.target.value)}
+              />
+            </label>
+            <label>
+              Isi catatan
+              <textarea
+                value={isi}
+                onChange={(e) => setIsi(e.target.value)}
+                required
+                rows={4}
+                placeholder="Tulis catatan keseharian santri…"
+                style={GAYA_AREA_TEKS}
+              />
+            </label>
+            <p className="catatan-kaki" style={{ margin: 0 }}>
+              {santriTerpilih ? (
+                <>
+                  Santri terpilih:{" "}
+                  <strong>
+                    {santriTerpilih.nama} — Kelas {santriTerpilih.kelasTingkat}
+                  </strong>
+                </>
+              ) : (
+                "Pilih santri terlebih dahulu — catatan tidak akan tersimpan sebelum santri dipilih."
+              )}
+            </p>
+            <p className="catatan-kaki" style={{ margin: 0 }}>
+              Pelapor:{" "}
+              <strong>{profil ? profil.nama : "Memuat profil…"}</strong> —
+              tercatat otomatis dari akun yang masuk dan tidak dapat diganti di
+              formulir ini.
+            </p>
+            <button
+              type="button"
+              className="tombol"
+              onClick={tanganiSimpan}
+              disabled={sedangMenyimpan || !formulirSiap}
+            >
+              {sedangMenyimpan ? "Menyimpan…" : "Simpan catatan"}
+            </button>
+          </div>
         )}
         {pesanGalatForm && (
           <p className="pesan-galat" role="alert" style={{ marginTop: 10 }}>
@@ -447,7 +447,10 @@ function IsiHalamanCatatan() {
             {pesanAksi}
           </p>
         )}
-        <div className="formulir" style={{ maxWidth: "100%", marginBottom: 14 }}>
+        <div
+          className="formulir formulir-filter"
+          style={{ maxWidth: "100%", marginBottom: 14 }}
+        >
           <label>
             Santri
             <select
@@ -605,7 +608,11 @@ function IsiHalamanCatatan() {
                           value={editIsi}
                           onChange={(e) => setEditIsi(e.target.value)}
                           rows={4}
-                          style={{ ...GAYA_AREA_TEKS, width: "100%", marginTop: 10 }}
+                          style={{
+                            ...GAYA_AREA_TEKS,
+                            width: "100%",
+                            marginTop: 10,
+                          }}
                           aria-label="Isi catatan"
                         />
                         <div style={{ display: "flex", gap: 6, marginTop: 8 }}>

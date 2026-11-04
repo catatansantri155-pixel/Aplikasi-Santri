@@ -105,9 +105,7 @@ function LabelMapel({ mapel }: { mapel: string }) {
   return (
     <>
       {mapel}{" "}
-      <span style={{ color: "var(--teks-redup)", fontSize: 12 }}>
-        (contoh)
-      </span>
+      <span style={{ color: "var(--teks-redup)", fontSize: 12 }}>(contoh)</span>
     </>
   );
 }
@@ -262,9 +260,7 @@ export default function IsiHalamanDiniyyah({ tab }: { tab: TabDiniyyah }) {
      terkonfirmasi — formulir harian & ujian disembunyikan, tab
      Ringkasan dan pemilih santri/mapel tetap tampil. */
   const pantauanAdmin =
-    !sumberContoh &&
-    peranMasuk !== null &&
-    !bolehInput(peranMasuk, "diniyyah");
+    !sumberContoh && peranMasuk !== null && !bolehInput(peranMasuk, "diniyyah");
 
   const ringkasan = useMemo(
     () => hitungRingkasanMapel(harian, ujian),
@@ -431,9 +427,7 @@ export default function IsiHalamanDiniyyah({ tab }: { tab: TabDiniyyah }) {
     try {
       await hapusNilaiHarian(n.id);
       if (editHarianId === n.id) setEditHarianId(null);
-      setPesanAksi(
-        `Nilai harian ${n.mapel} tanggal ${n.tanggal} dihapus.`,
-      );
+      setPesanAksi(`Nilai harian ${n.mapel} tanggal ${n.tanggal} dihapus.`);
       await muatNilai(santriId);
     } catch (e: unknown) {
       setPesanAksi(e instanceof Error ? e.message : "Gagal menghapus nilai.");
@@ -477,9 +471,7 @@ export default function IsiHalamanDiniyyah({ tab }: { tab: TabDiniyyah }) {
     try {
       await hapusNilaiUjian(u.id);
       if (editUjianId === u.id) setEditUjianId(null);
-      setPesanAksi(
-        `Nilai ujian ${u.mapel} (${u.semesterNama}) dihapus.`,
-      );
+      setPesanAksi(`Nilai ujian ${u.mapel} (${u.semesterNama}) dihapus.`);
       await muatNilai(santriId);
     } catch (e: unknown) {
       setPesanAksi(e instanceof Error ? e.message : "Gagal menghapus nilai.");
@@ -550,483 +542,533 @@ export default function IsiHalamanDiniyyah({ tab }: { tab: TabDiniyyah }) {
         id={`panel-diniyyah-${tab}`}
         aria-labelledby={`tab-diniyyah-${tab}`}
       >
-
-      {/* ------------ Pilih santri & mapel ------------ */}
-      <section className="kartu">
-        <h2>Santri & mata pelajaran</h2>
-        <div className="formulir" style={{ maxWidth: "100%" }}>
-          <label>
-            Santri
-            <select
-              value={santriId}
-              onChange={(e) => setSantriId(e.target.value)}
-              style={GAYA_PILIH}
-            >
-              <option value="">
-                {semuaSantri.length === 0
-                  ? "Belum ada santri"
-                  : "Pilih santri…"}
-              </option>
-              {semuaSantri.map((s) => (
-                <option key={s.id} value={s.id}>
-                  {s.nama} — Kelas {s.kelasTingkat}
+        {/* ------------ Pilih santri & mapel ------------ */}
+        <section className="kartu">
+          <h2>Santri & mata pelajaran</h2>
+          <div className="formulir" style={{ maxWidth: "100%" }}>
+            <label>
+              Santri
+              <select
+                value={santriId}
+                onChange={(e) => setSantriId(e.target.value)}
+                style={GAYA_PILIH}
+              >
+                <option value="">
+                  {semuaSantri.length === 0
+                    ? "Belum ada santri"
+                    : "Pilih santri…"}
                 </option>
-              ))}
-            </select>
-          </label>
-          <div>
-            <span
-              style={{
-                display: "block",
-                fontSize: 13,
-                fontWeight: 600,
-                marginBottom: 6,
-              }}
-            >
-              Mata pelajaran (contoh)
-            </span>
-            <div className="grup-chip" role="group" aria-label="Mata pelajaran">
-              {MAPEL_DINIYYAH_CONTOH.map((m) => (
-                <button
-                  key={m}
-                  type="button"
-                  className="chip"
-                  aria-pressed={mapel === m}
-                  onClick={() => setMapel(m)}
-                >
-                  {m}
-                </button>
-              ))}
+                {semuaSantri.map((s) => (
+                  <option key={s.id} value={s.id}>
+                    {s.nama} — Kelas {s.kelasTingkat}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <div>
+              <span
+                style={{
+                  display: "block",
+                  fontSize: 13,
+                  fontWeight: 600,
+                  marginBottom: 6,
+                }}
+              >
+                Mata pelajaran (contoh)
+              </span>
+              <div
+                className="grup-chip"
+                role="group"
+                aria-label="Mata pelajaran"
+              >
+                {MAPEL_DINIYYAH_CONTOH.map((m) => (
+                  <button
+                    key={m}
+                    type="button"
+                    className="chip"
+                    aria-pressed={mapel === m}
+                    onClick={() => setMapel(m)}
+                  >
+                    {m}
+                  </button>
+                ))}
+              </div>
             </div>
           </div>
-        </div>
-      </section>
+        </section>
 
-      {/* ------------ Form nilai harian ------------ */}
-      {tab === "harian" && (
-      <section className="kartu">
-        <h2>Form nilai harian</h2>
-        <p>
-          Satu nilai per santri per tanggal per mapel; mengisi ulang
-          tanggal+mapel yang sama memperbarui nilainya.
-        </p>
-        {pantauanAdmin ? (
-          <p className="catatan-pantauan" role="note">
-            {pesanModePantauan("pengajar diniyyah")}
-          </p>
-        ) : (
-        <div className="formulir" style={{ maxWidth: "100%" }}>
-          <label>
-            Tanggal
-            <input
-              type="date"
-              value={tanggalHarian}
-              onChange={(e) => setTanggalHarian(e.target.value)}
-            />
-          </label>
-          <label>
-            Mapel terpilih: <LabelMapel mapel={mapel} />
-            <input
-              type="number"
-              min={0}
-              max={100}
-              step="0.5"
-              inputMode="decimal"
-              placeholder="Nilai 0–100"
-              value={nilaiHarianInput}
-              onChange={(e) => setNilaiHarianInput(e.target.value)}
-            />
-          </label>
-          {nilaiHarianAda && (
-            <p className="catatan-kaki" style={{ margin: 0 }} aria-live="polite">
-              Nilai saat ini:{" "}
-              <strong>{formatNilai(nilaiHarianAda.nilai)}</strong> — sudah
-              ada nilai {mapel} untuk tanggal {tanggalHarian}; menyimpan
-              akan memperbaruinya.
+        {/* ------------ Form nilai harian ------------ */}
+        {tab === "harian" && (
+          <section className="kartu">
+            <h2>Form nilai harian</h2>
+            <p>
+              Satu nilai per santri per tanggal per mapel; mengisi ulang
+              tanggal+mapel yang sama memperbarui nilainya.
             </p>
-          )}
-          <p className="catatan-kaki" style={{ margin: 0 }}>
-            {santriTerpilih ? (
-              <>
-                Santri terpilih:{" "}
-                <strong>
-                  {santriTerpilih.nama} — Kelas {santriTerpilih.kelasTingkat}
-                </strong>
-              </>
+            {pantauanAdmin ? (
+              <p className="catatan-pantauan" role="note">
+                {pesanModePantauan("pengajar diniyyah")}
+              </p>
             ) : (
-              "Pilih santri terlebih dahulu — nilai tidak akan tersimpan sebelum santri dipilih."
-            )}
-          </p>
-          <button
-            type="button"
-            className="tombol"
-            onClick={tanganiSimpanHarian}
-            disabled={simpanHarianBerjalan || !santriId}
-          >
-            {simpanHarianBerjalan
-              ? "Menyimpan…"
-              : nilaiHarianAda
-                ? "Perbarui nilai"
-                : "Simpan nilai harian"}
-          </button>
-        </div>
-        )}
-        {pesanHarian && (
-          <p className="catatan-kaki" role="status" style={{ marginTop: 10 }}>
-            {pesanHarian}
-          </p>
-        )}
-      </section>
-
-      )}
-
-      {/* ------------ Form nilai ujian ------------ */}
-      {tab === "ujian" && (
-      <section className="kartu">
-        <h2>Form nilai ujian semester</h2>
-        <p>
-          Nilai ujian per mapel untuk semester gasal atau genap
-          {santriTerpilih ? ` — santri: ${santriTerpilih.nama}` : ""}.
-        </p>
-        {semesterBelumAda && (
-          <p>
-            <strong>Belum ada data semester.</strong> Semester gasal/genap
-            harus dibuat oleh admin terlebih dahulu — selama belum ada,
-            nilai ujian belum bisa diisi. Nilai harian di atas tetap bisa
-            diisi seperti biasa.
-          </p>
-        )}
-        {pantauanAdmin ? (
-          <p className="catatan-pantauan" role="note">
-            {pesanModePantauan("pengajar diniyyah")}
-          </p>
-        ) : (
-        <div className="formulir" style={{ maxWidth: "100%" }}>
-          <label>
-            Semester
-            <select
-              value={semesterUjianId}
-              onChange={(e) => setSemesterUjianId(e.target.value)}
-              style={GAYA_PILIH}
-              disabled={daftarSemester.length === 0}
-            >
-              {daftarSemester.length === 0 && (
-                <option value="">Belum ada semester</option>
-              )}
-              {daftarSemester.map((s) => (
-                <option key={s.id} value={s.id}>
-                  {s.nama} — {s.tahunAjaran} ({LABEL_SEMESTER[s.jenis]})
-                </option>
-              ))}
-            </select>
-          </label>
-          <label>
-            Mapel terpilih: <LabelMapel mapel={mapel} />
-            <input
-              type="number"
-              min={0}
-              max={100}
-              step="0.5"
-              inputMode="decimal"
-              placeholder="Nilai 0–100"
-              value={nilaiUjianInput}
-              onChange={(e) => setNilaiUjianInput(e.target.value)}
-              disabled={daftarSemester.length === 0}
-            />
-          </label>
-          {nilaiUjianAda && (
-            <p className="catatan-kaki" style={{ margin: 0 }} aria-live="polite">
-              Nilai saat ini:{" "}
-              <strong>{formatNilai(nilaiUjianAda.nilai)}</strong> — sudah
-              ada nilai ujian {mapel} untuk semester ini (
-              {nilaiUjianAda.semesterNama}); menyimpan akan
-              memperbaruinya.
-            </p>
-          )}
-          <p className="catatan-kaki" style={{ margin: 0 }}>
-            {santriTerpilih ? (
-              <>
-                Santri terpilih:{" "}
-                <strong>
-                  {santriTerpilih.nama} — Kelas {santriTerpilih.kelasTingkat}
-                </strong>
-              </>
-            ) : (
-              "Pilih santri terlebih dahulu — nilai tidak akan tersimpan sebelum santri dipilih."
-            )}
-          </p>
-          <button
-            type="button"
-            className="tombol"
-            onClick={tanganiSimpanUjian}
-            disabled={simpanUjianBerjalan || !santriId || !semesterUjianId}
-          >
-            {simpanUjianBerjalan
-              ? "Menyimpan…"
-              : nilaiUjianAda
-                ? "Perbarui nilai"
-                : "Simpan nilai ujian"}
-          </button>
-        </div>
-        )}
-        {pesanUjian && (
-          <p className="catatan-kaki" role="status" style={{ marginTop: 10 }}>
-            {pesanUjian}
-          </p>
-        )}
-      </section>
-
-      )}
-
-      {/* ------------ Tabel ringkasan per mapel ------------ */}
-      {tab === "ringkasan" && (
-      <section className="kartu">
-        <h2>
-          Nilai {santriTerpilih ? santriTerpilih.nama : "—"} per mapel
-        </h2>
-        <p>
-          Kolom rata-rata memakai <strong>rumus sementara</strong> (rata-rata
-          sederhana). {CATATAN_RUMUS_SEMENTARA}
-        </p>
-        {pesanAksi && (
-          <p className="catatan-kaki" role="status">
-            {pesanAksi}
-          </p>
-        )}
-        <div className="tabel-bungkus">
-          <table
-            style={{ width: "100%", borderCollapse: "collapse" }}
-          >
-            <thead>
-              <tr>
-                <th style={GAYA_SEL}>Mapel (contoh)</th>
-                <th style={GAYA_SEL_ANGKA}>Rata-rata harian</th>
-                <th style={GAYA_SEL_ANGKA}>Ujian gasal</th>
-                <th style={GAYA_SEL_ANGKA}>Ujian genap</th>
-                <th style={GAYA_SEL_ANGKA}>
-                  Rata-rata gabungan
-                  <span
-                    style={{
-                      display: "block",
-                      fontSize: 11,
-                      fontWeight: 600,
-                      color: "var(--teks-redup)",
-                    }}
+              <div className="formulir" style={{ maxWidth: "100%" }}>
+                <label>
+                  Tanggal
+                  <input
+                    type="date"
+                    value={tanggalHarian}
+                    onChange={(e) => setTanggalHarian(e.target.value)}
+                  />
+                </label>
+                <label>
+                  Mapel terpilih: <LabelMapel mapel={mapel} />
+                  <input
+                    type="number"
+                    min={0}
+                    max={100}
+                    step="0.5"
+                    inputMode="decimal"
+                    placeholder="Nilai 0–100"
+                    value={nilaiHarianInput}
+                    onChange={(e) => setNilaiHarianInput(e.target.value)}
+                  />
+                </label>
+                {nilaiHarianAda && (
+                  <p
+                    className="catatan-kaki"
+                    style={{ margin: 0 }}
+                    aria-live="polite"
                   >
-                    rumus sementara
-                  </span>
-                </th>
-              </tr>
-            </thead>
-            <tbody>
-              {ringkasan.map((r) => (
-                <tr key={r.mapel}>
-                  <td style={GAYA_SEL}>
-                    <LabelMapel mapel={r.mapel} />
-                  </td>
-                  <td style={GAYA_SEL_ANGKA}>
-                    {formatNilai(r.rataHarian)}
-                    {r.jumlahNilaiHarian > 0 && (
+                    Nilai saat ini:{" "}
+                    <strong>{formatNilai(nilaiHarianAda.nilai)}</strong> — sudah
+                    ada nilai {mapel} untuk tanggal {tanggalHarian}; menyimpan
+                    akan memperbaruinya.
+                  </p>
+                )}
+                <p className="catatan-kaki" style={{ margin: 0 }}>
+                  {santriTerpilih ? (
+                    <>
+                      Santri terpilih:{" "}
+                      <strong>
+                        {santriTerpilih.nama} — Kelas{" "}
+                        {santriTerpilih.kelasTingkat}
+                      </strong>
+                    </>
+                  ) : (
+                    "Pilih santri terlebih dahulu — nilai tidak akan tersimpan sebelum santri dipilih."
+                  )}
+                </p>
+                <button
+                  type="button"
+                  className="tombol"
+                  onClick={tanganiSimpanHarian}
+                  disabled={simpanHarianBerjalan || !santriId}
+                >
+                  {simpanHarianBerjalan
+                    ? "Menyimpan…"
+                    : nilaiHarianAda
+                      ? "Perbarui nilai"
+                      : "Simpan nilai harian"}
+                </button>
+              </div>
+            )}
+            {pesanHarian && (
+              <p
+                className="catatan-kaki"
+                role="status"
+                style={{ marginTop: 10 }}
+              >
+                {pesanHarian}
+              </p>
+            )}
+          </section>
+        )}
+
+        {/* ------------ Form nilai ujian ------------ */}
+        {tab === "ujian" && (
+          <section className="kartu">
+            <h2>Form nilai ujian semester</h2>
+            <p>
+              Nilai ujian per mapel untuk semester gasal atau genap
+              {santriTerpilih ? ` — santri: ${santriTerpilih.nama}` : ""}.
+            </p>
+            {semesterBelumAda && (
+              <p>
+                <strong>Belum ada data semester.</strong> Semester gasal/genap
+                harus dibuat oleh admin terlebih dahulu — selama belum ada,
+                nilai ujian belum bisa diisi. Nilai harian di atas tetap bisa
+                diisi seperti biasa.
+              </p>
+            )}
+            {pantauanAdmin ? (
+              <p className="catatan-pantauan" role="note">
+                {pesanModePantauan("pengajar diniyyah")}
+              </p>
+            ) : (
+              <div className="formulir" style={{ maxWidth: "100%" }}>
+                <label>
+                  Semester
+                  <select
+                    value={semesterUjianId}
+                    onChange={(e) => setSemesterUjianId(e.target.value)}
+                    style={GAYA_PILIH}
+                    disabled={daftarSemester.length === 0}
+                  >
+                    {daftarSemester.length === 0 && (
+                      <option value="">Belum ada semester</option>
+                    )}
+                    {daftarSemester.map((s) => (
+                      <option key={s.id} value={s.id}>
+                        {s.nama} — {s.tahunAjaran} ({LABEL_SEMESTER[s.jenis]})
+                      </option>
+                    ))}
+                  </select>
+                </label>
+                <label>
+                  Mapel terpilih: <LabelMapel mapel={mapel} />
+                  <input
+                    type="number"
+                    min={0}
+                    max={100}
+                    step="0.5"
+                    inputMode="decimal"
+                    placeholder="Nilai 0–100"
+                    value={nilaiUjianInput}
+                    onChange={(e) => setNilaiUjianInput(e.target.value)}
+                    disabled={daftarSemester.length === 0}
+                  />
+                </label>
+                {nilaiUjianAda && (
+                  <p
+                    className="catatan-kaki"
+                    style={{ margin: 0 }}
+                    aria-live="polite"
+                  >
+                    Nilai saat ini:{" "}
+                    <strong>{formatNilai(nilaiUjianAda.nilai)}</strong> — sudah
+                    ada nilai ujian {mapel} untuk semester ini (
+                    {nilaiUjianAda.semesterNama}); menyimpan akan
+                    memperbaruinya.
+                  </p>
+                )}
+                <p className="catatan-kaki" style={{ margin: 0 }}>
+                  {santriTerpilih ? (
+                    <>
+                      Santri terpilih:{" "}
+                      <strong>
+                        {santriTerpilih.nama} — Kelas{" "}
+                        {santriTerpilih.kelasTingkat}
+                      </strong>
+                    </>
+                  ) : (
+                    "Pilih santri terlebih dahulu — nilai tidak akan tersimpan sebelum santri dipilih."
+                  )}
+                </p>
+                <button
+                  type="button"
+                  className="tombol"
+                  onClick={tanganiSimpanUjian}
+                  disabled={
+                    simpanUjianBerjalan || !santriId || !semesterUjianId
+                  }
+                >
+                  {simpanUjianBerjalan
+                    ? "Menyimpan…"
+                    : nilaiUjianAda
+                      ? "Perbarui nilai"
+                      : "Simpan nilai ujian"}
+                </button>
+              </div>
+            )}
+            {pesanUjian && (
+              <p
+                className="catatan-kaki"
+                role="status"
+                style={{ marginTop: 10 }}
+              >
+                {pesanUjian}
+              </p>
+            )}
+          </section>
+        )}
+
+        {/* ------------ Tabel ringkasan per mapel ------------ */}
+        {tab === "ringkasan" && (
+          <section className="kartu">
+            <h2>
+              Nilai {santriTerpilih ? santriTerpilih.nama : "—"} per mapel
+            </h2>
+            <p>
+              Kolom rata-rata memakai <strong>rumus sementara</strong>{" "}
+              (rata-rata sederhana). {CATATAN_RUMUS_SEMENTARA}
+            </p>
+            {pesanAksi && (
+              <p className="catatan-kaki" role="status">
+                {pesanAksi}
+              </p>
+            )}
+            <div className="tabel-bungkus tabel-adaptif">
+              <table style={{ width: "100%", borderCollapse: "collapse" }}>
+                <thead>
+                  <tr>
+                    <th style={GAYA_SEL}>Mapel (contoh)</th>
+                    <th style={GAYA_SEL_ANGKA}>Rata-rata harian</th>
+                    <th style={GAYA_SEL_ANGKA}>Ujian gasal</th>
+                    <th style={GAYA_SEL_ANGKA}>Ujian genap</th>
+                    <th style={GAYA_SEL_ANGKA}>
+                      Rata-rata gabungan
                       <span
                         style={{
                           display: "block",
                           fontSize: 11,
+                          fontWeight: 600,
                           color: "var(--teks-redup)",
                         }}
                       >
-                        dari {r.jumlahNilaiHarian} nilai
+                        rumus sementara
+                      </span>
+                    </th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {ringkasan.map((r) => (
+                    <tr key={r.mapel}>
+                      <td data-label="Mapel" style={GAYA_SEL}>
+                        <LabelMapel mapel={r.mapel} />
+                      </td>
+                      <td data-label="Harian" style={GAYA_SEL_ANGKA}>
+                        {formatNilai(r.rataHarian)}
+                        {r.jumlahNilaiHarian > 0 && (
+                          <span
+                            style={{
+                              display: "block",
+                              fontSize: 11,
+                              color: "var(--teks-redup)",
+                            }}
+                          >
+                            dari {r.jumlahNilaiHarian} nilai
+                          </span>
+                        )}
+                      </td>
+                      <td data-label="Ujian gasal" style={GAYA_SEL_ANGKA}>
+                        {formatNilai(r.ujianGasal)}
+                      </td>
+                      <td data-label="Ujian genap" style={GAYA_SEL_ANGKA}>
+                        {formatNilai(r.ujianGenap)}
+                      </td>
+                      <td
+                        data-label="Gabungan"
+                        style={{ ...GAYA_SEL_ANGKA, fontWeight: 700 }}
+                      >
+                        {formatNilai(r.rataGabungan)}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+
+            <h3 style={{ margin: "16px 0 6px", fontSize: 15 }}>
+              Rincian nilai harian terakhir
+            </h3>
+            {harian.length === 0 ? (
+              <p>Belum ada nilai harian untuk santri ini.</p>
+            ) : (
+              <div style={{ display: "grid", gap: 6 }}>
+                {harian.slice(0, 10).map((n) => (
+                  <div
+                    key={n.id}
+                    style={{
+                      display: "flex",
+                      justifyContent: "space-between",
+                      alignItems: "center",
+                      gap: 10,
+                      flexWrap: "wrap",
+                      paddingBottom: 6,
+                      borderBottom: "1px solid var(--garis)",
+                      fontSize: 14,
+                    }}
+                  >
+                    <span>
+                      {n.tanggal} · <LabelMapel mapel={n.mapel} />
+                    </span>
+                    {editHarianId === n.id ? (
+                      <span
+                        style={{
+                          display: "flex",
+                          gap: 6,
+                          alignItems: "center",
+                        }}
+                      >
+                        <input
+                          type="number"
+                          min={0}
+                          max={100}
+                          step="0.5"
+                          inputMode="decimal"
+                          value={nilaiEditHarian}
+                          onChange={(e) => setNilaiEditHarian(e.target.value)}
+                          aria-label={`Nilai baru ${n.mapel} ${n.tanggal}`}
+                          style={{ width: 90, minHeight: 40 }}
+                        />
+                        <button
+                          type="button"
+                          className="tombol tombol-kecil"
+                          onClick={() => void tanganiSimpanUbahHarian(n)}
+                          disabled={sibukAksi}
+                        >
+                          Simpan
+                        </button>
+                        <button
+                          type="button"
+                          className="tombol tombol-kecil tombol-sekunder"
+                          onClick={() => setEditHarianId(null)}
+                        >
+                          Batal
+                        </button>
+                      </span>
+                    ) : (
+                      <span
+                        style={{
+                          display: "flex",
+                          gap: 6,
+                          alignItems: "center",
+                        }}
+                      >
+                        <strong style={{ fontVariantNumeric: "tabular-nums" }}>
+                          {formatNilai(n.nilai)}
+                        </strong>
+                        {bolehKelolaNilai(n.pengisiId) && (
+                          <>
+                            <button
+                              type="button"
+                              className="tombol tombol-kecil tombol-sekunder"
+                              onClick={() => {
+                                setEditHarianId(n.id);
+                                setNilaiEditHarian(String(n.nilai));
+                                setPesanAksi(null);
+                              }}
+                            >
+                              Ubah
+                            </button>
+                            <button
+                              type="button"
+                              className="tombol tombol-kecil tombol-sekunder"
+                              onClick={() => void tanganiHapusHarian(n)}
+                              disabled={sibukAksi}
+                            >
+                              Hapus
+                            </button>
+                          </>
+                        )}
                       </span>
                     )}
-                  </td>
-                  <td style={GAYA_SEL_ANGKA}>{formatNilai(r.ujianGasal)}</td>
-                  <td style={GAYA_SEL_ANGKA}>{formatNilai(r.ujianGenap)}</td>
-                  <td style={{ ...GAYA_SEL_ANGKA, fontWeight: 700 }}>
-                    {formatNilai(r.rataGabungan)}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+                  </div>
+                ))}
+              </div>
+            )}
 
-        <h3 style={{ margin: "16px 0 6px", fontSize: 15 }}>
-          Rincian nilai harian terakhir
-        </h3>
-        {harian.length === 0 ? (
-          <p>Belum ada nilai harian untuk santri ini.</p>
-        ) : (
-          <div style={{ display: "grid", gap: 6 }}>
-            {harian.slice(0, 10).map((n) => (
-              <div
-                key={n.id}
-                style={{
-                  display: "flex",
-                  justifyContent: "space-between",
-                  alignItems: "center",
-                  gap: 10,
-                  flexWrap: "wrap",
-                  paddingBottom: 6,
-                  borderBottom: "1px solid var(--garis)",
-                  fontSize: 14,
-                }}
-              >
-                <span>
-                  {n.tanggal} · <LabelMapel mapel={n.mapel} />
-                </span>
-                {editHarianId === n.id ? (
-                  <span style={{ display: "flex", gap: 6, alignItems: "center" }}>
-                    <input
-                      type="number"
-                      min={0}
-                      max={100}
-                      step="0.5"
-                      inputMode="decimal"
-                      value={nilaiEditHarian}
-                      onChange={(e) => setNilaiEditHarian(e.target.value)}
-                      aria-label={`Nilai baru ${n.mapel} ${n.tanggal}`}
-                      style={{ width: 90, minHeight: 40 }}
-                    />
-                    <button
-                      type="button"
-                      className="tombol tombol-kecil"
-                      onClick={() => void tanganiSimpanUbahHarian(n)}
-                      disabled={sibukAksi}
-                    >
-                      Simpan
-                    </button>
-                    <button
-                      type="button"
-                      className="tombol tombol-kecil tombol-sekunder"
-                      onClick={() => setEditHarianId(null)}
-                    >
-                      Batal
-                    </button>
-                  </span>
-                ) : (
-                  <span style={{ display: "flex", gap: 6, alignItems: "center" }}>
-                    <strong style={{ fontVariantNumeric: "tabular-nums" }}>
-                      {formatNilai(n.nilai)}
-                    </strong>
-                    {bolehKelolaNilai(n.pengisiId) && (
-                      <>
+            <h3 style={{ margin: "16px 0 6px", fontSize: 15 }}>
+              Rincian nilai ujian
+            </h3>
+            {ujian.length === 0 ? (
+              <p>Belum ada nilai ujian untuk santri ini.</p>
+            ) : (
+              <div style={{ display: "grid", gap: 6 }}>
+                {ujian.map((u) => (
+                  <div
+                    key={u.id}
+                    style={{
+                      display: "flex",
+                      justifyContent: "space-between",
+                      alignItems: "center",
+                      gap: 10,
+                      flexWrap: "wrap",
+                      paddingBottom: 6,
+                      borderBottom: "1px solid var(--garis)",
+                      fontSize: 14,
+                    }}
+                  >
+                    <span>
+                      {u.semesterNama} ({LABEL_SEMESTER[u.jenisSemester]}) ·{" "}
+                      <LabelMapel mapel={u.mapel} />
+                    </span>
+                    {editUjianId === u.id ? (
+                      <span
+                        style={{
+                          display: "flex",
+                          gap: 6,
+                          alignItems: "center",
+                        }}
+                      >
+                        <input
+                          type="number"
+                          min={0}
+                          max={100}
+                          step="0.5"
+                          inputMode="decimal"
+                          value={nilaiEditUjian}
+                          onChange={(e) => setNilaiEditUjian(e.target.value)}
+                          aria-label={`Nilai ujian baru ${u.mapel} ${u.semesterNama}`}
+                          style={{ width: 90, minHeight: 40 }}
+                        />
                         <button
                           type="button"
-                          className="tombol tombol-kecil tombol-sekunder"
-                          onClick={() => {
-                            setEditHarianId(n.id);
-                            setNilaiEditHarian(String(n.nilai));
-                            setPesanAksi(null);
-                          }}
-                        >
-                          Ubah
-                        </button>
-                        <button
-                          type="button"
-                          className="tombol tombol-kecil tombol-sekunder"
-                          onClick={() => void tanganiHapusHarian(n)}
+                          className="tombol tombol-kecil"
+                          onClick={() => void tanganiSimpanUbahUjian(u)}
                           disabled={sibukAksi}
                         >
-                          Hapus
-                        </button>
-                      </>
-                    )}
-                  </span>
-                )}
-              </div>
-            ))}
-          </div>
-        )}
-
-        <h3 style={{ margin: "16px 0 6px", fontSize: 15 }}>
-          Rincian nilai ujian
-        </h3>
-        {ujian.length === 0 ? (
-          <p>Belum ada nilai ujian untuk santri ini.</p>
-        ) : (
-          <div style={{ display: "grid", gap: 6 }}>
-            {ujian.map((u) => (
-              <div
-                key={u.id}
-                style={{
-                  display: "flex",
-                  justifyContent: "space-between",
-                  alignItems: "center",
-                  gap: 10,
-                  flexWrap: "wrap",
-                  paddingBottom: 6,
-                  borderBottom: "1px solid var(--garis)",
-                  fontSize: 14,
-                }}
-              >
-                <span>
-                  {u.semesterNama} ({LABEL_SEMESTER[u.jenisSemester]}) ·{" "}
-                  <LabelMapel mapel={u.mapel} />
-                </span>
-                {editUjianId === u.id ? (
-                  <span style={{ display: "flex", gap: 6, alignItems: "center" }}>
-                    <input
-                      type="number"
-                      min={0}
-                      max={100}
-                      step="0.5"
-                      inputMode="decimal"
-                      value={nilaiEditUjian}
-                      onChange={(e) => setNilaiEditUjian(e.target.value)}
-                      aria-label={`Nilai ujian baru ${u.mapel} ${u.semesterNama}`}
-                      style={{ width: 90, minHeight: 40 }}
-                    />
-                    <button
-                      type="button"
-                      className="tombol tombol-kecil"
-                      onClick={() => void tanganiSimpanUbahUjian(u)}
-                      disabled={sibukAksi}
-                    >
-                      Simpan
-                    </button>
-                    <button
-                      type="button"
-                      className="tombol tombol-kecil tombol-sekunder"
-                      onClick={() => setEditUjianId(null)}
-                    >
-                      Batal
-                    </button>
-                  </span>
-                ) : (
-                  <span style={{ display: "flex", gap: 6, alignItems: "center" }}>
-                    <strong style={{ fontVariantNumeric: "tabular-nums" }}>
-                      {formatNilai(u.nilai)}
-                    </strong>
-                    {bolehKelolaNilai(u.pengisiId) && (
-                      <>
-                        <button
-                          type="button"
-                          className="tombol tombol-kecil tombol-sekunder"
-                          onClick={() => {
-                            setEditUjianId(u.id);
-                            setNilaiEditUjian(String(u.nilai));
-                            setPesanAksi(null);
-                          }}
-                        >
-                          Ubah
+                          Simpan
                         </button>
                         <button
                           type="button"
                           className="tombol tombol-kecil tombol-sekunder"
-                          onClick={() => void tanganiHapusUjian(u)}
-                          disabled={sibukAksi}
+                          onClick={() => setEditUjianId(null)}
                         >
-                          Hapus
+                          Batal
                         </button>
-                      </>
+                      </span>
+                    ) : (
+                      <span
+                        style={{
+                          display: "flex",
+                          gap: 6,
+                          alignItems: "center",
+                        }}
+                      >
+                        <strong style={{ fontVariantNumeric: "tabular-nums" }}>
+                          {formatNilai(u.nilai)}
+                        </strong>
+                        {bolehKelolaNilai(u.pengisiId) && (
+                          <>
+                            <button
+                              type="button"
+                              className="tombol tombol-kecil tombol-sekunder"
+                              onClick={() => {
+                                setEditUjianId(u.id);
+                                setNilaiEditUjian(String(u.nilai));
+                                setPesanAksi(null);
+                              }}
+                            >
+                              Ubah
+                            </button>
+                            <button
+                              type="button"
+                              className="tombol tombol-kecil tombol-sekunder"
+                              onClick={() => void tanganiHapusUjian(u)}
+                              disabled={sibukAksi}
+                            >
+                              Hapus
+                            </button>
+                          </>
+                        )}
+                      </span>
                     )}
-                  </span>
-                )}
+                  </div>
+                ))}
               </div>
-            ))}
-          </div>
+            )}
+          </section>
         )}
-      </section>
-      )}
       </div>
     </>
   );

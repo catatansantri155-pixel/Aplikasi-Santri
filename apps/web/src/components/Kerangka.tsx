@@ -1,25 +1,13 @@
 "use client";
 
 /**
- * Kerangka aplikasi — sejak penyelarasan prototipe (4 Nov 2026
- * sore) mengikuti prototipe Lovable: tanpa kepala HP; sidebar
- * desktop berisi blok merek (Logo + nama aplikasi) di atas,
- * navigasi di tengah, dan identitas pengguna teks polos
- * (InfoPengguna, menaut ke /akun) di dasar. Tombol Keluar hanya
- * ada di halaman Akun.
- *
- * HALAMAN LOGIN TANPA KERANGKA (audit Fase 1): pada /login, sidebar,
- * header, dan navigasi bawah TIDAK dirender sama sekali — pengguna
- * belum masuk tidak perlu melihat pilihan modul, dan formulir masuk
- * mendapat ruang penuh. Pemeriksaan sesi untuk /login (sudah masuk →
- * ke beranda; sesi ada tetapi profil belum disiapkan → pesan khusus)
- * ditangani halaman login sendiri.
- *
- * Halaman polos diperluas (4 Nov 2026): /sambutan (onboarding),
- * /daftar (sign up wali), /lupa-sandi, dan /atur-sandi memakai
- * perlakuan yang sama — semuanya halaman pra/di luar sesi.
+ * Kerangka ruang kerja: sidebar desktop, bilah identitas ringkas,
+ * dan navigasi mobile sesuai peran. Halaman autentikasi memakai
+ * ruang penuh; pemeriksaan sesi tetap dijalankan InfoPengguna.
  */
 import type { ReactNode } from "react";
+import Link from "next/link";
+import { Ikon } from "@/components/Ikon";
 import { usePathname } from "next/navigation";
 import InfoPengguna from "@/components/InfoPengguna";
 import Logo from "@/components/Logo";
@@ -42,15 +30,22 @@ export default function Kerangka({ children }: { children: ReactNode }) {
     return <>{children}</>;
   }
 
-  /* Kerangka mengikuti PROTOTIPE (penyelarasan 4 Nov 2026 sore):
-     TIDAK ada kepala HP sama sekali; sidebar desktop = blok merek
-     (logo + "Aplikasi Santri / Marhalah Wustha") di atas, navigasi
-     di tengah, identitas pengguna teks polos di dasar. Penjaga
-     halaman tetap hidup lewat InfoPengguna di sidebar (komponen
-     terpasang walau sidebar tersembunyi secara CSS di HP). */
+  const halaman = pathname.split("/")[1] || "beranda";
+  const namaHalaman: Record<string, string> = {
+    beranda: "Beranda",
+    santri: "Data santri",
+    kehadiran: "Kehadiran",
+    hifzh: "Hifzh",
+    diniyyah: "Diniyyah",
+    olahraga: "Olahraga",
+    catatan: "Catatan",
+    laporan: "Laporan",
+    admin: "Administrasi",
+    akun: "Akun",
+  };
 
   return (
-    <div className="kerangka">
+    <div className="kerangka" data-halaman={halaman}>
       <a className="lewati-konten" href="#konten">
         Lewati ke konten
       </a>
@@ -62,6 +57,7 @@ export default function Kerangka({ children }: { children: ReactNode }) {
             <span className="sidebar-merek-sub">Marhalah Wustha</span>
           </span>
         </div>
+        <p className="sidebar-keterangan">RUANG KERJA</p>
         <nav className="nav-samping" aria-label="Navigasi utama">
           <NavTautan />
         </nav>
@@ -69,6 +65,32 @@ export default function Kerangka({ children }: { children: ReactNode }) {
       </aside>
 
       <div className="kolom-utama">
+        <header className="bilah-aplikasi">
+          <Link
+            href="/"
+            className="merek-mobile"
+            aria-label="Beranda Monitoring Santri"
+          >
+            <Logo ukuran={28} />
+            <span>
+              Minhajus Sunnah
+              <span className="merek-mobile-sub">Monitoring santri</span>
+            </span>
+          </Link>
+          <div className="jejak-halaman">
+            <span>Ruang kerja</span>
+            <Ikon nama="chevron-kanan" ukuran={14} />
+            <strong>{namaHalaman[halaman] ?? "Aplikasi Santri"}</strong>
+          </div>
+          <Link
+            href="/akun"
+            className="akses-akun"
+            aria-label="Buka akun dan pengaturan"
+          >
+            <Ikon nama="akun" ukuran={21} />
+            <span>Akun saya</span>
+          </Link>
+        </header>
         <main className="konten" id="konten" tabIndex={-1}>
           {children}
         </main>
