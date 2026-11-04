@@ -22,7 +22,7 @@ import { useState, type FormEvent } from "react";
 import Link from "next/link";
 import PenandaTahap from "@/components/PenandaTahap";
 import KolomSandi from "@/components/KolomSandi";
-import { Ikon } from "@/components/Ikon";
+import RangkaAuth from "@/components/RangkaAuth";
 import { buatKlienBrowser } from "@/lib/supabase/client";
 import { supabaseTerhubung } from "@/lib/data/santri";
 import { KUNCI_DAFTAR_WALI_TERTUNDA } from "@/lib/sesi";
@@ -127,18 +127,20 @@ export default function HalamanDaftar() {
   }
 
   return (
-    <div className="auth-bungkus">
-      <Link href="/login" className="auth-kembali">
-        <Ikon nama="panah-kiri" ukuran={16} />
-        Kembali masuk
-      </Link>
-      <h1 className="auth-judul">Daftar sebagai Wali</h1>
-      <p className="auth-sub">
-        Khusus orang tua / wali santri. Pengajar dan musyrif
-        menggunakan akun yang dibuatkan admin.
-      </p>
+    <RangkaAuth
+      langkah={[
+        "Isi data wali dan buat kata sandi",
+        "Masuk dengan akun yang baru dibuat",
+        "Admin menautkan akun Anda ke santri",
+      ]}
+    >
+      <div className="auth-kolom">
+        <h1 className="auth-judul">Daftar Wali</h1>
+        <p className="auth-sub">
+          Khusus orang tua / wali santri. Pengajar dan musyrif
+          menggunakan akun yang dibuatkan admin.
+        </p>
 
-      <div className="auth-isi">
         {!modeSupabase && (
           <PenandaTahap teks="MODE CONTOH · PENDAFTARAN ASLI MENUNGGU ENV SUPABASE" />
         )}
@@ -240,6 +242,6 @@ export default function HalamanDaftar() {
           </>
         )}
       </div>
-    </div>
+    </RangkaAuth>
   );
 }

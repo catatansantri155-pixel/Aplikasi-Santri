@@ -49,7 +49,7 @@ export default function KolomSandi({
           aria-pressed={terlihat}
           onClick={() => setTerlihat((lama) => !lama)}
         >
-          <Ikon nama={terlihat ? "mata-silang" : "mata"} ukuran={22} />
+          <Ikon nama={terlihat ? "mata-silang" : "mata"} ukuran={18} />
         </button>
       </span>
     </label>

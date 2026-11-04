@@ -230,9 +230,13 @@ const JALUR: Record<NamaIkon, ReactNode> = {
 export function Ikon({
   nama,
   ukuran = 20,
+  tebal,
 }: {
   nama: NamaIkon;
   ukuran?: number;
+  /** Ketebalan garis SVG; bawaan 1,8. Dipakai penanda aktif
+   *  navigasi bawah prototipe (2,4). */
+  tebal?: number;
 }) {
   return (
     <svg
@@ -241,7 +245,7 @@ export function Ikon({
       viewBox="0 0 24 24"
       fill="none"
       stroke="currentColor"
-      strokeWidth={1.8}
+      strokeWidth={tebal ?? 1.8}
       strokeLinecap="round"
       strokeLinejoin="round"
       aria-hidden="true"

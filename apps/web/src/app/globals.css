@@ -85,7 +85,7 @@
      2026): radius kartu 12–16px, garis batas tipis, bayangan
      minimal; penekanan tidak lagi menumpuk di semua komponen. */
   --jari: 18px;
-  --jari-besar: 22px;
+  --jari-besar: 18px;
   --jari-tombol: 14px;
   --jari-masukan: 14px;
   --bayang: 0 1px 2px rgba(18, 27, 41, 0.05);
@@ -94,7 +94,12 @@
 
   /* Ukuran */
   --tinggi-sentuh: 44px;
-  --lebar-sidebar: 240px;
+  --lebar-sidebar: 256px;
+  /* Teks di atas bidang primer/status padat. Mode terang = putih;
+     mode gelap prototipe memakai primer & status TERANG sehingga
+     teks di atasnya berbalik gelap (lihat blok data-tema gelap). */
+  --teks-di-primer: #ffffff;
+  --teks-di-status: #ffffff;
   /* Skala huruf dari Pengaturan ukuran teks (Akun); diubah oleh
      atribut data-teks pada <html> di bagian akhir berkas ini. */
   --skala-teks: 1;
@@ -131,14 +136,11 @@ a {
   color: var(--hijau-kop);
 }
 
-/* Fokus keyboard: garis biru gelap (kontras tinggi di putih) +
-   halo emas agar tetap terlihat di atas sidebar/banner biru
-   gelap — emas sendirian hanya 1,92:1 di putih, terlalu lemah
-   sebagai penanda. */
+/* Fokus keyboard mengikuti prototipe: cincin 2px warna primer
+   dengan offset 2px, tanpa halo tambahan. */
 :focus-visible {
-  outline: 2px solid var(--hijau-gelap);
+  outline: 2px solid var(--hijau-kop);
   outline-offset: 2px;
-  box-shadow: 0 0 0 4px rgba(215, 160, 61, 0.5);
 }
 
 /* Tautan lewati: tersembunyi sampai menerima fokus keyboard. */
@@ -227,9 +229,16 @@ a {
 .konten {
   flex: 1;
   width: 100%;
-  max-width: 960px;
+  max-width: 1024px;
   margin: 0 auto;
-  padding: 18px 16px 96px; /* ruang untuk navigasi bawah di HP */
+  padding: 20px 16px 112px; /* ruang untuk navigasi bawah di HP */
+}
+
+/* Halaman dengan bilah simpan/aksi tetap: beri ruang bawah ekstra
+   agar isi terakhir tidak tertutup bilah. */
+.konten:has(.bilah-simpan),
+.konten:has(.bilah-aksi) {
+  padding-bottom: 190px;
 }
 
 /* Navigasi bawah: TEPAT 5 slot (arah UI UNPIX) — Beranda, Santri,
@@ -241,11 +250,16 @@ a {
   bottom: 0;
   left: 0;
   z-index: 10;
-  display: flex;
-  justify-content: space-around;
   background: var(--permukaan);
   border-top: 1px solid var(--garis);
   padding-bottom: env(safe-area-inset-bottom);
+}
+
+/* Isi navigasi bawah prototipe: kolom tengah maks 448px. */
+.nav-bawah-dalam {
+  display: flex;
+  max-width: 448px;
+  margin: 0 auto;
 }
 
 .nav-slot {
@@ -265,11 +279,9 @@ a {
   text-decoration: none;
 }
 
-/* Slot aktif gaya Lovable: cukup warna primer (penanda emas di tepi
-   atas dari revisi sebelumnya gugur). */
+/* Slot aktif gaya Lovable: cukup warna primer, bobot tetap 600. */
 .nav-slot--aktif {
   color: var(--hijau-kop);
-  font-weight: 700;
 }
 
 /* Slot hampa: penahan geometri 5 slot selama profil belum termuat
@@ -312,7 +324,7 @@ a {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 8px;
+  gap: 12px;
   min-height: var(--tinggi-sentuh);
   padding: 8px 10px;
   color: var(--teks);
@@ -325,35 +337,69 @@ a {
   line-height: 1;
 }
 
-/* Tablet & PC: sidebar menggantikan navigasi bawah */
+/* Tablet: konten sedikit lebih lega (kerangka tetap mode HP). */
 @media (min-width: 768px) {
+  .konten {
+    padding: 24px 26px 112px;
+  }
+
+  .konten:has(.bilah-simpan),
+  .konten:has(.bilah-aksi) {
+    padding-bottom: 190px;
+  }
+}
+
+/* PC (≥1024px, breakpoint lg prototipe): sidebar menggantikan
+   navigasi bawah. */
+@media (min-width: 1024px) {
   .kerangka {
     display: flex;
   }
 
-  /* Sidebar TERANG gaya Lovable (port 4 Nov 2026): permukaan putih
-     + garis kanan, menggantikan gradien biru gelap sebelumnya. */
+  /* Sidebar prototipe: permukaan + garis kanan, bantalan 16px;
+     atas = blok merek (logo + nama aplikasi), tengah = navigasi,
+     bawah = identitas pengguna teks polos. */
   .sidebar {
     position: sticky;
     top: 0;
     display: flex;
     flex-direction: column;
-    gap: 18px;
     width: var(--lebar-sidebar);
     height: 100dvh;
-    padding: 22px 14px;
+    padding: 16px;
     background: var(--permukaan);
     border-right: 1px solid var(--garis);
     color: var(--teks);
   }
 
-  /* Blok paling atas sidebar kini IDENTITAS pengguna (avatar +
-     nama + peran, menaut ke /akun) — menggantikan blok merek
-     aplikasi/pondok (revisi biru). Gayanya memakai kelas
-     .info-pengguna-samping di bagian Info pengguna. Blok identitas
-     tidak menyusut; yang bergulir hanya area navigasinya. */
   .sidebar > :not(.nav-samping) {
     flex-shrink: 0;
+  }
+
+  /* Blok merek di puncak sidebar (prototipe). */
+  .sidebar-merek {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 4px 8px;
+    margin-bottom: 32px;
+    color: var(--hijau-kop);
+  }
+
+  .sidebar-merek-teks {
+    display: grid;
+    line-height: 1.3;
+  }
+
+  .sidebar-merek-nama {
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--teks);
+  }
+
+  .sidebar-merek-sub {
+    font-size: 12px;
+    color: var(--teks-redup);
   }
 
   .nav-samping {
@@ -361,7 +407,7 @@ a {
     flex-direction: column;
     gap: 4px;
     /* Sidebar pendek: area navigasi bergulir sendiri sementara
-       blok identitas di atasnya tetap terlihat (audit Fase 3). */
+       blok merek di atas dan identitas di bawah tetap terlihat. */
     flex: 1;
     min-height: 0;
     overflow-y: auto;
@@ -381,11 +427,11 @@ a {
     background: var(--redup);
   }
 
-  /* Item aktif gaya Lovable: bidang tint primer + teks biru gelap. */
+  /* Item aktif prototipe: bidang tint primer + teks biru gelap. */
   .sidebar .nav-tautan--aktif {
     background: var(--hijau-muda);
     color: var(--hijau-gelap);
-    font-weight: 700;
+    font-weight: 600;
     box-shadow: none;
   }
 
@@ -399,7 +445,12 @@ a {
   }
 
   .konten {
-    padding: 26px 26px 44px;
+    padding: 40px 40px 48px;
+  }
+
+  .konten:has(.bilah-simpan),
+  .konten:has(.bilah-aksi) {
+    padding-bottom: 120px;
   }
 
   .nav-bawah {
@@ -495,12 +546,13 @@ a.info-pengguna-kepala:hover {
   gap: 2px;
 }
 
-/* Di sidebar, ringkasan profil adalah tautan ke halaman Akun. */
+/* Identitas di dasar sidebar mengikuti prototipe: dua baris teks
+   polos 12px redup (nama + peran), tetap menaut ke halaman Akun. */
 a.info-pengguna-samping {
-  color: var(--teks);
+  color: var(--teks-redup);
   text-decoration: none;
   border-radius: 12px;
-  padding: 6px;
+  padding: 8px;
 }
 
 a.info-pengguna-samping:hover {
@@ -511,12 +563,7 @@ a.info-pengguna-samping:hover {
   display: flex;
   align-items: center;
   gap: 10px;
-  margin-bottom: 6px;
   width: 100%;
-}
-
-a.info-pengguna-samping .info-pengguna-baris {
-  margin-bottom: 0;
 }
 
 .info-pengguna-samping .info-pengguna-nama,
@@ -532,15 +579,17 @@ a.info-pengguna-samping .info-pengguna-baris {
 
 .info-pengguna-samping .info-pengguna-nama {
   margin: 0;
-  font-size: 14px;
-  font-weight: 700;
-  line-height: 1.3;
+  font-size: 12px;
+  font-weight: 400;
+  line-height: 1.35;
+  color: var(--teks-redup);
 }
 
 .info-pengguna-samping .info-pengguna-peran {
   margin: 0;
   font-size: 12px;
-  opacity: 0.85;
+  line-height: 1.35;
+  color: var(--teks-redup);
 }
 
 .tombol-ikon {
@@ -718,7 +767,7 @@ a.info-pengguna-samping .info-pengguna-baris {
   padding: 20px;
   border-radius: var(--jari-besar);
   background: var(--hijau-kop);
-  color: #fff;
+  color: var(--teks-di-primer);
   box-shadow: var(--bayang-apung);
 }
 
@@ -816,10 +865,11 @@ a.info-pengguna-samping .info-pengguna-baris {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 7px;
-  min-height: var(--tinggi-sentuh);
+  justify-content: center;
+  gap: 8px;
+  min-height: 80px;
   min-width: 0;
-  padding: 10px 4px;
+  padding: 8px 4px;
   border-radius: 18px;
   color: var(--teks);
   text-align: center;
@@ -827,7 +877,14 @@ a.info-pengguna-samping .info-pengguna-baris {
 }
 
 .item-menu:hover {
-  background: var(--hijau-muda);
+  background: var(--redup);
+}
+
+/* Ubin ikon 3D user di kisi menu: 48px mengikuti skala ubin
+   prototipe (aset 3D-nya sendiri dipertahankan). */
+.kisi-menu .ikon-gambar {
+  width: 48px;
+  height: 48px;
 }
 
 .kisi-menu--keterangan .item-menu {
@@ -842,7 +899,7 @@ a.info-pengguna-samping .info-pengguna-baris {
 
 .item-menu-label {
   font-size: 12px;
-  font-weight: 700;
+  font-weight: 600;
   line-height: 1.3;
   overflow-wrap: break-word;
 }
@@ -864,10 +921,17 @@ h1.judul-halaman {
   line-height: 1.3;
 }
 
+/* Judul halaman prototipe membesar di PC (text-2xl). */
+@media (min-width: 1024px) {
+  h1.judul-halaman {
+    font-size: 24px;
+  }
+}
+
 .subjudul {
   margin: 0 0 16px;
   color: var(--teks-redup);
-  font-size: 13.5px;
+  font-size: 14px;
   line-height: 1.55;
 }
 
@@ -876,17 +940,50 @@ h1.judul-halaman {
   align-items: baseline;
   justify-content: space-between;
   gap: 10px;
-  margin: 20px 0 10px;
+  margin: 28px 0 10px;
 }
 
 /* Judul seksi gaya Lovable: kapital kecil berlabel, redup. */
 .kepala-seksi .judul-seksi {
   margin: 0;
-  font-size: 13px;
+  font-size: 14px;
   font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 0.06em;
+  letter-spacing: 0.025em;
   color: var(--teks-redup);
+}
+
+/* Kepala halaman prototipe (PageHeader): tombol kembali kotak
+   44px + judul/subjudul — dipakai halaman detail. */
+.kepala-halaman {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.tombol-kembali {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  flex-shrink: 0;
+  border-radius: var(--jari-tombol);
+  color: var(--teks);
+  text-decoration: none;
+}
+
+.tombol-kembali:hover {
+  background: var(--redup);
+}
+
+/* Label bagian polos (Akun): teks 14px tebal, BUKAN kapital —
+   mengikuti prototipe. */
+.judul-bagian {
+  margin: 24px 0 10px;
+  font-size: 14px;
+  font-weight: 700;
 }
 
 .kepala-seksi .aksi-seksi {
@@ -939,8 +1036,8 @@ h1.judul-halaman {
 
 .baris-judul {
   display: block;
-  font-size: 15px;
-  font-weight: 700;
+  font-size: 14px;
+  font-weight: 600;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -982,10 +1079,10 @@ h1.judul-halaman {
 }
 
 .chip {
-  min-height: var(--tinggi-sentuh);
-  padding: 8px 16px;
-  border-radius: 999px;
-  border: 1.5px solid var(--masukan);
+  min-height: 40px;
+  padding: 8px 14px;
+  border-radius: var(--jari-tombol);
+  border: 1px solid var(--masukan);
   background: var(--permukaan);
   color: var(--teks);
   font: inherit;
@@ -1014,8 +1111,8 @@ h1.judul-halaman {
 }
 
 .segmen button {
-  min-height: var(--tinggi-sentuh);
-  padding: 8px 18px;
+  min-height: 40px;
+  padding: 6px 14px;
   border: none;
   border-radius: 10px;
   background: transparent;
@@ -1030,16 +1127,20 @@ h1.judul-halaman {
 .segmen button[data-aktif="true"] {
   background: var(--permukaan);
   color: var(--teks);
-  box-shadow: var(--bayang-halus);
+  box-shadow: var(--bayang);
 }
 
-/* Tab GARIS BAWAH gaya Lovable (port 4 Nov 2026, menggantikan
-   bilah bidang terang audit 4 Nov): wadah transparan bergaris
-   bawah penuh; tab aktif = teks primer + garis bawah primer 2px.
-   Sifat audit Fase 3 DIPERTAHANKAN: TIDAK membungkus — semua tab
-   selalu SATU baris dengan lebar sama (memperbaiki susunan 3+1
-   di detail santri); label boleh menyusut di layar sempit, bukan
-   pindah baris. */
+/* Segmen kecil prototipe (Segmented sm): filter & pengaturan. */
+.segmen--kecil button {
+  min-height: 36px;
+  padding: 6px 12px;
+  font-size: 12px;
+}
+
+/* Tab GARIS BAWAH gaya Lovable: wadah transparan bergaris bawah
+   penuh; tab aktif = teks primer + garis bawah primer 2px.
+   Mengikuti prototipe persis: lebar tab NATURAL (bukan dibagi
+   rata) dan wadah bisa digulir menyamping di layar sempit. */
 .tab-pil {
   display: flex;
   flex-wrap: nowrap;
@@ -1047,14 +1148,19 @@ h1.judul-halaman {
   padding: 0;
   margin-bottom: 16px;
   border-bottom: 1px solid var(--garis);
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.tab-pil::-webkit-scrollbar {
+  display: none;
 }
 
 .tab-pil button,
 .tab-pil a {
-  flex: 1 1 0;
-  min-width: 0;
+  flex: 0 0 auto;
   min-height: var(--tinggi-sentuh);
-  padding: 9px 10px;
+  padding: 9px 16px;
   border: none;
   border-bottom: 2px solid transparent;
   margin-bottom: -1px;
@@ -1064,15 +1170,13 @@ h1.judul-halaman {
   font-size: 14px;
   font-weight: 600;
   white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
   cursor: pointer;
 }
 
 @media (max-width: 480px) {
   .tab-pil button,
   .tab-pil a {
-    padding: 9px 6px;
+    padding: 9px 12px;
     font-size: 13px;
   }
 }
@@ -1103,18 +1207,17 @@ h1.judul-halaman {
   align-items: center;
   justify-content: center;
   gap: 4px;
-  padding: 3px 11px;
+  padding: 2px 8px;
   border: none;
   border-radius: 10px;
   font-size: 12px;
-  font-weight: 700;
+  font-weight: 600;
   white-space: nowrap;
 }
 
 .lencana--besar {
-  min-width: 46px;
-  padding: 4px 12px;
-  font-size: 13px;
+  padding: 3px 10px;
+  font-size: 12.5px;
 }
 
 .lencana--hadir {
@@ -1184,65 +1287,60 @@ h1.judul-halaman {
 
 /* ---------- Tombol pilihan status kehadiran ---------- */
 
+/* Grup pemilih status prototipe: rel redup berisi 4 tombol huruf;
+   yang terpilih = bidang status padat. */
+.pil-status-grup {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 4px;
+  padding: 4px;
+  border-radius: var(--jari-tombol);
+  background: var(--redup);
+}
+
 .pil-status {
   --st: var(--garis);
-  --st-teks: var(--teks);
-  flex: 1;
   display: flex;
-  flex-direction: column;
   align-items: center;
   justify-content: center;
-  min-height: 50px;
+  min-height: 40px;
+  min-width: 48px;
   padding: 6px 4px;
-  border-radius: var(--jari-tombol);
-  border: 1.5px solid var(--garis);
-  background: var(--permukaan);
-  color: var(--st-teks);
+  border: none;
+  border-radius: 10px;
+  background: transparent;
+  color: var(--teks-redup);
   font: inherit;
-  font-size: 15px;
+  font-size: 14px;
   font-weight: 700;
   cursor: pointer;
 }
 
+/* Label kata di bawah huruf tidak dipakai prototipe (huruf saja). */
 .pil-status .pil-status-label {
-  font-size: 11px;
-  font-weight: 600;
+  display: none;
 }
 
 .pil-status--hadir {
   --st: var(--status-hadir);
-  --st-teks: #007840;
 }
 
 .pil-status--sakit {
   --st: var(--status-sakit);
-  --st-teks: #975800;
 }
 
 .pil-status--izin {
   --st: var(--status-izin);
-  --st-teks: #2460b7;
 }
 
 .pil-status--alpa {
   --st: var(--status-alpa);
-  --st-teks: #c22826;
 }
 
 .pil-status[aria-pressed="true"] {
   background: var(--st);
-  border-color: var(--st);
-  color: #fff;
+  color: var(--teks-di-status);
 }
-
-.pil-status[aria-pressed="true"] .pil-status-label {
-  opacity: 0.88;
-}
-
-/* Sakit terpilih kini memakai cokelat keemasan Lovable #975800
-   (bukan lagi kuning terang #e8a100), sehingga teks putih lulus
-   kontras ±5,6:1 seperti status lain — pengecualian teks gelap
-   audit Fase 1 gugur. */
 
 /* ---------- Tombol aksi ---------- */
 
@@ -1251,12 +1349,12 @@ h1.judul-halaman {
   align-items: center;
   justify-content: center;
   gap: 8px;
-  min-height: 48px;
-  padding: 11px 20px;
-  /* Tombol utama biru SOLID tanpa gradasi/bayangan (audit visual
-     user 4 Nov 2026): satu aksi utama yang jelas per bagian. */
+  min-height: 44px;
+  padding: 10px 16px;
+  /* Tombol utama prototipe: bidang primer padat, hover cukup
+     menurunkan opasitas. */
   background: var(--hijau-kop);
-  color: #fff;
+  color: var(--teks-di-primer);
   font-size: 14px;
   font-weight: 600;
   text-decoration: none;
@@ -1266,7 +1364,7 @@ h1.judul-halaman {
 }
 
 .tombol:hover {
-  filter: brightness(1.07);
+  opacity: 0.9;
 }
 
 .tombol:disabled {
@@ -1275,66 +1373,86 @@ h1.judul-halaman {
   box-shadow: none;
 }
 
+/* Prototipe hanya punya SATU ukuran tombol (44px) — varian
+   "besar" disamakan metriknya agar semua tombol simpan/auth
+   konsisten dengan prototipe. */
 .tombol-besar {
-  min-height: 52px;
-  padding: 13px 24px;
-  font-size: 15px;
+  min-height: 44px;
+  padding: 10px 16px;
+  font-size: 14px;
 }
 
 .tombol-penuh {
   width: 100%;
 }
 
+/* Sekunder = tombol garis prototipe (outline): tepi garis,
+   permukaan kartu, teks utama. */
 .tombol-sekunder {
   background: var(--permukaan);
-  color: var(--hijau-gelap);
-  border: 1.5px solid var(--hijau-kop);
+  color: var(--teks);
+  border: 1px solid var(--garis);
   box-shadow: none;
+}
+
+.tombol-sekunder:hover {
+  background: var(--redup);
+  opacity: 1;
+}
+
+/* Hantu prototipe (ghost): tanpa bidang, teks primer, hover tint. */
+.tombol-hantu {
+  background: transparent;
+  color: var(--hijau-kop);
+  border: none;
+  box-shadow: none;
+}
+
+.tombol-hantu:hover {
+  background: var(--hijau-muda);
+  opacity: 1;
 }
 
 .tombol-kecil {
-  min-height: var(--tinggi-sentuh);
-  padding: 6px 14px;
+  min-height: 36px;
+  padding: 6px 12px;
   background: var(--hijau-muda);
   color: var(--hijau-gelap);
-  font-size: 13px;
-  border-radius: var(--jari-tombol);
+  font-size: 12px;
+  border-radius: 10px;
   box-shadow: none;
 }
 
-/* Bilah aksi melekat di atas navigasi bawah (HP); statis di PC.
-   Jarak bawah memperhitungkan safe-area perangkat berponi agar
-   bilah tidak tertutup navigasi bawah. */
+/* Bilah aksi TETAP mengikuti prototipe (save bar): menempel di
+   dasar layar — di HP tepat di atas navigasi bawah, di PC
+   selebar area konten (bergeser mengikuti sidebar). */
 .bilah-aksi {
-  position: sticky;
-  bottom: calc(72px + env(safe-area-inset-bottom));
-  z-index: 5;
+  position: fixed;
+  right: 0;
+  bottom: calc(64px + env(safe-area-inset-bottom));
+  left: 0;
+  z-index: 9;
   display: flex;
   flex-wrap: wrap;
+  align-items: center;
   gap: 10px;
-  margin-top: 14px;
-  padding: 12px;
-  border-radius: 18px;
-  background: rgba(255, 255, 255, 0.94);
-  backdrop-filter: blur(8px);
-  box-shadow: var(--bayang);
+  padding: 12px 16px;
+  background: var(--permukaan);
+  border-top: 1px solid var(--garis);
 }
 
-.bilah-aksi .tombol {
+.bilah-aksi .teks-bilah {
   flex: 1;
+  min-width: 0;
+  font-size: 14px;
+  color: var(--teks-redup);
 }
 
-@media (min-width: 768px) {
+@media (min-width: 1024px) {
   .bilah-aksi {
-    position: static;
-    padding: 4px 0 0;
-    background: transparent;
-    backdrop-filter: none;
-    box-shadow: none;
-  }
-
-  .bilah-aksi .tombol {
-    flex: initial;
+    bottom: 0;
+    left: var(--lebar-sidebar);
+    padding: 12px 40px;
   }
 }
 
@@ -1349,7 +1467,7 @@ h1.judul-halaman {
 .formulir label {
   display: grid;
   gap: 6px;
-  font-size: 13px;
+  font-size: 14px;
   font-weight: 600;
 }
 
@@ -1358,13 +1476,13 @@ h1.judul-halaman {
 .formulir textarea,
 .masukan {
   width: 100%;
-  min-height: 48px;
-  padding: 11px 14px;
+  min-height: 44px;
+  padding: 10px 12px;
   font: inherit;
-  font-size: 15px;
+  font-size: 14px;
   color: var(--teks);
   background: var(--permukaan);
-  border: 1.5px solid var(--masukan);
+  border: 1px solid var(--masukan);
   border-radius: var(--jari-masukan);
 }
 
@@ -1387,24 +1505,24 @@ textarea.masukan {
 .kolom-terkunci {
   display: flex;
   align-items: center;
-  min-height: 48px;
-  padding: 11px 14px;
-  border: 1.5px dashed var(--masukan);
+  min-height: 44px;
+  padding: 10px 12px;
+  border: 1px dashed var(--masukan);
   border-radius: var(--jari-masukan);
   background: var(--hijau-muda);
   color: var(--hijau-gelap);
-  font-size: 15px;
+  font-size: 14px;
   font-weight: 700;
 }
 
-/* Kolom cari berbentuk pill dengan ikon di kiri. */
+/* Kolom cari prototipe: masukan bersudut 14px dengan ikon di kiri. */
 .pencarian {
   position: relative;
 }
 
 .pencarian .pencarian-ikon {
   position: absolute;
-  left: 15px;
+  left: 12px;
   top: 50%;
   transform: translateY(-50%);
   color: var(--teks-redup);
@@ -1414,14 +1532,14 @@ textarea.masukan {
 
 .pencarian input {
   width: 100%;
-  min-height: 48px;
-  padding: 11px 14px 11px 44px;
+  min-height: 44px;
+  padding: 10px 12px 10px 38px;
   font: inherit;
-  font-size: 15px;
+  font-size: 14px;
   color: var(--teks);
   background: var(--permukaan);
-  border: 1.5px solid var(--masukan);
-  border-radius: 999px;
+  border: 1px solid var(--masukan);
+  border-radius: var(--jari-masukan);
 }
 
 .pencarian input:focus {
@@ -1471,18 +1589,20 @@ textarea.masukan {
 
 .kartu-stat {
   display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 14px;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+  padding: 16px;
   background: var(--permukaan);
   border: 1px solid var(--garis);
   border-radius: var(--jari);
+  box-shadow: var(--bayang);
 }
 
 .kartu-stat .stat-angka {
   display: block;
   font-size: 24px;
-  font-weight: 800;
+  font-weight: 700;
   line-height: 1.15;
 }
 
@@ -1492,14 +1612,146 @@ textarea.masukan {
   color: var(--teks-redup);
 }
 
+.kartu-stat .stat-sub {
+  display: block;
+  font-size: 12px;
+  color: var(--teks-redup);
+}
+
+/* ---------- Sapaan & hero beranda (prototipe) ---------- */
+
+.sapaan-tanggal {
+  margin: 0;
+  font-size: 14px;
+  color: var(--teks-redup);
+}
+
+.sapaan-hijri {
+  font-weight: 600;
+  color: var(--emas-gelap);
+}
+
+h1.sapaan-judul {
+  margin: 2px 0 20px;
+  font-size: 24px;
+  font-weight: 700;
+  letter-spacing: -0.015em;
+  line-height: 1.25;
+}
+
+@media (min-width: 1024px) {
+  h1.sapaan-judul {
+    font-size: 30px;
+  }
+}
+
+/* Kisi ringkasan beranda: hero melebar penuh di HP; di PC hero
+   satu kolom sejajar kartu statistik lain. */
+.kisi-ringkasan {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.kisi-ringkasan .kartu-hero {
+  grid-column: 1 / -1;
+}
+
+@media (min-width: 1024px) {
+  .kisi-ringkasan {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+
+  .kisi-ringkasan .kartu-hero {
+    grid-column: auto;
+  }
+}
+
+/* Kartu hero prototipe: bidang primer padat + pola bintang di
+   kanan atas + tombol aksi putih. */
+.kartu-hero {
+  position: relative;
+  overflow: hidden;
+  padding: 20px;
+  border-radius: var(--jari);
+  background: var(--hijau-kop);
+  color: var(--teks-di-primer);
+  box-shadow: var(--bayang);
+}
+
+.kartu-hero .hero-pola {
+  position: absolute;
+  top: -24px;
+  right: -24px;
+  width: 176px;
+  height: 176px;
+  opacity: 0.14;
+  pointer-events: none;
+}
+
+.kartu-hero .hero-label {
+  position: relative;
+  margin: 0;
+  font-size: 14px;
+}
+
+.kartu-hero .hero-nilai {
+  position: relative;
+  margin: 2px 0;
+  font-size: 36px;
+  font-weight: 700;
+  line-height: 1.1;
+}
+
+.kartu-hero .hero-sub {
+  position: relative;
+  margin: 0 0 14px;
+  font-size: 14px;
+  opacity: 0.9;
+}
+
+.kartu-hero .hero-aksi {
+  position: relative;
+  background: var(--permukaan);
+  color: var(--hijau-kop);
+}
+
+.kartu-hero .hero-aksi:hover {
+  background: var(--redup);
+  opacity: 1;
+}
+
+/* Baris dua kartu sejajar di PC (semester + hadis). */
+.baris-ganda {
+  display: grid;
+  gap: 12px;
+}
+
+@media (min-width: 1024px) {
+  .baris-ganda {
+    grid-template-columns: 1fr 1fr;
+    align-items: start;
+  }
+}
+
+/* Teks Arab (hadis) — huruf Amiri. */
+.teks-arab {
+  font-family: "Amiri", serif;
+}
+
 /* ---------- Bilah kemajuan ---------- */
 
 /* Bilah kemajuan gaya Lovable: rel redup, isian warna datar. */
 .bilah {
-  height: 8px;
+  height: 6px;
   border-radius: 999px;
   background: var(--redup);
   overflow: hidden;
+}
+
+.bilah--tebal {
+  height: 8px;
 }
 
 .bilah-isi {
@@ -1758,8 +2010,13 @@ textarea.masukan {
 .tombol-keluar {
   background: var(--permukaan);
   color: var(--status-alpa);
-  border: 1.5px solid #e5a09a;
+  border: 1px solid var(--garis);
   box-shadow: none;
+}
+
+.tombol-keluar:hover {
+  background: var(--redup);
+  opacity: 1;
 }
 
 /* ---------- Lain-lain ---------- */
@@ -1831,7 +2088,9 @@ textarea.masukan {
   .konten input,
   .konten select,
   .konten textarea,
-  .login-lembar input {
+  .auth-isi input,
+  .auth-isi select,
+  .auth-isi textarea {
     font-size: 16px !important;
   }
 }
@@ -1866,63 +2125,85 @@ textarea.masukan {
   line-height: 1.55;
 }
 
-/* Halaman Sambutan (/sambutan): halaman polos tanpa kerangka,
-   selebar halaman login di HP; PC dua kolom (visual kiri, teks dan
-   kendali kanan). Tanpa gulir horizontal: semua lebar relatif wadah. */
+/* Halaman Sambutan (/sambutan) mengikuti prototipe Intro: SATU
+   kolom tengah maks 448px di semua ukuran layar — Lewati hantu di
+   kanan atas, panel visual tint lembut berpola dengan kartu ikon
+   putih melayang + berlian emas, judul & teks terpusat, lalu
+   baris bawah berisi titik penanda dan tombol Lanjut/Mulai. */
 .sambutan-bungkus {
-  max-width: 430px;
-  margin: 8px auto 0;
+  max-width: 448px;
+  margin: 0 auto;
   width: 100%;
-  padding: 18px 16px 40px;
-}
-
-.sambutan-kartu {
+  min-height: 100dvh;
+  padding: 16px 24px 32px;
   display: flex;
   flex-direction: column;
-  gap: 18px;
+}
+
+.sambutan-atas {
+  display: flex;
+  justify-content: flex-end;
 }
 
 .sambutan-visual {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 18px;
-  min-height: 210px;
-  padding: 22px 18px;
-  border-radius: var(--jari-besar);
-  background: var(--hijau-kop);
-  box-shadow: var(--bayang-apung);
+  position: relative;
+  overflow: hidden;
+  width: 224px;
+  height: 224px;
+  margin: 24px auto 0;
+  border-radius: 32px;
+  background: var(--hijau-muda);
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
 }
 
-.sambutan-visual .ikon-gambar {
-  width: 112px;
-  height: 112px;
-}
-
-.sambutan-ilustrasi {
-  display: block;
+.sambutan-visual-pola {
+  position: absolute;
+  inset: 0;
   width: 100%;
-  height: auto;
+  height: 100%;
+  color: var(--hijau-kop);
+  opacity: 0.12;
+  pointer-events: none;
+}
+
+.sambutan-visual-kartu {
+  position: relative;
+  width: 96px;
+  height: 96px;
   border-radius: 16px;
+  background: var(--permukaan);
+  box-shadow: var(--bayang-apung);
+  display: grid;
+  place-items: center;
+  color: var(--hijau-kop);
+}
+
+.sambutan-visual-berlian {
+  position: absolute;
+  right: 20px;
+  bottom: 20px;
+  width: 14px;
+  height: 14px;
+  transform: rotate(45deg);
+  border-radius: 3px;
+  background: var(--emas);
 }
 
 .sambutan-isi {
   display: flex;
   flex-direction: column;
-}
-
-.sambutan-langkah {
-  margin: 0;
-  font-size: 12.5px;
-  font-weight: 700;
-  letter-spacing: 0.05em;
-  color: var(--teks-redup);
+  align-items: center;
+  text-align: center;
+  margin-top: 32px;
 }
 
 .sambutan-judul {
-  margin: 8px 0 6px;
+  margin: 0 0 8px;
   font-size: 24px;
-  font-weight: 800;
+  font-weight: 700;
+  letter-spacing: -0.015em;
   line-height: 1.25;
 }
 
@@ -1930,17 +2211,27 @@ textarea.masukan {
   margin: 0;
   font-size: 15px;
   line-height: 1.55;
+  color: var(--teks-redup);
+  max-width: 320px;
+}
+
+.sambutan-bawah {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-top: auto;
+  padding-top: 32px;
 }
 
 .sambutan-titik {
   display: flex;
-  gap: 8px;
-  margin: 22px 0 16px;
+  gap: 6px;
 }
 
 .sambutan-titik-tombol {
-  width: 44px;
-  height: 44px;
+  width: 28px;
+  height: 32px;
   padding: 0;
   background: none;
   border: none;
@@ -1952,48 +2243,20 @@ textarea.masukan {
 
 .sambutan-titik-tombol::after {
   content: "";
-  width: 10px;
-  height: 10px;
-  border-radius: 50%;
-  background: var(--masukan);
+  width: 8px;
+  height: 8px;
+  border-radius: 999px;
+  background: var(--garis);
+  transition: width 0.2s ease;
 }
 
 .sambutan-titik-tombol[aria-current="true"]::after {
-  width: 26px;
-  border-radius: 999px;
+  width: 24px;
   background: var(--hijau-kop);
 }
 
-.sambutan-kendali {
-  display: flex;
-  gap: 10px;
-  margin-top: auto;
-}
-
-.sambutan-kendali .tombol-besar {
-  flex: 1;
-}
-
-@media (min-width: 1024px) {
-  .sambutan-bungkus {
-    max-width: 920px;
-    padding-top: 40px;
-  }
-
-  .sambutan-kartu {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 28px;
-    align-items: stretch;
-  }
-
-  .sambutan-visual {
-    min-height: 380px;
-  }
-
-  .sambutan-isi {
-    padding: 12px 0;
-  }
+.sambutan-tombol-lanjut {
+  min-width: 128px;
 }
 
 /* ============================================================
@@ -2028,13 +2291,13 @@ textarea.masukan {
 
 .auth-judul {
   margin: 0 0 6px;
-  font-size: 24px;
-  font-weight: 800;
-  letter-spacing: -0.01em;
+  font-size: 30px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
 }
 
 .auth-sub {
-  margin: 0 0 22px;
+  margin: 0 0 32px;
   font-size: 14px;
   line-height: 1.55;
   color: var(--teks-redup);
@@ -2168,28 +2431,217 @@ textarea.masukan {
   }
 }
 
+/* ---------- Rangka auth prototipe (RangkaAuth) ---------- */
+
+/* HP: satu kolom formulir terpusat; panel merek disembunyikan.
+   PC: belah dua PENUH layar (tanpa bantalan/radius luar). */
+.auth-split {
+  min-height: 100dvh;
+}
+
+.auth-panel {
+  display: none;
+}
+
+.auth-isi {
+  padding: 40px 24px;
+}
+
+.auth-kolom {
+  width: 100%;
+  max-width: 384px;
+  margin: 0 auto;
+}
+
+.auth-logo-hp {
+  color: var(--hijau-kop);
+  margin-bottom: 24px;
+}
+
+/* Di PC merek tampil di panel kiri — logo HP disembunyikan. */
+@media (min-width: 1024px) {
+  .auth-logo-hp {
+    display: none;
+  }
+}
+
+.auth-lupa-baris {
+  margin-top: -4px;
+  text-align: right;
+}
+
+.auth-lupa-baris a {
+  font-size: 14px;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.auth-kaki {
+  margin: 40px 0 0;
+  text-align: center;
+  font-size: 12px;
+  color: var(--teks-redup);
+}
+
+@media (min-width: 1024px) {
+  .auth-split {
+    display: grid;
+    grid-template-columns: 1fr 1.1fr;
+  }
+
+  .auth-panel {
+    position: relative;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    padding: 48px;
+    background: var(--hijau-kop);
+    color: var(--teks-di-primer);
+  }
+
+  .auth-panel-pola {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    color: #ffffff;
+    opacity: 0.1;
+    pointer-events: none;
+  }
+
+  .auth-panel-merek {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--emas);
+  }
+
+  .auth-panel-merek span {
+    color: var(--teks-di-primer);
+  }
+
+  .auth-panel-tengah {
+    position: relative;
+    text-align: center;
+  }
+
+  .auth-visual {
+    position: relative;
+    width: 224px;
+    height: 224px;
+    margin: 0 auto 32px;
+  }
+
+  .auth-visual-bingkai {
+    position: absolute;
+    transform: rotate(45deg);
+  }
+
+  .auth-visual-bingkai--luar {
+    inset: 30px;
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    border-radius: 28px;
+  }
+
+  .auth-visual-bingkai--dalam {
+    inset: 55px;
+    border: 1px solid var(--emas);
+    border-radius: 20px;
+  }
+
+  .auth-visual-ikon {
+    position: absolute;
+    inset: 0;
+    display: grid;
+    place-items: center;
+    color: var(--emas);
+  }
+
+  .auth-panel-judul {
+    margin: 0;
+    font-size: 30px;
+    font-weight: 700;
+    line-height: 1.3;
+    letter-spacing: -0.015em;
+  }
+
+  .auth-langkah {
+    position: relative;
+    display: grid;
+    gap: 16px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .auth-langkah li {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-size: 14px;
+  }
+
+  .auth-langkah-nomor {
+    display: grid;
+    place-items: center;
+    width: 32px;
+    height: 32px;
+    flex-shrink: 0;
+    border-radius: 50%;
+    background: var(--emas);
+    color: var(--emas-gelap);
+    font-size: 14px;
+    font-weight: 700;
+  }
+
+  .auth-isi {
+    display: flex;
+    align-items: center;
+    padding: 48px 24px;
+  }
+}
+
 /* ---------- Beranda: banner semester & motivasi ---------- */
 
 /* Strip semester berjalan di bawah kisi modul: satu baris ringkas
    berisi ikon kalender, nama semester, dan rentang tanggalnya. */
-/* Strip semester gaya Lovable: kartu permukaan bergaris tipis
-   (sebelumnya bidang tint primer penuh). */
+/* Strip semester prototipe: nama + pekan berjalan, bilah
+   kemajuan primer di bawahnya. */
 .kartu-semester {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  margin-top: 16px;
-  padding: 14px 16px;
+  display: block;
+  padding: 16px;
   background: var(--permukaan);
   border: 1px solid var(--garis);
-  box-shadow: var(--bayang-halus);
+  box-shadow: var(--bayang);
   border-radius: var(--jari);
   color: var(--teks);
   text-decoration: none;
 }
 
-.kartu-semester .baris-judul {
+.semester-baris {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.semester-nama {
   font-size: 14px;
+  font-weight: 600;
+}
+
+.semester-pekan {
+  font-size: 14px;
+  color: var(--teks-redup);
+  white-space: nowrap;
+}
+
+.kartu-semester .bilah {
+  margin-top: 10px;
 }
 
 /* Kartu motivasi gaya Lovable (kartu hadis prototipe): bidang
@@ -2197,22 +2649,44 @@ textarea.masukan {
    nada emas gelap. Ukuran tetap ramping sebagai pendamping
    (audit visual user 4 Nov 2026). */
 .banner-motivasi {
-  margin-top: 14px;
-  padding: 12px 14px;
+  position: relative;
+  overflow: hidden;
+  padding: 16px;
   border-radius: var(--jari);
   background: var(--emas-muda);
   border: 1px solid rgba(215, 160, 61, 0.4);
   color: var(--teks);
 }
 
+.banner-motivasi .motivasi-pola {
+  position: absolute;
+  top: -20px;
+  right: -20px;
+  width: 112px;
+  height: 112px;
+  color: var(--emas);
+  opacity: 0.18;
+  pointer-events: none;
+}
+
+.banner-motivasi .motivasi-arab {
+  position: relative;
+  margin: 0 0 6px;
+  font-size: 18px;
+  line-height: 2;
+  color: var(--emas-gelap);
+}
+
 .banner-motivasi .motivasi-teks {
+  position: relative;
   margin: 0;
-  font-size: 13.5px;
-  font-weight: 600;
+  font-size: 14px;
+  font-weight: 500;
   line-height: 1.5;
 }
 
 .banner-motivasi .motivasi-sumber {
+  position: relative;
   margin: 6px 0 0;
   font-size: 12px;
   color: var(--emas-gelap);
@@ -2364,8 +2838,6 @@ html[data-tema="gelap"] .ikon-lingkaran--merah {
 
 html[data-tema="gelap"] .tombol-keluar {
   background: transparent;
-  color: #f3a49d;
-  border-color: #6e352f;
 }
 
 html[data-tema="gelap"] .tombol-sekunder {
@@ -2397,7 +2869,7 @@ body {
 }
 
 .subjudul {
-  font-size: calc(13.5px * var(--skala-teks, 1));
+  font-size: calc(14px * var(--skala-teks, 1));
 }
 
 .catatan-kaki {
@@ -2413,7 +2885,7 @@ body {
 }
 
 .formulir label {
-  font-size: calc(13px * var(--skala-teks, 1));
+  font-size: calc(14px * var(--skala-teks, 1));
 }
 
 /* ---------- Perapian audit visual user (4 Nov 2026) ---------- */
@@ -2447,10 +2919,18 @@ body {
 }
 
 .kartu-samping {
-  padding: 14px;
+  padding: 16px;
   background: var(--permukaan);
   border: 1px solid var(--garis);
   border-radius: var(--jari);
+}
+
+/* Panel samping formulir menempel saat halaman digulir (PC). */
+@media (min-width: 1024px) {
+  .kolom-samping-form {
+    position: sticky;
+    top: 24px;
+  }
 }
 
 .kartu-samping h3 {
@@ -2477,14 +2957,18 @@ body {
 
 .stepper button {
   flex: 0 0 44px;
-  min-height: 48px;
-  border: 1.5px solid var(--garis);
+  min-height: 44px;
+  border: 1px solid var(--garis);
   border-radius: var(--jari-masukan);
   background: var(--permukaan);
-  color: var(--hijau-gelap);
-  font-size: 19px;
+  color: var(--teks);
+  font-size: 16px;
   font-weight: 700;
   cursor: pointer;
+}
+
+.stepper button:hover:not(:disabled) {
+  background: var(--redup);
 }
 
 .stepper button:disabled {
@@ -2498,28 +2982,27 @@ body {
   text-align: center;
 }
 
-/* Bilah simpan melekat (formulir panjang, mis. Setoran): di HP
-   menempel di atas navigasi bawah berisi ringkasan konteks +
-   tombol simpan; di desktop kembali statis sejajar alur halaman. */
+/* Bilah simpan TETAP mengikuti prototipe (save bar SetoranBaru):
+   konteks di kiri, tombol simpan di kanan; di HP di atas navigasi
+   bawah, di PC selebar area konten. */
 .bilah-simpan {
-  position: sticky;
-  bottom: calc(72px + env(safe-area-inset-bottom));
-  z-index: 5;
+  position: fixed;
+  right: 0;
+  bottom: calc(64px + env(safe-area-inset-bottom));
+  left: 0;
+  z-index: 9;
   display: flex;
   align-items: center;
   gap: 12px;
-  margin-top: 14px;
-  padding: 10px 12px;
-  border: 1px solid var(--garis);
-  border-radius: var(--jari);
-  background: rgba(255, 255, 255, 0.97);
-  box-shadow: 0 -2px 10px rgba(19, 36, 51, 0.07);
+  padding: 12px 16px;
+  background: var(--permukaan);
+  border-top: 1px solid var(--garis);
 }
 
 .bilah-simpan .ringkas-simpan {
   flex: 1;
   min-width: 0;
-  font-size: 13px;
+  font-size: 14px;
   color: var(--teks-redup);
   line-height: 1.45;
 }
@@ -2528,62 +3011,64 @@ body {
   flex: 0 0 auto;
 }
 
-@media (min-width: 768px) {
+@media (min-width: 1024px) {
   .bilah-simpan {
-    position: static;
-    padding: 0;
-    border: none;
-    background: transparent;
-    box-shadow: none;
+    bottom: 0;
+    left: var(--lebar-sidebar);
+    padding: 12px 40px;
   }
 }
 
-html[data-tema="gelap"] .bilah-simpan {
-  background: rgba(21, 26, 34, 0.97);
-}
-
-/* Filter Kehadiran ringkas: di HP tampil satu baris konteks +
-   tombol Ubah (isi filter tersembunyi sampai dibuka); di desktop
-   empat kolom sebaris. */
-.filter-ringkas {
+/* Filter Kehadiran prototipe: baris saringan selalu terlihat —
+   tanggal, sesi, slot, kelas membungkus rapi mengikuti lebar. */
+.filter-baris {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
-  gap: 10px;
+  gap: 8px;
+  margin-bottom: 14px;
 }
 
-.filter-ringkas .teks-konteks {
+.filter-baris .masukan {
+  width: auto;
+}
+
+/* Baris ringkasan hitungan status + tindakan massal (Kehadiran). */
+.baris-ringkasan {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.baris-ringkasan .spaser {
   flex: 1;
-  min-width: 0;
-  font-size: 14px;
-  font-weight: 600;
 }
 
-@media (min-width: 768px) {
-  .filter-ringkas {
-    display: none;
-  }
+/* Baris santri Kehadiran: nama di atas, pemilih status di bawah
+   (HP); di layar lebih lebar sejajar satu baris. */
+.baris-kehadiran {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--garis);
 }
 
-@media (max-width: 767px) {
-  .filter-isi[data-terbuka="false"] {
-    display: none;
-  }
+.baris-kehadiran:last-child {
+  border-bottom: none;
 }
 
-@media (min-width: 768px) {
-  .formulir-filter {
-    grid-template-columns: repeat(4, minmax(0, 1fr));
-    align-items: end;
-  }
-}
-
-/* Baris santri Kehadiran di desktop: nama di kiri, pilihan status
-   di kanan satu baris (di HP tetap menumpuk: nama di atas, status
-   di bawah). */
 @media (min-width: 768px) {
   .baris-kehadiran {
-    grid-template-columns: minmax(0, 1fr) auto;
+    flex-direction: row;
     align-items: center;
+  }
+
+  .baris-kehadiran .pil-status-grup {
+    width: 236px;
+    flex-shrink: 0;
   }
 }
 
@@ -2619,4 +3104,304 @@ html[data-tema="gelap"] .bilah-simpan {
   .kisi-kesalahan {
     grid-template-columns: repeat(3, minmax(0, 1fr));
   }
+}
+
+/* ============================================================
+   PENYELARASAN PROTOTIPE (perintah user 4 Nov 2026 sore):
+   komponen daftar & formulir yang mengikuti prototipe persis.
+   ============================================================ */
+
+/* Daftar menyatu prototipe: baris-baris dalam SATU kartu dengan
+   garis pemisah tipis (divide), bukan kartu terpisah per baris. */
+.daftar-kartu {
+  background: var(--permukaan);
+  border: 1px solid var(--garis);
+  border-radius: var(--jari);
+  box-shadow: var(--bayang);
+  overflow: hidden;
+}
+
+.daftar-kartu .baris-daftar {
+  border: none;
+  border-radius: 0;
+  box-shadow: none;
+  min-height: 56px;
+  padding: 8px 16px;
+}
+
+.daftar-kartu .baris-daftar + .baris-daftar {
+  border-top: 1px solid var(--garis);
+}
+
+a.baris-daftar:hover,
+button.baris-daftar:hover {
+  background: var(--redup);
+}
+
+/* Kartu daftar ringkas berpemisah (setoran terakhir, catatan). */
+.daftar-ringkas {
+  background: var(--permukaan);
+  border: 1px solid var(--garis);
+  border-radius: var(--jari);
+  box-shadow: var(--bayang);
+  overflow: hidden;
+}
+
+.baris-ringkas {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+}
+
+.baris-ringkas + .baris-ringkas {
+  border-top: 1px solid var(--garis);
+}
+
+/* Ubin kode jenis setoran (prototipe SetoranRows). */
+.ubin-jenis {
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  flex-shrink: 0;
+  border-radius: var(--jari-tombol);
+  background: var(--hijau-muda);
+  color: var(--hijau-gelap);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+/* Pilihan jenis setoran prototipe: kisi tombol bertepi — terpilih
+   bertepi primer + tint primer. */
+.pilihan-jenis {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+@media (min-width: 768px) {
+  .pilihan-jenis {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+
+.pilihan-jenis-item {
+  display: grid;
+  gap: 2px;
+  padding: 10px 12px;
+  border: 1px solid var(--masukan);
+  border-radius: var(--jari-tombol);
+  background: var(--permukaan);
+  color: var(--teks);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.pilihan-jenis-item .jenis-judul {
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.pilihan-jenis-item .jenis-ket {
+  font-size: 12px;
+  font-weight: 400;
+  color: var(--teks-redup);
+  line-height: 1.4;
+}
+
+.pilihan-jenis-item[aria-checked="true"] {
+  border-color: var(--hijau-kop);
+  background: var(--hijau-muda);
+}
+
+/* Kartu penilaian prototipe: baris-baris berpemisah — label +
+   keterangan di kiri, stepper di kanan. */
+.kartu-penilaian {
+  border: 1px solid var(--garis);
+  border-radius: var(--jari);
+  background: var(--permukaan);
+  overflow: hidden;
+}
+
+.baris-penilaian {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 16px;
+}
+
+.baris-penilaian + .baris-penilaian {
+  border-top: 1px solid var(--garis);
+}
+
+.baris-penilaian .penilaian-teks {
+  flex: 1;
+  min-width: 0;
+}
+
+.baris-penilaian .penilaian-label {
+  display: block;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.baris-penilaian .penilaian-ket {
+  display: block;
+  font-size: 12px;
+  color: var(--teks-redup);
+  line-height: 1.4;
+}
+
+.baris-penilaian .stepper input {
+  flex: 0 0 52px;
+  font-size: 18px;
+  font-weight: 700;
+}
+
+/* Blok tanggal sesi olahraga prototipe: hari kecil di atas,
+   angka tanggal besar di bawah. */
+.blok-tanggal {
+  width: 56px;
+  flex-shrink: 0;
+  text-align: center;
+}
+
+.blok-tanggal .tanggal-hari {
+  display: block;
+  font-size: 12px;
+  color: var(--teks-redup);
+}
+
+.blok-tanggal .tanggal-angka {
+  display: block;
+  font-size: 20px;
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+/* ---------- Mode gelap: penyelarasan prototipe ---------- */
+
+/* Palet gelap prototipe: primer & status TERANG dengan teks
+   gelap di atasnya; emas terang dengan tint emas gelap. */
+html[data-tema="gelap"] {
+  --hijau-kop: #5599f3;
+  --teks-di-primer: #050b18;
+  --teks-di-status: #151a22;
+  --emas: #e6b55d;
+  --emas-muda: #3b2b0d;
+  --emas-gelap: #f6d389;
+  --status-hadir: #62c689;
+  --status-sakit: #ebb25f;
+  --status-izin: #7ab0f9;
+  --status-alpa: #fb817a;
+}
+
+/* Latar tint lencana & pesan mengikuti tint gelap prototipe. */
+html[data-tema="gelap"] .lencana--hadir,
+html[data-tema="gelap"] .lencana--l,
+html[data-tema="gelap"] .lencana--hasil-bs {
+  background: #173523;
+}
+
+html[data-tema="gelap"] .lencana--sakit,
+html[data-tema="gelap"] .lencana--hasil-c {
+  background: #3f2c10;
+}
+
+html[data-tema="gelap"] .lencana--izin,
+html[data-tema="gelap"] .lencana--netral {
+  background: #1a2e4c;
+}
+
+html[data-tema="gelap"] .lencana--alpa,
+html[data-tema="gelap"] .lencana--u,
+html[data-tema="gelap"] .lencana--hasil-g {
+  background: #4a2321;
+}
+
+html[data-tema="gelap"] .lencana--hasil-b {
+  background: #26331a;
+  color: #a9cf7a;
+}
+
+html[data-tema="gelap"] .lencana--hasil-k {
+  background: #402a12;
+  color: #f0b27a;
+}
+
+html[data-tema="gelap"] .pesan-galat {
+  background: #4a2321;
+}
+
+html[data-tema="gelap"] .pesan-sukses {
+  background: #173523;
+}
+
+/* Teks di atas tint primer gelap memakai biru terang prototipe. */
+html[data-tema="gelap"] .chip[aria-pressed="true"],
+html[data-tema="gelap"] .chip--aktif,
+html[data-tema="gelap"] .ubin-jenis,
+html[data-tema="gelap"] .pilihan-jenis-item[aria-checked="true"] {
+  color: #acd1ff;
+}
+
+/* Nomor langkah auth: teks gelap di atas emas terang (prototipe
+   memakai primary-foreground gelap di mode gelap). */
+html[data-tema="gelap"] .auth-langkah-nomor {
+  color: #050b18;
+}
+
+html[data-tema="gelap"] .auth-visual-bingkai--luar {
+  border-color: rgba(5, 11, 24, 0.3);
+}
+
+/* ---------- Skala teks: perluasan cakupan ---------- */
+
+h1.judul-halaman {
+  font-size: calc(20px * var(--skala-teks, 1));
+}
+
+@media (min-width: 1024px) {
+  h1.judul-halaman {
+    font-size: calc(24px * var(--skala-teks, 1));
+  }
+}
+
+.tombol {
+  font-size: calc(14px * var(--skala-teks, 1));
+}
+
+.baris-judul {
+  font-size: calc(14px * var(--skala-teks, 1));
+}
+
+/* Kisi ringkasan wali: 2 kolom di HP, 4 kolom di PC (tanpa hero). */
+.kisi-ringkasan--wali {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+@media (min-width: 1024px) {
+  .kisi-ringkasan--wali {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+
+/* Di dalam baris ganda, kartu hadis sejajar dengan kartu semester. */
+.baris-ganda .banner-motivasi {
+  margin-top: 0;
+}
+
+/* Kartu profil Akun prototipe: baris dengan avatar 48px. */
+.kartu-profil {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.kartu-profil .avatar-inisial {
+  width: 48px;
+  height: 48px;
+  font-size: 16px;
 }

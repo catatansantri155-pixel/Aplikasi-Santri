@@ -89,20 +89,37 @@ function keAngka(teks: string): number {
   return Number.isFinite(n) ? n : 0;
 }
 
-/** Kontrol tambah/kurang untuk jumlah kesalahan RG/KK/KB. */
+/** Nama pendek jenis setoran untuk tombol pilihan (baris pertama);
+ *  keterangan resminya menjadi baris kedua tombol. */
+const NAMA_JENIS_PENDEK: Record<JenisSetoran, string> = {
+  BC: "Membaca",
+  BR: "Hafalan baru",
+  TS: "Tes hafalan",
+  LM: "Hafalan lama",
+};
+
+/**
+ * Baris penilaian prototipe: label + keterangan resmi di kiri,
+ * kontrol tambah/kurang di kanan (angka tetap bisa diketik).
+ */
 function StepperKesalahan({
   label,
+  keterangan,
   nilai,
   onUbah,
 }: {
   label: string;
+  keterangan: string;
   nilai: string;
   onUbah: (teks: string) => void;
 }) {
   const n = keAngka(nilai);
   return (
-    <label style={gayaLabel}>
-      {label}
+    <div className="baris-penilaian">
+      <span className="penilaian-teks">
+        <span className="penilaian-label">{label}</span>
+        <span className="penilaian-ket">{keterangan}</span>
+      </span>
       <span className="stepper">
         <button
           type="button"
@@ -129,7 +146,7 @@ function StepperKesalahan({
           +
         </button>
       </span>
-    </label>
+    </div>
   );
 }
 
@@ -306,28 +323,31 @@ export default function FormSetoran({
 
           <div>
             <span
-              style={{ display: "block", fontSize: 13, fontWeight: 600, marginBottom: 6 }}
+              style={{ display: "block", fontSize: 14, fontWeight: 600, marginBottom: 6 }}
             >
               Jenis hafalan
             </span>
-            <div className="grup-chip" role="radiogroup" aria-label="Jenis hafalan">
+            {/* Kisi tombol bertepi prototipe: kode + nama di baris
+                pertama, keterangan resmi di baris kedua. */}
+            <div className="pilihan-jenis" role="radiogroup" aria-label="Jenis hafalan">
               {SEMUA_JENIS_SETORAN.map((j) => (
                 <button
                   key={j}
                   type="button"
                   role="radio"
                   aria-checked={jenis === j}
-                  aria-pressed={jenis === j}
-                  className="chip"
+                  className="pilihan-jenis-item"
                   onClick={() => setJenis(j)}
                 >
-                  {j}
+                  <span className="jenis-judul">
+                    {j} · {NAMA_JENIS_PENDEK[j]}
+                  </span>
+                  <span className="jenis-ket">
+                    {LABEL_JENIS_SETORAN[j].replace(/^[A-Z]{2} — /, "")}
+                  </span>
                 </button>
               ))}
             </div>
-            <p style={{ ...gayaPetunjuk, marginTop: 8 }}>
-              {LABEL_JENIS_SETORAN[jenis]}
-            </p>
           </div>
 
           <div style={gayaKisiDua}>
@@ -384,14 +404,34 @@ export default function FormSetoran({
             </label>
           </div>
 
-          <fieldset style={{ border: "1px solid var(--garis)", borderRadius: 12, padding: 12, margin: 0 }}>
-            <legend style={{ fontSize: 14, fontWeight: 600, padding: "0 6px" }}>
-              Kesalahan
-            </legend>
-            <div className="kisi-kesalahan">
-              <StepperKesalahan label="RG" nilai={rg} onUbah={setRg} />
-              <StepperKesalahan label="KK" nilai={kk} onUbah={setKk} />
-              <StepperKesalahan label="KB" nilai={kb} onUbah={setKb} />
+          <div>
+            <span
+              style={{ display: "block", fontSize: 14, fontWeight: 600, marginBottom: 6 }}
+            >
+              Penilaian
+            </span>
+            {/* Kartu penilaian prototipe: baris berpemisah dengan
+                stepper di kanan; sistem skor tetap resmi (RG/KK/KB
+                → konversi → L/U), bukan skor prototipe. */}
+            <div className="kartu-penilaian">
+              <StepperKesalahan
+                label="RG · Ragu"
+                keterangan="Mampu memperbaiki sendiri tanpa diingatkan, atau diingatkan 1x"
+                nilai={rg}
+                onUbah={setRg}
+              />
+              <StepperKesalahan
+                label="KK · Kesalahan Kecil"
+                keterangan="Mampu memperbaiki setelah diingatkan minimal 2x"
+                nilai={kk}
+                onUbah={setKk}
+              />
+              <StepperKesalahan
+                label="KB · Kesalahan Besar"
+                keterangan="Tidak mampu memperbaiki setelah diingatkan 3x"
+                nilai={kb}
+                onUbah={setKb}
+              />
             </div>
             <label style={{ ...gayaLabel, marginTop: 12 }}>
               Catatan hafalan — rincian kesalahan (nomor ayat &amp; lafazh)
@@ -402,7 +442,7 @@ export default function FormSetoran({
                 placeholder="mis. Ayat 47: lafazh …"
               />
             </label>
-          </fieldset>
+          </div>
 
           <label style={gayaLabel}>
             Tugas berikutnya
@@ -431,23 +471,30 @@ export default function FormSetoran({
             </p>
           </div>
 
-          <details className="rincian" style={{ margin: 0 }}>
-            <summary>Lihat aturan penilaian</summary>
-            <div>
-              <p>
-                <strong>RG</strong> = ragu (membaik sendiri / diingatkan
-                1x) · <strong>KK</strong> = kesalahan kecil (membaik
-                setelah diingatkan minimal 2x) · <strong>KB</strong> =
-                kesalahan besar (tidak membaik setelah diingatkan 3x).
-              </p>
-              <p>
-                Konversi bertahap: 3 RG = 1 KK, 3 KK = 1 KB. Nilai BR
-                dan TS: L (Lancar) hanya bila RG, KK, KB semuanya 0,
-                selain itu U (Ulang). Nilai BC dan LM: L bila KB hasil
-                konversi ≤ 3.
-              </p>
-            </div>
-          </details>
+          {/* Panel aturan prototipe: kartu statis (bukan details)
+              berisi rumus konversi + daftar ambang nilai. */}
+          <div className="kartu-samping">
+            <h3>Aturan penilaian</h3>
+            <p style={{ margin: 0, fontSize: 13, lineHeight: 1.55 }}>
+              <strong>RG</strong> = ragu (membaik sendiri / diingatkan
+              1x) · <strong>KK</strong> = kesalahan kecil (membaik
+              setelah diingatkan minimal 2x) · <strong>KB</strong> =
+              kesalahan besar (tidak membaik setelah diingatkan 3x).
+            </p>
+            <p style={{ margin: "8px 0 0", fontSize: 13, lineHeight: 1.55 }}>
+              Konversi bertahap: 3 RG = 1 KK, 3 KK = 1 KB.
+            </p>
+            <ul style={{ margin: "8px 0 0", paddingLeft: 18, fontSize: 13, lineHeight: 1.55 }}>
+              <li>
+                BR &amp; TS: <strong>L</strong> hanya bila RG, KK, KB
+                semuanya 0.
+              </li>
+              <li>
+                BC &amp; LM: <strong>L</strong> bila KB hasil konversi
+                ≤ 3.
+              </li>
+            </ul>
+          </div>
 
           <div className="kartu-samping">
             <h3>Penyimak</h3>
@@ -488,7 +535,8 @@ export default function FormSetoran({
                 {santriTerpilih.kelasTingkat
                   ? ` · Kelas ${santriTerpilih.kelasTingkat}`
                   : ""}
-              </strong>
+              </strong>{" "}
+              · Nilai {nilaiLive} — {LABEL_NILAI_SETORAN[nilaiLive]}
             </>
           ) : (
             "Pilih santri terlebih dahulu"
@@ -496,7 +544,7 @@ export default function FormSetoran({
         </span>
         <button
           type="submit"
-          className="tombol tombol-besar"
+          className="tombol"
           disabled={mengirim || !santriTerpilih}
         >
           {mengirim ? "Menyimpan…" : "Simpan setoran"}

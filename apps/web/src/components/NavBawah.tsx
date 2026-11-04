@@ -5,14 +5,15 @@
  * user 3 Nov 2026 21:03 mengikuti usulan audit; menggantikan
  * susunan seragam revisi biru [Beranda·Santri·Tengah·Grafik·Akun]).
  *
- * Staf & admin: TEPAT 5 slot, slot tengah lingkaran besar gradien
- * biru terangkat berisi AKSI INTI peran:
- * - admin          : Beranda · Santri · [Kehadiran] · Laporan · Akun
- * - pengajar hifzh : Beranda · Santri · [Setoran→/hifzh] ·
+ * Staf & admin: TEPAT 5 slot DATAR mengikuti prototipe (tanpa
+ * lingkaran tengah terangkat; slot aktif cukup berwarna primer
+ * dengan ikon lebih tebal):
+ * - admin          : Beranda · Santri · Kehadiran · Laporan · Akun
+ * - pengajar hifzh : Beranda · Santri · Setoran→/hifzh ·
  *                    Kehadiran · Akun
- * - pengajar diniyyah: Beranda · Santri · [Nilai→/diniyyah] ·
+ * - pengajar diniyyah: Beranda · Santri · Nilai→/diniyyah ·
  *                      Kehadiran · Akun
- * - musyrif        : Beranda · Santri · [Catatan] · Olahraga · Akun
+ * - musyrif        : Beranda · Santri · Catatan · Olahraga · Akun
  * Slot terakhir kini AKUN (arahan user 4 Nov 2026: "tombol menu
  * hapus aja, ganti akun") — halaman Menu gugur karena kisi modul
  * yang sama sudah ada di beranda; /menu kini mengalihkan ke /akun.
@@ -51,7 +52,6 @@ interface SlotNav {
   href: string;
   label: string;
   ikon: NamaIkon;
-  tengah?: boolean;
 }
 
 const SLOT_BERANDA: SlotNav = { href: "/", label: "Beranda", ikon: "beranda" };
@@ -63,14 +63,14 @@ const SLOT_KEHADIRAN: SlotNav = {
   ikon: "kehadiran",
 };
 
-/** Susunan 5 slot untuk admin & staf (tengah = aksi inti peran). */
+/** Susunan 5 slot untuk admin & staf (semua datar, prototipe). */
 function slotUntukStaf(peran: Peran): SlotNav[] {
   switch (peran) {
     case PERAN.PENGAJAR_HIFZH:
       return [
         SLOT_BERANDA,
         SLOT_SANTRI,
-        { href: "/hifzh", label: "Setoran", ikon: "hifzh", tengah: true },
+        { href: "/hifzh", label: "Setoran", ikon: "hifzh" },
         SLOT_KEHADIRAN,
         SLOT_AKUN,
       ];
@@ -78,7 +78,7 @@ function slotUntukStaf(peran: Peran): SlotNav[] {
       return [
         SLOT_BERANDA,
         SLOT_SANTRI,
-        { href: "/diniyyah", label: "Nilai", ikon: "diniyyah", tengah: true },
+        { href: "/diniyyah", label: "Nilai", ikon: "diniyyah" },
         SLOT_KEHADIRAN,
         SLOT_AKUN,
       ];
@@ -86,7 +86,7 @@ function slotUntukStaf(peran: Peran): SlotNav[] {
       return [
         SLOT_BERANDA,
         SLOT_SANTRI,
-        { href: "/catatan", label: "Catatan", ikon: "pena", tengah: true },
+        { href: "/catatan", label: "Catatan", ikon: "pena" },
         { href: "/olahraga", label: "Olahraga", ikon: "olahraga" },
         SLOT_AKUN,
       ];
@@ -95,7 +95,7 @@ function slotUntukStaf(peran: Peran): SlotNav[] {
       return [
         SLOT_BERANDA,
         SLOT_SANTRI,
-        { ...SLOT_KEHADIRAN, tengah: true },
+        SLOT_KEHADIRAN,
         { href: "/laporan", label: "Laporan", ikon: "rekap" },
         SLOT_AKUN,
       ];
@@ -130,7 +130,7 @@ function SlotTautan({
       aria-current={aktif ? "page" : undefined}
     >
       <span className="nav-ikon" aria-hidden="true">
-        <Ikon nama={ikon} ukuran={21} />
+        <Ikon nama={ikon} ukuran={20} tebal={aktif ? 2.4 : 1.8} />
       </span>
       <span>{label}</span>
     </Link>
@@ -268,31 +268,15 @@ export default function NavBawah() {
 
   return (
     <>
-      {slot.map((s) =>
-        s.tengah ? (
-          <Link
-            key={s.label}
-            href={s.href}
-            className={`nav-slot nav-slot--tengah${
-              aktifUntuk(s.href) ? " nav-slot--tengah-aktif" : ""
-            }`}
-            aria-current={aktifUntuk(s.href) ? "page" : undefined}
-          >
-            <span className="nav-tengah-lingkaran" aria-hidden="true">
-              <Ikon nama={s.ikon} ukuran={25} />
-            </span>
-            <span>{s.label}</span>
-          </Link>
-        ) : (
-          <SlotTautan
-            key={s.label}
-            href={s.href}
-            label={s.label}
-            ikon={s.ikon}
-            aktif={aktifUntuk(s.href)}
-          />
-        ),
-      )}
+      {slot.map((s) => (
+        <SlotTautan
+          key={s.label}
+          href={s.href}
+          label={s.label}
+          ikon={s.ikon}
+          aktif={aktifUntuk(s.href)}
+        />
+      ))}
     </>
   );
 }

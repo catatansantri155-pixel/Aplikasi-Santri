@@ -149,7 +149,7 @@ export default function NavTautan() {
             aria-current={aktif ? "page" : undefined}
           >
             <span className="nav-ikon" aria-hidden="true">
-              <Ikon nama={tautan.ikon} ukuran={21} />
+              <Ikon nama={tautan.ikon} ukuran={20} />
             </span>
             <span>{tautan.label}</span>
           </Link>

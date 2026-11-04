@@ -41,7 +41,14 @@ import {
   STATUS_KEHADIRAN,
   type StatusKehadiran,
 } from "@/lib/data/kehadiran";
-import { ambilCatatanTerbaru } from "@/lib/data/catatan";
+import {
+  ambilCatatanTerbaru,
+  LABEL_KATEGORI,
+  type CatatanMusyrif,
+} from "@/lib/data/catatan";
+import { formatTanggalPanjang } from "@/lib/data/olahraga";
+import AvatarInisial from "@/components/AvatarInisial";
+import Pola from "@/components/Pola";
 import {
   ambilSemesterAdmin,
   statusSemester,
@@ -49,7 +56,6 @@ import {
 } from "@/lib/data/admin";
 import {
   formatHijriahRingkas,
-  formatTanggalRingkas,
   tanggalIsoHariIni,
 } from "@/lib/tanggal";
 import {
@@ -80,9 +86,30 @@ function formatTanggal(iso: string): string {
   });
 }
 
-/** Tanggal hari ini versi Masehi RINGKAS, untuk banner beranda. */
-function formatTanggalHariIni(): string {
-  return formatTanggalRingkas();
+/** Tanggal hari ini versi PANJANG (baris tanggal sapaan prototipe). */
+function formatTanggalHariIniPanjang(): string {
+  return formatTanggalPanjang(tanggalIsoHariIni());
+}
+
+/** Teks Arab hadis motivasi (HR. Bukhari) — pasangan terjemahan
+ *  yang sudah tampil di beranda; huruf Amiri lewat .teks-arab. */
+const MOTIVASI_ARAB = "خَيْرُكُمْ مَنْ تَعَلَّمَ الْقُرْآنَ وَعَلَّمَهُ";
+
+/** Pekan berjalan semester dari tanggal mulai/selesai ASLI:
+ *  pekan ke-berapa dari total pekan rentang semester. */
+function hitungPekanSemester(semester: SemesterLengkap): {
+  pekan: number;
+  total: number;
+} {
+  const mulai = new Date(`${semester.tanggalMulai}T00:00:00`).getTime();
+  const selesai = new Date(`${semester.tanggalSelesai}T00:00:00`).getTime();
+  const hariIni = new Date(`${tanggalIsoHariIni()}T00:00:00`).getTime();
+  const total = Math.max(1, Math.ceil((selesai - mulai) / 604_800_000));
+  const pekan = Math.min(
+    total,
+    Math.max(1, Math.floor((hariIni - mulai) / 604_800_000) + 1),
+  );
+  return { pekan, total };
 }
 
 /**
@@ -132,6 +159,17 @@ export default function HalamanBeranda() {
   } | null>(null);
   const [semesterBerjalan, setSemesterBerjalan] =
     useState<SemesterLengkap | null>(null);
+  // Bahan bagian prototipe: setoran terakhir (beranda hifzh),
+  // catatan terbaru + daftar anak & ringkasan per anak (beranda
+  // wali) — semuanya dari respons lapisan data yang SAMA dengan
+  // hitungan statistik di atas, tanpa panggilan tambahan.
+  const [setoranTerbaru, setSetoranTerbaru] = useState<SetoranHifzh[]>([]);
+  const [catatanTerbaru, setCatatanTerbaru] =
+    useState<CatatanMusyrif | null>(null);
+  const [daftarAnak, setDaftarAnak] = useState<Santri[]>([]);
+  const [ringkasanAnak, setRingkasanAnak] = useState<
+    Record<string, { kehadiran: number; setoran: number }>
+  >({});
 
   // MODE SUPABASE: muat profil pengguna yang login untuk sapaan beranda.
   useEffect(() => {
@@ -172,6 +210,21 @@ export default function HalamanBeranda() {
             ),
           );
           kehadiran = perAnak.reduce((j, h) => j + h.data.length, 0);
+          if (!aktif) return;
+          setDaftarAnak(daftarSantri.data);
+          const perAnakMap: Record<
+            string,
+            { kehadiran: number; setoran: number }
+          > = {};
+          daftarSantri.data.forEach((s, i) => {
+            perAnakMap[s.id] = {
+              kehadiran: perAnak[i]?.data.length ?? 0,
+              setoran: setoran.data.filter((x) => x.santriId === s.id)
+                .length,
+            };
+          });
+          setRingkasanAnak(perAnakMap);
+          setCatatanTerbaru(catatan.data[0] ?? null);
         } else {
           const [hifzh, diniyyah] = await Promise.all([
             ambilKehadiran(hariIni, "hifzh"),
@@ -180,6 +233,7 @@ export default function HalamanBeranda() {
           kehadiran = hifzh.data.length + diniyyah.data.length;
         }
         if (!aktif) return;
+        setSetoranTerbaru(setoran.data.slice(0, 4));
         setStatistik({
           santri: daftarSantri.data.length,
           kehadiran,
@@ -263,160 +317,406 @@ export default function HalamanBeranda() {
   // ===== Beranda MODE SUPABASE: sapaan sesuai profil login =====
   if (!modeContoh) {
     const hijriah = formatTanggalHijriahHariIni();
-    return (
+    const untukWali = profilLogin?.peran === "wali";
+    const pekanSemester = semesterBerjalan
+      ? hitungPekanSemester(semesterBerjalan)
+      : null;
+    // Kartu hero prototipe per peran: statistik utama peran itu
+    // (angka NYATA yang sama dengan ringkasan sebelumnya).
+    const hero =
+      profilLogin?.peran === "pengajar_hifzh"
+        ? {
+            label: "Setoran hari ini",
+            nilai: statistik?.setoran ?? 0,
+            sub: "setoran tercatat hari ini",
+            cta: "Setoran baru",
+            href: "/hifzh",
+          }
+        : profilLogin?.peran === "musyrif"
+          ? {
+              label: "Catatan hari ini",
+              nilai: statistik?.catatan ?? 0,
+              sub: "catatan tercatat hari ini",
+              cta: "Catatan baru",
+              href: "/catatan",
+            }
+          : profilLogin?.peran === "pengajar_diniyyah"
+            ? {
+                label: "Kehadiran hari ini",
+                nilai: statistik?.kehadiran ?? 0,
+                sub: "sesi hifzh + diniyyah terisi",
+                cta: "Isi nilai",
+                href: "/diniyyah",
+              }
+            : {
+                label: "Kehadiran hari ini",
+                nilai: statistik?.kehadiran ?? 0,
+                sub: "sesi hifzh + diniyyah terisi",
+                cta: "Isi kehadiran",
+                href: "/kehadiran",
+              };
+    const kartuLain = statistik
+      ? [
+          {
+            angka: statistik.santri,
+            label: "Santri aktif",
+            sub: "Marhalah Wustha",
+          },
+          ...(profilLogin?.peran === "pengajar_hifzh"
+            ? [
+                {
+                  angka: statistik.kehadiran,
+                  label: "Kehadiran hari ini",
+                  sub: "sesi hifzh + diniyyah",
+                },
+                {
+                  angka: statistik.catatan,
+                  label: "Catatan hari ini",
+                  sub: "dari musyrif & pengajar",
+                },
+              ]
+            : profilLogin?.peran === "musyrif"
+              ? [
+                  {
+                    angka: statistik.kehadiran,
+                    label: "Kehadiran hari ini",
+                    sub: "sesi hifzh + diniyyah",
+                  },
+                  {
+                    angka: statistik.setoran,
+                    label: "Setoran hari ini",
+                    sub: "dari semua penyimak",
+                  },
+                ]
+              : [
+                  {
+                    angka: statistik.setoran,
+                    label: "Setoran hari ini",
+                    sub: "dari semua penyimak",
+                  },
+                  {
+                    angka: statistik.catatan,
+                    label: "Catatan hari ini",
+                    sub: "dari musyrif & pengajar",
+                  },
+                ]),
+        ]
+      : [];
+
+    // Sapaan prototipe: baris tanggal (Masehi panjang + Hijriah
+    // emas) lalu judul "Assalamu'alaikum, {nama}".
+    const sapaan = (
       <>
-        {/* Pita sapaan RAMPING (arahan user 4 Nov 2026): tanpa
-            avatar besar — profil kecil sudah ada di kepala aplikasi.
-            Isinya sapaan + nama + peran kecil + tanggal RINGKAS
-            (Masehi pendek + Hijriah pendek). */}
-        <div className="pita">
-          <section className="banner banner--pita">
-            <p className="banner-sapaan">Assalamu&rsquo;alaikum,</p>
-            <p className="banner-nama">
-              {memuatProfil
-                ? "Memuat profil…"
-                : (profilLogin?.nama ?? "Pengguna")}
-            </p>
-            <p className="banner-sub">
-              {profilLogin ? `${LABEL_PERAN[profilLogin.peran]} · ` : ""}
-              {formatTanggalHariIni()}
-              {hijriah ? ` · ${hijriah}` : ""}
-            </p>
-          </section>
-        </div>
-
-        <div className="lembar">
-          {!memuatProfil && !profilLogin && (
-            <p className="pesan-galat" role="alert">
-              Profil pengguna belum ditemukan di tabel profiles. Hubungi
-              admin agar akun Anda didaftarkan profil dan perannya.
-            </p>
-          )}
-
-          {/* Ringkasan angka NYATA (arahan user 4 Nov 2026: beranda
-              jangan kosong): staf/admin = hitungan hari ini; wali =
-              total tercatat anaknya. Gagal muat → bagian hilang diam-
-              diam, beranda tetap jalan. */}
-          {profilLogin && statistik && (
+        <p className="sapaan-tanggal">
+          {formatTanggalHariIniPanjang()}
+          {hijriah ? (
             <>
-              <div className="kepala-seksi" style={{ marginTop: 4 }}>
-                <h2 className="judul-seksi">
-                  {profilLogin.peran === "wali"
-                    ? "Ringkasan anak Anda"
-                    : "Ringkasan hari ini"}
-                </h2>
-              </div>
-              <div className="kisi-stat">
-                {(
-                  [
-                    {
-                      ikon: "santri" as NamaIkon,
-                      warna: "hijau" as WarnaTint,
-                      angka: statistik.santri,
-                      label:
-                        profilLogin.peran === "wali"
-                          ? "Anak tertaut"
-                          : "Santri aktif",
-                    },
-                    {
-                      ikon: "kehadiran" as NamaIkon,
-                      warna: "biru" as WarnaTint,
-                      angka: statistik.kehadiran,
-                      label:
-                        profilLogin.peran === "wali"
-                          ? "Kehadiran tercatat"
-                          : "Kehadiran terisi hari ini",
-                    },
-                    {
-                      ikon: "hifzh" as NamaIkon,
-                      warna: "emas" as WarnaTint,
-                      angka: statistik.setoran,
-                      label:
-                        profilLogin.peran === "wali"
-                          ? "Setoran tercatat"
-                          : "Setoran hari ini",
-                    },
-                    {
-                      ikon: "catatan" as NamaIkon,
-                      warna: "kuning" as WarnaTint,
-                      angka: statistik.catatan,
-                      label:
-                        profilLogin.peran === "wali"
-                          ? "Catatan tercatat"
-                          : "Catatan hari ini",
-                    },
-                  ] as const
-                ).map((s) => (
-                  <div key={s.label} className="kartu-stat">
-                    <LingkaranIkon nama={s.ikon} warna={s.warna} />
-                    <span>
-                      <span className="stat-angka">{s.angka}</span>
-                      <span className="stat-label">{s.label}</span>
-                    </span>
-                  </div>
-                ))}
-              </div>
+              {" · "}
+              <span className="sapaan-hijri">{hijriah}</span>
             </>
-          )}
+          ) : null}
+        </p>
+        <h1 className="sapaan-judul">
+          Assalamu&rsquo;alaikum,{" "}
+          {memuatProfil ? "…" : (profilLogin?.nama ?? "Pengguna")}
+        </h1>
+        {!memuatProfil && !profilLogin && (
+          <p className="pesan-galat" role="alert">
+            Profil pengguna belum ditemukan di tabel profiles. Hubungi
+            admin agar akun Anda didaftarkan profil dan perannya.
+          </p>
+        )}
+      </>
+    );
 
-          {/* Kisi Fast Menu: modul hanya dirender SETELAH profil
-              termuat, disaring per peran dari peta terpusat
-              src/lib/akses.ts — modul terlarang tidak pernah tampil,
-              juga tidak saat memuat. */}
+    // Pasangan semester berjalan + kartu hadis (prototipe: dua
+    // kartu sejajar di PC). Hadis kini lengkap dengan teks Arab.
+    const pasanganSemesterHadis = profilLogin ? (
+      <div className="baris-ganda">
+        {semesterBerjalan && pekanSemester && (
+          <div className="kartu-semester">
+            <div className="semester-baris">
+              <span className="semester-nama">
+                {semesterBerjalan.nama} · {semesterBerjalan.tahunAjaran}
+              </span>
+              <span className="semester-pekan">
+                Pekan {pekanSemester.pekan}/{pekanSemester.total}
+              </span>
+            </div>
+            <div
+              className="bilah"
+              role="img"
+              aria-label={`Pekan ${pekanSemester.pekan} dari ${pekanSemester.total}`}
+            >
+              <div
+                className="bilah-isi"
+                style={{
+                  width: `${Math.round(
+                    (pekanSemester.pekan / pekanSemester.total) * 100,
+                  )}%`,
+                }}
+              />
+            </div>
+          </div>
+        )}
+        <div className="banner-motivasi">
+          <Pola className="motivasi-pola" />
+          <p className="motivasi-arab teks-arab" dir="rtl" lang="ar">
+            {MOTIVASI_ARAB}
+          </p>
+          <p className="motivasi-teks">
+            &ldquo;Sebaik-baik kalian adalah yang mempelajari
+            Al-Qur&rsquo;an dan mengajarkannya.&rdquo;
+          </p>
+          <p className="motivasi-sumber">
+            HR. Bukhari — pengingat bagi pengajar dan santri
+          </p>
+        </div>
+      </div>
+    ) : null;
+
+    if (untukWali) {
+      // ===== Beranda WALI (prototipe BerandaWali) =====
+      return (
+        <>
+          {sapaan}
           {profilLogin && (
             <>
-              <div className="kepala-seksi" style={{ marginTop: 4 }}>
-                <h2 className="judul-seksi">Modul</h2>
-              </div>
-              <div className="kisi-menu">
-                {DAFTAR_MODUL.filter((modul) =>
-                  bolehAksesModul(profilLogin.peran, modul.modul),
-                ).map((modul) => (
-                  <Link
-                    key={modul.href}
-                    href={modul.href}
-                    className="item-menu"
-                  >
-                    <IkonModul
-                      modul={modul.modul}
-                      ikon={modul.ikon}
-                      warna={modul.warna}
-                    />
-                    <span className="item-menu-label">{modul.label}</span>
-                  </Link>
-                ))}
-              </div>
-
-              {/* Strip semester berjalan + banner motivasi agar
-                  beranda tidak terasa kosong (arahan user 4 Nov). */}
-              {semesterBerjalan && (
-                <div className="kartu-semester">
-                  <LingkaranIkon nama="kalender" warna="biru" />
-                  <span className="baris-teks">
-                    <span className="baris-judul">
-                      {semesterBerjalan.nama} ·{" "}
-                      {semesterBerjalan.tahunAjaran}
-                    </span>
-                    <span className="baris-ket">
-                      {formatTanggal(semesterBerjalan.tanggalMulai)} –{" "}
-                      {formatTanggal(semesterBerjalan.tanggalSelesai)} ·
-                      Sedang berjalan
-                    </span>
-                  </span>
+              {daftarAnak.length === 0 ? (
+                <section className="kartu">
+                  <h2>Belum ada anak tertaut</h2>
+                  <p>
+                    Akun Anda belum ditautkan ke santri mana pun.
+                    Sampaikan ke admin pondok agar anak Anda ditautkan;
+                    setelah itu data anak tampil di sini.
+                  </p>
+                </section>
+              ) : (
+                <div style={{ display: "grid", gap: 12 }}>
+                  {daftarAnak.map((anak) => (
+                    <Link
+                      key={anak.id}
+                      href={`/santri/${anak.id}`}
+                      className="kartu"
+                      style={{
+                        display: "flex",
+                        alignItems: "center",
+                        gap: 14,
+                        marginBottom: 0,
+                        color: "inherit",
+                        textDecoration: "none",
+                      }}
+                    >
+                      <AvatarInisial nama={anak.nama} ukuran="besar" />
+                      <span className="baris-teks">
+                        <span
+                          style={{
+                            display: "block",
+                            fontSize: 12,
+                            color: "var(--teks-redup)",
+                          }}
+                        >
+                          Anak Anda
+                        </span>
+                        <span
+                          style={{
+                            display: "block",
+                            fontSize: 18,
+                            fontWeight: 700,
+                            lineHeight: 1.3,
+                          }}
+                        >
+                          {anak.nama}
+                        </span>
+                        <span className="baris-ket">
+                          {anak.kelasNama}
+                          {anak.nis ? ` · NIS ${anak.nis}` : ""}
+                        </span>
+                        <span className="baris-ket">
+                          Setoran tercatat{" "}
+                          {ringkasanAnak[anak.id]?.setoran ?? 0} ·
+                          Kehadiran tercatat{" "}
+                          {ringkasanAnak[anak.id]?.kehadiran ?? 0}
+                        </span>
+                      </span>
+                      <span className="baris-kanan">
+                        <Ikon nama="chevron-kanan" ukuran={18} />
+                      </span>
+                    </Link>
+                  ))}
                 </div>
               )}
-              <div className="banner-motivasi">
-                <p className="motivasi-teks">
-                  &ldquo;Sebaik-baik kalian adalah yang mempelajari
-                  Al-Qur&rsquo;an dan mengajarkannya.&rdquo;
-                </p>
-                <p className="motivasi-sumber">
-                  HR. Bukhari — pengingat bagi pengajar dan santri
-                </p>
+
+              {statistik && (
+                <>
+                  <div className="kepala-seksi">
+                    <h2 className="judul-seksi">Ringkasan</h2>
+                  </div>
+                  <div className="kisi-ringkasan kisi-ringkasan--wali">
+                    {[
+                      {
+                        angka: statistik.santri,
+                        label: "Anak tertaut",
+                        sub: "tertaut ke akun Anda",
+                      },
+                      {
+                        angka: statistik.kehadiran,
+                        label: "Kehadiran tercatat",
+                        sub: "semua sesi tercatat",
+                      },
+                      {
+                        angka: statistik.setoran,
+                        label: "Setoran tercatat",
+                        sub: "semua setoran tercatat",
+                      },
+                      {
+                        angka: statistik.catatan,
+                        label: "Catatan tercatat",
+                        sub: "dari musyrif & pengajar",
+                      },
+                    ].map((s) => (
+                      <div key={s.label} className="kartu-stat">
+                        <span className="stat-label">{s.label}</span>
+                        <span className="stat-angka">{s.angka}</span>
+                        <span className="stat-sub">{s.sub}</span>
+                      </div>
+                    ))}
+                  </div>
+                </>
+              )}
+
+              {pasanganSemesterHadis}
+
+              {catatanTerbaru && (
+                <>
+                  <div className="kepala-seksi">
+                    <h2 className="judul-seksi">Catatan musyrif terakhir</h2>
+                  </div>
+                  <section className="kartu">
+                    <div
+                      style={{
+                        display: "flex",
+                        alignItems: "center",
+                        gap: 8,
+                        flexWrap: "wrap",
+                      }}
+                    >
+                      <strong style={{ fontSize: 14 }}>
+                        {catatanTerbaru.santriNama}
+                      </strong>
+                      <span className="lencana lencana--netral">
+                        {LABEL_KATEGORI[catatanTerbaru.kategori]}
+                      </span>
+                    </div>
+                    <p style={{ margin: "8px 0 6px", fontSize: 14 }}>
+                      {catatanTerbaru.isi}
+                    </p>
+                    <p className="catatan-kaki" style={{ margin: 0 }}>
+                      {catatanTerbaru.pelaporNama} ·{" "}
+                      {formatTanggal(catatanTerbaru.tanggal)}
+                    </p>
+                  </section>
+                </>
+              )}
+
+              <div style={{ marginTop: 16 }}>
+                <Link
+                  href="/laporan"
+                  className="tombol tombol-sekunder tombol-penuh"
+                >
+                  Lihat perkembangan lengkap
+                </Link>
               </div>
             </>
           )}
-        </div>
+        </>
+      );
+    }
+
+    // ===== Beranda staf & admin (prototipe Home) =====
+    return (
+      <>
+        {sapaan}
+
+        {profilLogin && statistik && (
+          <div className="kisi-ringkasan">
+            <div className="kartu-hero">
+              <Pola className="hero-pola" />
+              <p className="hero-label">{hero.label}</p>
+              <p className="hero-nilai">{hero.nilai}</p>
+              <p className="hero-sub">{hero.sub}</p>
+              <Link href={hero.href} className="tombol hero-aksi">
+                {hero.cta}
+              </Link>
+            </div>
+            {kartuLain.map((s) => (
+              <div key={s.label} className="kartu-stat">
+                <span className="stat-label">{s.label}</span>
+                <span className="stat-angka">{s.angka}</span>
+                <span className="stat-sub">{s.sub}</span>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {pasanganSemesterHadis}
+
+        {profilLogin && (
+          <>
+            <div className="kepala-seksi">
+              <h2 className="judul-seksi">Modul</h2>
+            </div>
+            <div className="kisi-menu">
+              {DAFTAR_MODUL.filter((modul) =>
+                bolehAksesModul(profilLogin.peran, modul.modul),
+              ).map((modul) => (
+                <Link key={modul.href} href={modul.href} className="item-menu">
+                  <IkonModul
+                    modul={modul.modul}
+                    ikon={modul.ikon}
+                    warna={modul.warna}
+                  />
+                  <span className="item-menu-label">{modul.label}</span>
+                </Link>
+              ))}
+            </div>
+
+            {profilLogin.peran === "pengajar_hifzh" &&
+              setoranTerbaru.length > 0 && (
+                <>
+                  <div className="kepala-seksi">
+                    <h2 className="judul-seksi">Setoran terakhir</h2>
+                    <Link href="/hifzh" className="aksi-seksi">
+                      Semua
+                    </Link>
+                  </div>
+                  <div className="daftar-ringkas">
+                    {setoranTerbaru.map((s) => (
+                      <div key={s.id} className="baris-ringkas">
+                        <AvatarInisial nama={s.santriNama} ukuran="kecil" />
+                        <span className="baris-teks">
+                          <span className="baris-judul">{s.santriNama}</span>
+                          <span className="baris-ket">
+                            {s.jenis} · {s.surat} {s.ayatDari}–{s.ayatSampai}{" "}
+                            · {formatTanggal(s.tanggalMasehi)}
+                          </span>
+                        </span>
+                        <span
+                          className={`lencana ${
+                            s.nilaiHuruf === "L"
+                              ? "lencana--l"
+                              : "lencana--u"
+                          }`}
+                        >
+                          {s.nilaiHuruf} · {LABEL_NILAI_SETORAN[s.nilaiHuruf]}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                </>
+              )}
+          </>
+        )}
       </>
     );
   }
@@ -424,16 +724,21 @@ export default function HalamanBeranda() {
   return (
     <>
       <PenandaTahap />
-      <section className="banner">
-        <p className="banner-sapaan">Assalamu&rsquo;alaikum,</p>
-        <p className="banner-nama">Selamat datang di Aplikasi Santri</p>
-        <p className="banner-sub">
-          {formatTanggalHariIni()}
-          {formatTanggalHijriahHariIni()
-            ? ` · ${formatTanggalHijriahHariIni()}`
-            : ""}
-        </p>
-      </section>
+      {/* Sapaan prototipe menggantikan banner biru mode contoh. */}
+      <p className="sapaan-tanggal">
+        {formatTanggalHariIniPanjang()}
+        {formatTanggalHijriahHariIni() ? (
+          <>
+            {" · "}
+            <span className="sapaan-hijri">
+              {formatTanggalHijriahHariIni()}
+            </span>
+          </>
+        ) : null}
+      </p>
+      <h1 className="sapaan-judul">
+        Assalamu&rsquo;alaikum, selamat datang di Aplikasi Santri
+      </h1>
       <p className="subjudul">
         Aplikasi monitoring santri Marhalah Wustha; tampilan menyesuaikan
         peran pengguna yang masuk.

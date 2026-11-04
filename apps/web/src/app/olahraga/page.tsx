@@ -34,7 +34,6 @@ import PenandaTahap from "@/components/PenandaTahap";
 import KartuGalat from "@/components/KartuGalat";
 import PenjagaModul from "@/components/PenjagaModul";
 import AvatarInisial from "@/components/AvatarInisial";
-import { LingkaranIkon } from "@/components/Ikon";
 import {
   hitungTertimpa,
   isiKosongSebagaiHadir,
@@ -455,11 +454,20 @@ function IsiHalamanOlahraga() {
                     cursor: "pointer",
                     background: terpilih ? "var(--hijau-muda)" : undefined,
                     boxShadow: terpilih
-                      ? "0 0 0 2px var(--hijau-kop)"
+                      ? "0 0 0 1px var(--hijau-kop)"
                       : undefined,
                   }}
                 >
-                  <LingkaranIkon nama="olahraga" warna="emas" />
+                  {/* Blok tanggal prototipe menggantikan ubin ikon:
+                      hari kecil + angka tanggal besar. */}
+                  <span className="blok-tanggal">
+                    <span className="tanggal-hari">
+                      {hariDariTanggal(s.tanggal).label}
+                    </span>
+                    <span className="tanggal-angka">
+                      {new Date(`${s.tanggal}T00:00:00`).getDate()}
+                    </span>
+                  </span>
                   <span className="baris-teks">
                     <span className="baris-judul">{s.kegiatan}</span>
                     <span className="baris-ket">
@@ -614,13 +622,13 @@ function IsiHalamanOlahraga() {
                 }}
               >
                 <div
-                  style={{ display: "flex", alignItems: "center", gap: 10 }}
+                  style={{ display: "flex", alignItems: "center", gap: 12 }}
                 >
                   <AvatarInisial nama={s.nama} ukuran="kecil" />
                   <div>
-                    <div style={{ fontWeight: 700 }}>{s.nama}</div>
+                    <div style={{ fontWeight: 600, fontSize: 14 }}>{s.nama}</div>
                     <div
-                      style={{ color: "var(--teks-redup)", fontSize: 13 }}
+                      style={{ color: "var(--teks-redup)", fontSize: 12 }}
                     >
                       {s.kelasNama} · Ayah/Wali: {s.namaAyahWali}
                     </div>
@@ -653,7 +661,7 @@ function IsiHalamanOlahraga() {
                   </div>
                 ) : (
                 <div
-                  style={{ display: "flex", gap: 6 }}
+                  className="pil-status-grup"
                   role="group"
                   aria-label={`Status kehadiran olahraga ${s.nama}`}
                 >
@@ -671,9 +679,6 @@ function IsiHalamanOlahraga() {
                         }
                       >
                         {SINGKATAN_STATUS[st]}
-                        <span className="pil-status-label">
-                          {LABEL_STATUS[st]}
-                        </span>
                       </button>
                     );
                   })}
@@ -691,7 +696,7 @@ function IsiHalamanOlahraga() {
           <div className="bilah-aksi">
             <button
               type="button"
-              className="tombol tombol-sekunder"
+              className="tombol tombol-hantu"
               onClick={() =>
                 setPilihan((lama) =>
                   isiKosongSebagaiHadir(
@@ -705,7 +710,7 @@ function IsiHalamanOlahraga() {
             </button>
             <button
               type="button"
-              className="tombol tombol-kecil tombol-sekunder"
+              className="tombol tombol-hantu"
               onClick={() => {
                 const ids = santriTampil.map((s) => s.id);
                 const tertimpa = hitungTertimpa(pilihan, ids);
@@ -724,7 +729,8 @@ function IsiHalamanOlahraga() {
             </button>
             <button
               type="button"
-              className="tombol tombol-besar"
+              className="tombol"
+              style={{ marginLeft: "auto" }}
               onClick={tanganiSimpan}
               disabled={sedangMenyimpan}
             >

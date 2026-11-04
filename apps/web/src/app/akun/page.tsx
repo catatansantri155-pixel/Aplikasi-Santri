@@ -71,87 +71,83 @@ function BagianPengaturan() {
   }
 
   return (
-    <section className="kartu">
-      <h2>Pengaturan tampilan</h2>
-      <div className="baris-atur">
-        <span>
-          <span className="atur-label">Mode tampilan</span>
-          <span className="atur-ket">
-            Siang (terang) atau malam (gelap), tersimpan di perangkat
-            ini.
-          </span>
-        </span>
-        <span className="segmen" role="group" aria-label="Mode tampilan">
-          <button
-            type="button"
-            aria-pressed={tampilan.tema === "terang"}
-            onClick={() => ubah({ tema: "terang" })}
+    <>
+      {/* Judul bagian polos prototipe di LUAR kartu; baris berisi
+          label + segmen kecil, tanpa keterangan dan tanpa ikon. */}
+      <h2 className="judul-bagian">Tampilan</h2>
+      <section className="kartu" style={{ paddingTop: 4, paddingBottom: 4 }}>
+        <div className="baris-atur">
+          <span className="atur-label">Mode</span>
+          <span
+            className="segmen segmen--kecil"
+            role="group"
+            aria-label="Mode tampilan"
           >
-            <span className="label-ikon">
-              <Ikon nama="matahari" ukuran={16} />
-              Terang
-            </span>
-          </button>
-          <button
-            type="button"
-            aria-pressed={tampilan.tema === "gelap"}
-            onClick={() => ubah({ tema: "gelap" })}
-          >
-            <span className="label-ikon">
-              <Ikon nama="bulan" ukuran={16} />
-              Gelap
-            </span>
-          </button>
-        </span>
-      </div>
-      <div className="baris-atur">
-        <span>
-          <span className="atur-label">Ukuran teks</span>
-          <span className="atur-ket">
-            Kecilkan atau besarkan huruf di seluruh aplikasi.
-          </span>
-        </span>
-        <span className="segmen" role="group" aria-label="Ukuran teks">
-          {(
-            [
-              ["kecil", "Kecil"],
-              ["standar", "Standar"],
-              ["besar", "Besar"],
-            ] as const
-          ).map(([nilai, label]) => (
             <button
-              key={nilai}
               type="button"
-              aria-pressed={tampilan.ukuranTeks === nilai}
-              onClick={() => ubah({ ukuranTeks: nilai })}
+              aria-pressed={tampilan.tema === "terang"}
+              onClick={() => ubah({ tema: "terang" })}
             >
-              {label}
+              Terang
             </button>
-          ))}
-        </span>
-      </div>
-    </section>
+            <button
+              type="button"
+              aria-pressed={tampilan.tema === "gelap"}
+              onClick={() => ubah({ tema: "gelap" })}
+            >
+              Gelap
+            </button>
+          </span>
+        </div>
+        <div className="baris-atur">
+          <span className="atur-label">Ukuran teks</span>
+          <span
+            className="segmen segmen--kecil"
+            role="group"
+            aria-label="Ukuran teks"
+          >
+            {(
+              [
+                ["kecil", "Kecil"],
+                ["standar", "Standar"],
+                ["besar", "Besar"],
+              ] as const
+            ).map(([nilai, label]) => (
+              <button
+                key={nilai}
+                type="button"
+                aria-pressed={tampilan.ukuranTeks === nilai}
+                onClick={() => ubah({ ukuranTeks: nilai })}
+              >
+                {label}
+              </button>
+            ))}
+          </span>
+        </div>
+      </section>
+    </>
   );
 }
 
 /** Tautan perkenalan ulang + keterangan aplikasi. */
 function BagianLainnya() {
   return (
-    <section className="kartu">
-      <h2>Lainnya</h2>
-      <Link href="/sambutan" className="tautan-baris">
-        <Ikon nama="bintang" ukuran={19} />
-        Lihat perkenalan aplikasi
-        <span className="baris-kanan">
-          <Ikon nama="chevron-kanan" ukuran={16} />
-        </span>
-      </Link>
-      <p className="catatan-kaki" style={{ marginTop: 8 }}>
-        Aplikasi Santri — pemantauan hifzh, diniyyah, kehadiran,
-        olahraga, dan catatan musyrif. Ponpes Minhajus Sunnah Magelang
-        · Marhalah Wustha.
-      </p>
-    </section>
+    <>
+      <h2 className="judul-bagian">Lainnya</h2>
+      <section className="kartu">
+        <Link href="/sambutan" className="tautan-baris">
+          Lihat perkenalan aplikasi
+          <span className="baris-kanan">
+            <Ikon nama="chevron-kanan" ukuran={16} />
+          </span>
+        </Link>
+        <p className="catatan-kaki" style={{ marginTop: 8 }}>
+          Aplikasi Santri — pemantauan hifzh, diniyyah, kehadiran,
+          olahraga, dan catatan musyrif. Ponpes Minhajus Sunnah Magelang
+          · Marhalah Wustha.
+        </p>
+      </section>
+    </>
   );
 }
 
@@ -233,7 +229,7 @@ function IsiAkun() {
 
   if (modeContoh) {
     return (
-      <>
+      <div style={{ maxWidth: 576 }}>
         <PenandaTahap />
         <h1 className="judul-halaman">Akun</h1>
         <p className="subjudul">Profil pengguna yang masuk.</p>
@@ -251,14 +247,13 @@ function IsiAkun() {
           </Link>
         </section>
         <BagianPengaturan />
-      </>
+      </div>
     );
   }
 
   return (
-    <>
+    <div style={{ maxWidth: 576 }}>
       <h1 className="judul-halaman">Akun</h1>
-      <p className="subjudul">Profil pengguna yang masuk.</p>
 
       {memuat && <p className="catatan-kaki">Memuat profil…</p>}
 
@@ -271,11 +266,43 @@ function IsiAkun() {
 
       {!memuat && profil && (
         <>
-          <section className="kartu kartu-akun">
-            <AvatarInisial nama={profil.nama} ukuran="besar" />
-            <h2>{profil.nama}</h2>
-            <p className="akun-peran">{LABEL_PERAN[profil.peran]}</p>
-            {profil.email && <p className="akun-email">{profil.email}</p>}
+          {/* Kartu profil prototipe: baris avatar 48px + nama tebal
+              + peran redup (+ surel kecil). */}
+          <section className="kartu kartu-profil">
+            <AvatarInisial nama={profil.nama} ukuran="sedang" />
+            <div style={{ minWidth: 0 }}>
+              <p
+                style={{
+                  margin: 0,
+                  fontSize: 16,
+                  fontWeight: 700,
+                  lineHeight: 1.3,
+                }}
+              >
+                {profil.nama}
+              </p>
+              <p
+                style={{
+                  margin: 0,
+                  fontSize: 14,
+                  color: "var(--teks-redup)",
+                }}
+              >
+                {LABEL_PERAN[profil.peran]}
+              </p>
+              {profil.email && (
+                <p
+                  style={{
+                    margin: 0,
+                    fontSize: 12,
+                    color: "var(--teks-redup)",
+                    overflowWrap: "anywhere",
+                  }}
+                >
+                  {profil.email}
+                </p>
+              )}
+            </div>
           </section>
 
           <section className="kartu">
@@ -337,11 +364,10 @@ function IsiAkun() {
             onClick={tanganiKeluar}
             disabled={prosesKeluar}
           >
-            <Ikon nama="keluar" ukuran={19} />
             {prosesKeluar ? "Memproses…" : "Keluar"}
           </button>
         </>
       )}
-    </>
+    </div>
   );
 }

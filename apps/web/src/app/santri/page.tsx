@@ -85,6 +85,7 @@ export default function HalamanSantri() {
   );
 
   const totalTampil = kelompokTampil.reduce((n, k) => n + k.santri.length, 0);
+  const totalSemua = kelompok.reduce((n, k) => n + k.santri.length, 0);
   const apakahWali = peran === PERAN.WALI;
   const adaPenyaring = pencarian.trim() !== "" || filterKelas !== "semua";
 
@@ -93,18 +94,18 @@ export default function HalamanSantri() {
       {sumberContoh && (
         <PenandaTahap teks="DATA CONTOH · FIKSI — env Supabase belum terisi" />
       )}
-      <h1 className="judul-halaman">
-        {apakahWali ? "Anak Saya" : "Data Santri"}
-      </h1>
+      <h1 className="judul-halaman">{apakahWali ? "Anak Saya" : "Santri"}</h1>
       <p className="subjudul">
         {apakahWali
           ? "Daftar anak Anda yang tertaut ke akun ini; ketuk nama anak untuk membuka detailnya."
-          : "Daftar santri per kelas 1, 2, dan 3; ketuk nama santri untuk membuka detailnya."}
+          : memuat
+            ? "Daftar santri per kelas 1, 2, dan 3."
+            : `${totalSemua} santri · Marhalah Wustha`}
       </p>
 
-      <div className="pencarian" style={{ marginBottom: 16 }}>
+      <div className="pencarian" style={{ marginBottom: 12 }}>
         <span className="pencarian-ikon">
-          <Ikon nama="cari" ukuran={19} />
+          <Ikon nama="cari" ukuran={16} />
         </span>
         <input
           type="search"
@@ -116,14 +117,13 @@ export default function HalamanSantri() {
       </div>
 
       <div
-        className="grup-chip"
+        className="segmen segmen--kecil"
         role="group"
         aria-label="Filter kelas"
         style={{ marginBottom: 12 }}
       >
         <button
           type="button"
-          className="chip"
           aria-pressed={filterKelas === "semua"}
           onClick={() => setFilterKelas("semua")}
         >
@@ -133,7 +133,6 @@ export default function HalamanSantri() {
           <button
             key={tingkat}
             type="button"
-            className="chip"
             aria-pressed={filterKelas === tingkat}
             onClick={() => setFilterKelas(tingkat)}
           >
@@ -141,12 +140,6 @@ export default function HalamanSantri() {
           </button>
         ))}
       </div>
-
-      {!memuat && !galat && (
-        <p className="catatan-kaki" style={{ marginTop: 0 }}>
-          Menampilkan {totalTampil} santri.
-        </p>
-      )}
 
       {memuat && <p className="catatan-kaki">Memuat daftar santri…</p>}
       {galat && <KartuGalat pesan={galat} onCobaLagi={() => void muat()} />}
@@ -198,7 +191,7 @@ export default function HalamanSantri() {
             <h2 className="judul-seksi">{k.kelas.nama}</h2>
             <span className="catatan-kaki">{k.santri.length} santri</span>
           </div>
-          <div className="daftar-tumpuk">
+          <div className="daftar-kartu">
             {k.santri.map((s) => (
               <Link
                 key={s.id}
@@ -213,9 +206,9 @@ export default function HalamanSantri() {
                     {s.nis ? ` · NIS ${s.nis}` : ""}
                   </span>
                 </span>
-                <span className="baris-kanan">
-                  <Ikon nama="chevron-kanan" ukuran={18} />
-                </span>
+                {!s.statusAktif && (
+                  <span className="lencana lencana--netral">Nonaktif</span>
+                )}
               </Link>
             ))}
           </div>

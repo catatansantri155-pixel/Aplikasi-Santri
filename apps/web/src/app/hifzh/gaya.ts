@@ -13,15 +13,15 @@ import type { HasilUjian, NilaiSetoran } from "@/lib/hifzh";
 export const gayaLabel: CSSProperties = {
   display: "grid",
   gap: 6,
-  fontSize: 13,
+  fontSize: 14,
   fontWeight: 600,
 };
 
 export const gayaMasukan: CSSProperties = {
-  minHeight: 48,
-  padding: "11px 14px",
-  fontSize: 15,
-  border: "1.5px solid var(--masukan)",
+  minHeight: 44,
+  padding: "10px 12px",
+  fontSize: 14,
+  border: "1px solid var(--masukan)",
   borderRadius: 14,
   background: "var(--permukaan)",
   color: "var(--teks)",
@@ -30,7 +30,7 @@ export const gayaMasukan: CSSProperties = {
 
 export const gayaMasukanTerkunci: CSSProperties = {
   ...gayaMasukan,
-  border: "1.5px dashed var(--masukan)",
+  border: "1px dashed var(--masukan)",
   background: "var(--hijau-muda)",
   color: "var(--hijau-gelap)",
   fontWeight: 700,
@@ -56,7 +56,7 @@ export const gayaFormulirLebar: CSSProperties = {
 
 export const gayaPetunjuk: CSSProperties = {
   margin: 0,
-  fontSize: 13,
+  fontSize: 12,
   color: "var(--teks-redup)",
   fontWeight: 400,
 };
@@ -69,10 +69,10 @@ export function gayaLencanaNilai(nilai: NilaiSetoran): CSSProperties {
     display: "inline-block",
     minWidth: 34,
     textAlign: "center",
-    padding: "2px 10px",
+    padding: "2px 8px",
     borderRadius: 10,
-    fontWeight: 700,
-    fontSize: 13,
+    fontWeight: 600,
+    fontSize: 12,
     background: nilai === "L" ? "#daf7e3" : "#ffe7e4",
     color: nilai === "L" ? "var(--status-hadir)" : "var(--status-alpa)",
   };
@@ -95,10 +95,10 @@ export function gayaLencanaHasil(hasil: HasilUjian): CSSProperties {
     display: "inline-block",
     minWidth: 40,
     textAlign: "center",
-    padding: "2px 10px",
+    padding: "2px 8px",
     borderRadius: 10,
-    fontWeight: 700,
-    fontSize: 13,
+    fontWeight: 600,
+    fontSize: 12,
     background: warna.latar,
     color: warna.teks,
   };
@@ -115,15 +115,16 @@ export const gayaTabel: CSSProperties = {
 
 export const gayaSelKepala: CSSProperties = {
   textAlign: "left",
-  padding: "7px 6px",
-  borderBottom: "2px solid var(--garis)",
+  padding: "8px 6px",
+  background: "var(--redup)",
+  borderBottom: "1px solid var(--garis)",
   color: "var(--teks-redup)",
   fontSize: 12,
   fontWeight: 600,
 };
 
 export const gayaSel: CSSProperties = {
-  padding: "7px 6px",
+  padding: "8px 6px",
   borderBottom: "1px solid var(--garis)",
   verticalAlign: "top",
 };

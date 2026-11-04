@@ -121,28 +121,17 @@ export default function InfoPengguna({
     );
   }
 
-  // Sidebar (desktop): blok identitas di PALING ATAS sidebar
-  // (menggantikan blok merek), tetap tautan ke halaman Akun —
-  // profil lengkap, penjelasan hak akses, dan tombol Keluar
-  // terpusat di /akun agar kerangka ringkas.
+  // Sidebar (desktop): identitas di DASAR sidebar mengikuti
+  // prototipe — dua baris teks polos (nama + peran), tanpa avatar
+  // dan tanpa chevron; tetap tautan ke halaman Akun.
   return (
     <Link
       href="/akun"
       className="info-pengguna-samping"
       aria-current={pathname === "/akun" ? "page" : undefined}
     >
-      <span className="info-pengguna-baris">
-        <AvatarInisial nama={profil.nama} ukuran="kecil" />
-        <span>
-          <span className="info-pengguna-nama">{profil.nama}</span>
-          <span className="info-pengguna-peran">
-            {LABEL_PERAN[profil.peran]}
-          </span>
-        </span>
-        <span className="info-pengguna-chevron" aria-hidden="true">
-          <Ikon nama="chevron-kanan" ukuran={16} />
-        </span>
-      </span>
+      <span className="info-pengguna-nama">{profil.nama}</span>
+      <span className="info-pengguna-peran">{LABEL_PERAN[profil.peran]}</span>
     </Link>
   );
 }

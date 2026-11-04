@@ -445,7 +445,7 @@ function GrafikBatangHorizontal({
                 width: `${Math.min(100, Math.max(0, d.rata))}%`,
                 height: "100%",
                 borderRadius: 999,
-                background: "var(--biru-buku)",
+                background: "var(--hijau-kop)",
               }}
             />
           </div>

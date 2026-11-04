@@ -385,10 +385,15 @@ export default function IsiHalamanHifzh({ tab }: { tab: TabHifzh }) {
               <article
                 key={s.id}
                 style={{
-                  padding: "10px 0",
+                  display: "flex",
+                  gap: 12,
+                  padding: "12px 0",
                   borderBottom: "1px solid var(--garis)",
                 }}
               >
+                {/* Ubin kode jenis prototipe (SetoranRows). */}
+                <span className="ubin-jenis">{s.jenis}</span>
+                <div style={{ flex: 1, minWidth: 0 }}>
                 <div
                   style={{
                     display: "flex",
@@ -399,7 +404,9 @@ export default function IsiHalamanHifzh({ tab }: { tab: TabHifzh }) {
                   }}
                 >
                   <div>
-                    <strong>{s.santriNama || "—"}</strong>
+                    <strong style={{ fontSize: 14 }}>
+                      {s.santriNama || "—"}
+                    </strong>
                     <div style={gayaPetunjuk}>
                       {formatMasehi(s.tanggalMasehi)} · {s.tanggalHijriah}
                     </div>
@@ -409,9 +416,8 @@ export default function IsiHalamanHifzh({ tab }: { tab: TabHifzh }) {
                   </span>
                 </div>
                 <p style={{ margin: "6px 0 0", fontSize: 14 }}>
-                  <strong>{s.jenis}</strong> · {s.surat} ayat {s.ayatDari}–
-                  {s.ayatSampai} · halaman {s.halaman} · RG {s.rg} · KK {s.kk}{" "}
-                  · KB {s.kb}
+                  {s.surat} ayat {s.ayatDari}–{s.ayatSampai} · halaman{" "}
+                  {s.halaman} · RG {s.rg} · KK {s.kk} · KB {s.kb}
                 </p>
                 {s.catatanRincian && (
                   <p style={{ ...gayaPetunjuk, marginTop: 2 }}>
@@ -600,6 +606,7 @@ export default function IsiHalamanHifzh({ tab }: { tab: TabHifzh }) {
                     </div>
                   </div>
                 )}
+                </div>
               </article>
             ))}
           </div>

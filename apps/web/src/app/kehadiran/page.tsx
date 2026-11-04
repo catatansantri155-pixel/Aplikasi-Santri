@@ -115,7 +115,6 @@ function IsiHalamanKehadiran() {
   const [sesi, setSesi] = useState<SesiKehadiran>("hifzh");
   /** Filter tanggal/sesi terbuka di HP (audit visual 4 Nov 2026:
       konteks ringkas + tombol Ubah; di desktop selalu tampil). */
-  const [filterTerbuka, setFilterTerbuka] = useState(false);
   const [daftarJadwal, setDaftarJadwal] = useState<JadwalSesi[]>([]);
   const [jadwalId, setJadwalId] = useState<string | null>(null);
   const [tingkat, setTingkat] = useState<number>(1);
@@ -343,107 +342,118 @@ function IsiHalamanKehadiran() {
       )}
 
       {/* ------------ Pilihan tanggal & sesi ------------ */}
-      <section className="kartu">
-        <div className="filter-ringkas">
-          <span className="teks-konteks">
-            {formatTanggalRingkas(tanggal)} · {LABEL_SESI[sesi]} · Kelas{" "}
-            {tingkat}
-          </span>
+      {/* Baris saringan prototipe: selalu terlihat, tanpa kartu dan
+          tanpa label tampak (aria-label menjaga aksesibilitas). */}
+      <div className="filter-baris">
+        <input
+          type="date"
+          className="masukan"
+          aria-label="Tanggal"
+          value={tanggal}
+          onChange={(e) => {
+            const nilai = e.target.value;
+            mintaGantiKonteks(() => setTanggal(nilai));
+          }}
+        />
+        <div className="segmen" role="group" aria-label="Jenis sesi">
           <button
             type="button"
-            className="tombol tombol-kecil"
-            aria-expanded={filterTerbuka}
-            onClick={() => setFilterTerbuka((v) => !v)}
+            aria-pressed={sesi === "hifzh"}
+            onClick={() => mintaGantiKonteks(() => setSesi("hifzh"))}
           >
-            {filterTerbuka ? "Tutup" : "Ubah"}
+            Hifzh
+          </button>
+          <button
+            type="button"
+            aria-pressed={sesi === "diniyyah"}
+            onClick={() => mintaGantiKonteks(() => setSesi("diniyyah"))}
+          >
+            Diniyyah
           </button>
         </div>
-        <div className="filter-isi" data-terbuka={filterTerbuka ? "true" : "false"}>
-        <h2>Tanggal & sesi</h2>
-        <div className="formulir formulir-filter" style={{ maxWidth: "100%" }}>
-          <label>
-            Tanggal
-            <input
-              type="date"
-              value={tanggal}
-              onChange={(e) => {
-                const nilai = e.target.value;
-                mintaGantiKonteks(() => setTanggal(nilai));
-              }}
-            />
-          </label>
-          <div>
-            <span
-              style={{
-                display: "block",
-                fontSize: 13,
-                fontWeight: 600,
-                marginBottom: 6,
-              }}
+        <select
+          className="masukan"
+          aria-label="Slot jadwal"
+          value={jadwalId ?? ""}
+          onChange={(e) => {
+            const nilai = e.target.value || null;
+            mintaGantiKonteks(() => setJadwalId(nilai));
+          }}
+        >
+          {daftarJadwal.length === 0 && (
+            <option value="">Belum ada jadwal tersedia</option>
+          )}
+          {daftarJadwal.map((j) => (
+            <option key={j.id} value={j.id}>
+              {j.jamLabel}
+              {j.mapel ? ` · ${j.mapel}` : ""}
+            </option>
+          ))}
+        </select>
+        <div className="segmen segmen--kecil" role="group" aria-label="Kelas">
+          {[1, 2, 3].map((t) => (
+            <button
+              key={t}
+              type="button"
+              aria-pressed={tingkat === t}
+              onClick={() => setTingkat(t)}
             >
-              Jenis sesi
+              {t}
+            </button>
+          ))}
+        </div>
+      </div>
+      {daftarJadwal.length === 0 && (
+        <p className="catatan-kaki" style={{ marginTop: -6 }}>
+          Belum ada jadwal tersedia untuk sesi ini — pencatatan tetap
+          dapat dilanjutkan.
+        </p>
+      )}
+
+      {/* Baris ringkasan prototipe: hitungan per status + tindakan
+          massal sebagai tombol hantu. "Timpa semua jadi Hadir"
+          TETAP terlihat dengan konfirmasi yang menyebut jumlah
+          tertimpa (pengecualian user). */}
+      {!pantauanAdmin && (
+        <div className="baris-ringkasan">
+          {STATUS_KEHADIRAN.map((st) => (
+            <span key={st} className={`lencana lencana--${st}`}>
+              {SINGKATAN_STATUS[st]}{" "}
+              {santriKelas.filter((s) => pilihan[s.id] === st).length}
             </span>
-            <div className="segmen" role="group" aria-label="Jenis sesi">
-              <button
-                type="button"
-                aria-pressed={sesi === "hifzh"}
-                onClick={() => mintaGantiKonteks(() => setSesi("hifzh"))}
-              >
-                Hifzh
-              </button>
-              <button
-                type="button"
-                aria-pressed={sesi === "diniyyah"}
-                onClick={() => mintaGantiKonteks(() => setSesi("diniyyah"))}
-              >
-                Diniyyah
-              </button>
-            </div>
-          </div>
-          <label>
-            Slot jadwal
-            <select
-              className="masukan"
-              value={jadwalId ?? ""}
-              onChange={(e) => {
-                const nilai = e.target.value || null;
-                mintaGantiKonteks(() => setJadwalId(nilai));
-              }}
-            >
-              {daftarJadwal.length === 0 && (
-                <option value="">Belum ada jadwal tersedia</option>
-              )}
-              {daftarJadwal.map((j) => (
-                <option key={j.id} value={j.id}>
-                  {j.jamLabel}
-                  {j.mapel ? ` · ${j.mapel}` : ""}
-                </option>
-              ))}
-            </select>
-            {daftarJadwal.length === 0 && (
-              <span className="catatan-kaki">
-                Belum ada jadwal tersedia untuk sesi ini — pencatatan
-                tetap dapat dilanjutkan.
-              </span>
-            )}
-          </label>
-          <label>
-            Kelas
-            <select
-              className="masukan"
-              value={tingkat}
-              onChange={(e) => setTingkat(Number(e.target.value))}
-            >
-              {[1, 2, 3].map((t) => (
-                <option key={t} value={t}>
-                  Kelas {t}
-                </option>
-              ))}
-            </select>
-          </label>
+          ))}
+          <span className="spaser" />
+          <button
+            type="button"
+            className="tombol tombol-hantu"
+            onClick={() => {
+              setPilihan((lama) => isiKosongSebagaiHadir(lama, idBisaDiubah));
+              setKotor(true);
+            }}
+          >
+            Isi yang kosong sebagai Hadir
+          </button>
+          <button
+            type="button"
+            className="tombol tombol-hantu"
+            onClick={() => {
+              const tertimpa = hitungTertimpa(pilihan, idBisaDiubah);
+              if (
+                tertimpa > 0 &&
+                !window.confirm(
+                  `${tertimpa} status yang sudah dipilih akan tertimpa menjadi Hadir. Lanjutkan?`,
+                )
+              ) {
+                return;
+              }
+              setPilihan((lama) => timpaSemuaJadiHadir(lama, idBisaDiubah));
+              setKotor(true);
+            }}
+          >
+            Timpa semua jadi Hadir
+          </button>
         </div>
-        </div>
-      </section>
+      )}
 
       {/* ------------ Formulir cepat satu kelas ------------ */}
       <section className="kartu">
@@ -476,23 +486,14 @@ function IsiHalamanKehadiran() {
               pantauanAdmin ||
               (!adalahAdmin && statusTersimpan !== undefined);
             return (
-            <div
-              key={s.id}
-              className="baris-kehadiran"
-              style={{
-                display: "grid",
-                gap: 8,
-                paddingBottom: 12,
-                borderBottom: "1px solid var(--garis)",
-              }}
-            >
+            <div key={s.id} className="baris-kehadiran">
               <div
-                style={{ display: "flex", alignItems: "center", gap: 10 }}
+                style={{ display: "flex", alignItems: "center", gap: 12 }}
               >
                 <AvatarInisial nama={s.nama} ukuran="kecil" />
-                <div>
-                  <div style={{ fontWeight: 700 }}>{s.nama}</div>
-                  <div style={{ color: "var(--teks-redup)", fontSize: 13 }}>
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={{ fontWeight: 600, fontSize: 14 }}>{s.nama}</div>
+                  <div style={{ color: "var(--teks-redup)", fontSize: 12 }}>
                     Ayah/Wali: {s.namaAyahWali}
                   </div>
                 </div>
@@ -523,7 +524,7 @@ function IsiHalamanKehadiran() {
                   )}
                 </div>
               ) : (
-              <div style={{ display: "flex", gap: 6 }} role="group" aria-label={`Status kehadiran ${s.nama}`}>
+              <div className="pil-status-grup" role="group" aria-label={`Status kehadiran ${s.nama}`}>
                 {STATUS_KEHADIRAN.map((st) => {
                   const terpilih = pilihan[s.id] === st;
                   return (
@@ -539,9 +540,6 @@ function IsiHalamanKehadiran() {
                       }}
                     >
                       {SINGKATAN_STATUS[st]}
-                      <span className="pil-status-label">
-                        {LABEL_STATUS[st]}
-                      </span>
                     </button>
                   );
                 })}
@@ -556,46 +554,18 @@ function IsiHalamanKehadiran() {
         </div>
 
         {!pantauanAdmin && (
-        <>
         <div className="bilah-aksi">
+          {/* Bilah simpan tetap prototipe: status isian di kiri,
+              tombol simpan di kanan. Tindakan massal pindah ke
+              baris ringkasan di atas daftar. */}
+          <span className="teks-bilah" role="status">
+            {jumlahBelumDiisi > 0
+              ? `${jumlahBelumDiisi} belum diisi`
+              : "Semua santri kelas ini sudah terisi"}
+          </span>
           <button
             type="button"
-            className="tombol tombol-sekunder"
-            onClick={() => {
-              setPilihan((lama) => isiKosongSebagaiHadir(lama, idBisaDiubah));
-              setKotor(true);
-            }}
-          >
-            Isi yang kosong sebagai Hadir
-          </button>
-          {/* Penimpaan total kini tombol TERLIHAT sejajar aksi lain
-              (perintah user 4 Nov 2026 mengikuti prototipe Lovable,
-              menggantikan penempatan di menu "Tindakan lain" pada
-              audit visual pagi harinya). Perilakunya TIDAK berubah:
-              tetap berkonsfirmasi dan dialognya menyebut jumlah
-              status yang akan tertimpa. */}
-          <button
-            type="button"
-            className="tombol tombol-sekunder"
-            onClick={() => {
-              const tertimpa = hitungTertimpa(pilihan, idBisaDiubah);
-              if (
-                tertimpa > 0 &&
-                !window.confirm(
-                  `${tertimpa} status yang sudah dipilih akan tertimpa menjadi Hadir. Lanjutkan?`,
-                )
-              ) {
-                return;
-              }
-              setPilihan((lama) => timpaSemuaJadiHadir(lama, idBisaDiubah));
-              setKotor(true);
-            }}
-          >
-            Timpa semua jadi Hadir
-          </button>
-          <button
-            type="button"
-            className="tombol tombol-besar"
+            className="tombol"
             onClick={tanganiSimpan}
             disabled={sedangMenyimpan || jumlahAkanDisimpan === 0}
           >
@@ -603,13 +573,7 @@ function IsiHalamanKehadiran() {
               ? "Menyimpan…"
               : `Simpan ${jumlahAkanDisimpan} kehadiran · Kelas ${tingkat}`}
           </button>
-          <span className="catatan-kaki" role="status">
-            {jumlahBelumDiisi > 0
-              ? `${jumlahBelumDiisi} belum diisi`
-              : "Semua santri kelas ini sudah terisi"}
-          </span>
         </div>
-        </>
         )}
         {pesanSimpan && (
           <p className="catatan-kaki" role="status" style={{ marginTop: 10 }}>
@@ -620,7 +584,7 @@ function IsiHalamanKehadiran() {
 
       {/* ------------ Revisi — KHUSUS ADMIN ------------ */}
       {adalahAdmin ? (
-        <section className="kartu kartu--aksen-emas">
+        <section className="kartu">
           <h2>Revisi kehadiran (khusus Admin Utama)</h2>
           <p>
             Status yang sudah tersimpan hanya bisa diubah lewat revisi ini.

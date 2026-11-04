@@ -18,14 +18,16 @@ export interface InfoModul {
   warna: WarnaTint;
 }
 
+/* Urutan mengikuti kisi modul prototipe: Hifzh, Kehadiran,
+   Diniyyah, Olahraga, Catatan, Laporan, Panel Admin, Santri. */
 export const DAFTAR_MODUL: InfoModul[] = [
   {
-    href: "/santri",
-    label: "Santri",
-    keterangan: "Daftar santri per kelas.",
-    modul: "santri",
-    ikon: "santri",
-    warna: "hijau",
+    href: "/hifzh",
+    label: "Hifzh",
+    keterangan: "Setoran Buku Hafalan dan tes semester per juz.",
+    modul: "hifzh",
+    ikon: "hifzh",
+    warna: "biru",
   },
   {
     href: "/kehadiran",
@@ -34,14 +36,6 @@ export const DAFTAR_MODUL: InfoModul[] = [
     modul: "kehadiran",
     ikon: "kehadiran",
     warna: "emas",
-  },
-  {
-    href: "/hifzh",
-    label: "Hifzh",
-    keterangan: "Setoran Buku Hafalan dan tes semester per juz.",
-    modul: "hifzh",
-    ikon: "hifzh",
-    warna: "biru",
   },
   {
     href: "/diniyyah",
@@ -83,5 +77,13 @@ export const DAFTAR_MODUL: InfoModul[] = [
     modul: "admin",
     ikon: "perisai",
     warna: "emas",
+  },
+  {
+    href: "/santri",
+    label: "Santri",
+    keterangan: "Daftar santri per kelas.",
+    modul: "santri",
+    ikon: "santri",
+    warna: "hijau",
   },
 ];

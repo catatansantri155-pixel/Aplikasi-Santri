@@ -27,7 +27,6 @@ import {
 } from "react";
 import Link from "next/link";
 import PenandaTahap from "@/components/PenandaTahap";
-import AvatarInisial from "@/components/AvatarInisial";
 import {
   Ikon,
   LingkaranIkon,
@@ -350,37 +349,93 @@ export default function HalamanDetailSantri({
       {sumberContoh && (
         <PenandaTahap teks="DATA CONTOH · FIKSI — env Supabase belum terisi" />
       )}
-      <p style={{ margin: "0 0 10px" }}>
+      {/* Kepala halaman prototipe (PageHeader): tombol kembali
+          kotak + nama sebagai judul + kelas/NIS/wali sebagai sub. */}
+      <div className="kepala-halaman">
         <Link
           href="/santri"
-          style={{
-            display: "inline-flex",
-            alignItems: "center",
-            gap: 6,
-            fontWeight: 600,
-            textDecoration: "none",
-          }}
+          className="tombol-kembali"
+          aria-label="Kembali ke daftar santri"
         >
-          <Ikon nama="panah-kiri" ukuran={17} />
-          Daftar Santri
+          <Ikon nama="panah-kiri" ukuran={20} />
         </Link>
-      </p>
-
-      {/* Kepala profil kecil bergaya banner (Panduan Desain). */}
-      <section className="banner banner--kecil">
-        <div className="banner-baris">
-          <AvatarInisial nama={santri.nama} ukuran="besar" diBanner />
-          <div>
-            <p className="banner-nama" style={{ fontSize: 19 }}>
-              {santri.nama}
-            </p>
-            <p className="banner-sub">
-              {santri.kelasNama} · Ayah/Wali: {santri.namaAyahWali}
-              {santri.nis ? ` · NIS ${santri.nis}` : ""}
-            </p>
-          </div>
+        <div style={{ minWidth: 0 }}>
+          <h1 className="judul-halaman" style={{ margin: 0 }}>
+            {santri.nama}
+          </h1>
+          <p className="subjudul" style={{ margin: 0 }}>
+            {santri.kelasNama} · Ayah/Wali: {santri.namaAyahWali}
+            {santri.nis ? ` · NIS ${santri.nis}` : ""}
+          </p>
         </div>
-      </section>
+      </div>
+
+      {/* Tiga kartu ringkas prototipe — angka NYATA santri ini:
+          jumlah setoran, persen hadir, rata-rata diniyyah. */}
+      <div
+        style={{
+          display: "grid",
+          gridTemplateColumns: "repeat(3, minmax(0, 1fr))",
+          gap: 12,
+          marginBottom: 16,
+        }}
+      >
+        {[
+          { label: "Setoran tercatat", nilai: String(setoran.length) },
+          {
+            label: "Kehadiran",
+            nilai:
+              riwayat.length > 0
+                ? `${Math.round((ringkasan.hadir / riwayat.length) * 100)}%`
+                : "—",
+          },
+          {
+            label: "Rata-rata diniyyah",
+            nilai: (() => {
+              const gabungan = ringkasanDiniyyah
+                .map((r) => r.rataGabungan)
+                .filter((x): x is number => x !== null);
+              if (gabungan.length === 0) return "—";
+              const rata =
+                gabungan.reduce((a, b) => a + b, 0) / gabungan.length;
+              return rata.toLocaleString("id-ID", {
+                maximumFractionDigits: 1,
+              });
+            })(),
+          },
+        ].map((k) => (
+          <div
+            key={k.label}
+            style={{
+              padding: 12,
+              background: "var(--permukaan)",
+              border: "1px solid var(--garis)",
+              borderRadius: "var(--jari)",
+              boxShadow: "var(--bayang)",
+            }}
+          >
+            <span
+              style={{
+                display: "block",
+                fontSize: 12,
+                color: "var(--teks-redup)",
+              }}
+            >
+              {k.label}
+            </span>
+            <span
+              style={{
+                display: "block",
+                fontSize: 20,
+                fontWeight: 700,
+                lineHeight: 1.2,
+              }}
+            >
+              {k.nilai}
+            </span>
+          </div>
+        ))}
+      </div>
 
       {/* Kerangka tab pill — bisa diklik; isi per tab di bawah. */}
       <div role="tablist" aria-label="Bagian data santri" className="tab-pil">

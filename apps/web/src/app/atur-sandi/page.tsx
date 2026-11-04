@@ -18,7 +18,7 @@ import { useEffect, useState, type FormEvent } from "react";
 import Link from "next/link";
 import PenandaTahap from "@/components/PenandaTahap";
 import KolomSandi from "@/components/KolomSandi";
-import { Ikon } from "@/components/Ikon";
+import RangkaAuth from "@/components/RangkaAuth";
 import { buatKlienBrowser } from "@/lib/supabase/client";
 import { supabaseTerhubung } from "@/lib/data/santri";
 import { adaSesiAktif } from "@/lib/sesi";
@@ -85,17 +85,13 @@ export default function HalamanAturSandi() {
   }
 
   return (
-    <div className="auth-bungkus">
-      <Link href="/login" className="auth-kembali">
-        <Ikon nama="panah-kiri" ukuran={16} />
-        Kembali masuk
-      </Link>
-      <h1 className="auth-judul">Atur Kata Sandi Baru</h1>
-      <p className="auth-sub">
-        Tetapkan kata sandi baru untuk akun Anda.
-      </p>
+    <RangkaAuth>
+      <div className="auth-kolom">
+        <h1 className="auth-judul">Atur Kata Sandi Baru</h1>
+        <p className="auth-sub">
+          Tetapkan kata sandi baru untuk akun Anda.
+        </p>
 
-      <div className="auth-isi">
         {!modeSupabase && (
           <PenandaTahap teks="MODE CONTOH · FITUR ASLI MENUNGGU ENV SUPABASE" />
         )}
@@ -167,6 +163,6 @@ export default function HalamanAturSandi() {
           </>
         )}
       </div>
-    </div>
+    </RangkaAuth>
   );
 }

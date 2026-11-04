@@ -36,21 +36,21 @@
  * - Tautan: "Lupa kata sandi?" (/lupa-sandi), "Daftar" khusus wali
  *   (/daftar), dan "Lihat perkenalan" (/sambutan).
  *
- * Redesain simpel (arahan user 4 Nov 2026, menggantikan tampilan
- * maket berhero besar pagi harinya): logo & teks merek besar
- * DIHAPUS; di HP halaman tampil polos seperti aplikasi profesional
- * (judul "Masuk" ringkas, kolom berlabel ikon, tombol pil selebar
- * kolom). Di PC (≥1024px) tampil gaya panel belah seperti image 4
- * dari user: panel gradien berisi ilustrasi + tiga langkah di kiri,
- * formulir di kanan. Baris nama pondok dipertahankan sebagai sub
- * kecil (ketok user 3 Nov 2026). Logika masuk tidak berubah.
+ * Penyelarasan PROTOTIPE (perintah user 4 Nov 2026 sore,
+ * menggantikan redesain simpel pagi harinya): halaman mengikuti
+ * prototipe Lovable persis — rangka belah penuh layar (RangkaAuth:
+ * panel primer + visual geometris + langkah bernomor emas), judul
+ * 30px, label "Nama pengguna atau email", tautan lupa sandi
+ * rata kanan sebelum tombol, tombol selebar kolom. Baris nama
+ * pondok pindah ke kaki formulir. Logika masuk tidak berubah.
  */
 import { useEffect, useState, type FormEvent } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import PenandaTahap from "@/components/PenandaTahap";
 import { Ikon } from "@/components/Ikon";
-import { ILUSTRASI_LOGIN } from "@/lib/ilustrasi-login";
+import Logo from "@/components/Logo";
+import RangkaAuth from "@/components/RangkaAuth";
 import { buatKlienBrowser } from "@/lib/supabase/client";
 import { supabaseTerhubung } from "@/lib/data/santri";
 import {
@@ -206,51 +206,15 @@ export default function HalamanLogin() {
   }
 
   return (
-    <div className="login-split">
-      {/* Panel kiri KHUSUS PC (gaya image 4 dari user, 4 Nov 2026):
-          gradien biru + ilustrasi tumpukan buku + tiga langkah
-          singkat di dalam kartu membulat besar. Di HP panel ini
-          tidak tampil sama sekali — halaman masuk tampil polos dan
-          simpel tanpa logo & teks merek besar (arahan user 4 Nov:
-          "hapus aja logo dan tulisannya, dibuat simpel aja"). */}
-      <aside className="login-panel" aria-hidden="true">
-        {/* Ilustrasi tumpukan buku dan lentera (data URI WebP). */}
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img
-          className="login-panel-ilustrasi"
-          src={ILUSTRASI_LOGIN}
-          alt=""
-          width={1200}
-          height={670}
-        />
-        <p className="login-panel-judul">
-          Pantau hafalan, nilai, dan keseharian santri dalam satu
-          aplikasi.
-        </p>
-        <ol className="login-langkah">
-          <li>
-            <span>1</span>
-            Masuk dengan akun dari tim kepesantrenan
-          </li>
-          <li>
-            <span>2</span>
-            Setoran, nilai &amp; kehadiran tercatat rapi
-          </li>
-          <li>
-            <span>3</span>
-            Wali hanya melihat data anaknya sendiri
-          </li>
-        </ol>
-      </aside>
-
-      <div className="login-isi">
+    <RangkaAuth>
+      <div className="auth-kolom">
+        {/* Logo hanya tampil di HP (prototipe); di PC merek ada di
+            panel kiri rangka. */}
+        <div className="auth-logo-hp">
+          <Logo ukuran={44} />
+        </div>
         <h1 className="auth-judul">Masuk</h1>
-        <p className="auth-sub">
-          Assalamu&rsquo;alaikum, selamat datang kembali.
-          <span className="auth-sub-kecil">
-            Ponpes Minhajus Sunnah Magelang · Marhalah Wustha
-          </span>
-        </p>
+        <p className="auth-sub">Gunakan akun yang diberikan pondok.</p>
         {!modeSupabase && (
           <PenandaTahap teks="MODE CONTOH · LOGIN ASLI MENUNGGU ENV SUPABASE" />
         )}
@@ -261,10 +225,7 @@ export default function HalamanLogin() {
         )}
         <form className="formulir" onSubmit={tanganiKirim}>
           <label>
-            <span className="label-ikon">
-              <Ikon nama="akun" ukuran={16} />
-              Alamat surel
-            </span>
+            Nama pengguna atau email
             <input
               type="email"
               name="email"
@@ -276,10 +237,7 @@ export default function HalamanLogin() {
             />
           </label>
           <label>
-            <span className="label-ikon">
-              <Ikon nama="gembok" ukuran={16} />
-              Kata sandi
-            </span>
+            Kata sandi
             <span className="bungkus-sandi">
               <input
                 type={sandiTerlihat ? "text" : "password"}
@@ -301,44 +259,40 @@ export default function HalamanLogin() {
                 aria-pressed={sandiTerlihat}
                 onClick={() => setSandiTerlihat((lama) => !lama)}
               >
-                <Ikon nama={sandiTerlihat ? "mata-silang" : "mata"} ukuran={22} />
+                <Ikon nama={sandiTerlihat ? "mata-silang" : "mata"} ukuran={18} />
               </button>
             </span>
           </label>
+          <p className="auth-lupa-baris">
+            <Link href="/lupa-sandi">Lupa kata sandi?</Link>
+          </p>
           {galat && (
             <p className="pesan-galat" role="alert">
               {galat}
             </p>
           )}
-          <button
-            type="submit"
-            className="tombol tombol-besar tombol-penuh tombol-pil"
-            disabled={mengirim}
-          >
-            {mengirim ? (
-              "Memproses…"
-            ) : (
-              <>
-                <Ikon nama="masuk" ukuran={20} />
-                Masuk
-              </>
-            )}
+          <button type="submit" className="tombol tombol-penuh" disabled={mengirim}>
+            {mengirim ? "Memproses…" : "Masuk"}
           </button>
         </form>
 
-        <p className="catatan-kaki" style={{ textAlign: "center" }}>
+        <p
+          className="catatan-kaki"
+          style={{ textAlign: "center", marginTop: 16 }}
+        >
           Pengguna dan kata sandi memakai akun yang diberikan oleh tim
-          kepesantrenan. <Link href="/lupa-sandi">Lupa kata sandi?</Link>
-          {" · "}
-          <Link href="/sambutan">Lihat perkenalan</Link>
+          kepesantrenan. <Link href="/sambutan">Lihat perkenalan</Link>
         </p>
-        <hr className="login-pemisah" />
-        <p className="catatan-kaki" style={{ textAlign: "center" }}>
-          Wali santri belum mempunyai akun?{" "}
-          <Link href="/daftar">Daftar di sini</Link> untuk mendapatkan
-          akses.
+        <p
+          className="catatan-kaki"
+          style={{ textAlign: "center", marginTop: 10 }}
+        >
+          Belum punya akun wali? <Link href="/daftar">Daftar</Link>
+        </p>
+        <p className="auth-kaki">
+          Ponpes Minhajus Sunnah Magelang · Marhalah Wustha
         </p>
       </div>
-    </div>
+    </RangkaAuth>
   );
 }
