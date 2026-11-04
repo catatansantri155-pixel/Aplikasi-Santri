@@ -3,6 +3,7 @@ import type { ReactNode } from "react";
 import Kerangka from "@/components/Kerangka";
 import "./globals.css";
 import "./ui.css";
+import "./beranda.css";
 
 export const metadata: Metadata = {
   title: "Aplikasi Santri",
@@ -13,7 +14,7 @@ export const metadata: Metadata = {
 export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
-  themeColor: "#145ec1",
+  themeColor: "#155c5b",
 };
 
 /**
