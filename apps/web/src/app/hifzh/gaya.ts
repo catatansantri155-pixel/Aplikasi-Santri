@@ -22,7 +22,7 @@ export const gayaMasukan: CSSProperties = {
   padding: "10px 12px",
   fontSize: 14,
   border: "1px solid var(--masukan)",
-  borderRadius: 14,
+  borderRadius: "var(--jari-masukan)",
   background: "var(--permukaan)",
   color: "var(--teks)",
   width: "100%",
@@ -39,13 +39,13 @@ export const gayaMasukanTerkunci: CSSProperties = {
 export const gayaKisiDua: CSSProperties = {
   display: "grid",
   gap: 12,
-  gridTemplateColumns: "1fr 1fr",
+  gridTemplateColumns: "repeat(2, minmax(0, 1fr))",
 };
 
 export const gayaKisiTiga: CSSProperties = {
   display: "grid",
   gap: 12,
-  gridTemplateColumns: "1fr 1fr 1fr",
+  gridTemplateColumns: "repeat(3, minmax(0, 1fr))",
 };
 
 export const gayaFormulirLebar: CSSProperties = {

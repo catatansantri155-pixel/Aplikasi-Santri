@@ -88,9 +88,7 @@ const TAB: { kunci: KunciTab; label: string }[] = [
 /** Lencana status kehadiran — kelas bersama .lencana di globals.css. */
 function LencanaStatus({ status }: { status: StatusKehadiran }) {
   return (
-    <span className={`lencana lencana--${status}`}>
-      {LABEL_STATUS[status]}
-    </span>
+    <span className={`lencana lencana--${status}`}>{LABEL_STATUS[status]}</span>
   );
 }
 
@@ -130,7 +128,6 @@ function LencanaHasil({ hasil }: { hasil: HasilUjian }) {
     </span>
   );
 }
-
 
 /* ------------------------------------------------------------------ */
 /* Tab Catatan & Diniyyah — tampilan                                    */
@@ -172,9 +169,7 @@ function LabelMapel({ mapel }: { mapel: string }) {
   return (
     <>
       {mapel}{" "}
-      <span style={{ color: "var(--teks-redup)", fontSize: 12 }}>
-        (contoh)
-      </span>
+      <span style={{ color: "var(--teks-redup)", fontSize: 12 }}>(contoh)</span>
     </>
   );
 }
@@ -460,7 +455,10 @@ export default function HalamanDetailSantri({
             <h2>Ringkasan kehadiran</h2>
             <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
               {STATUS_KEHADIRAN.map((s) => (
-                <span key={s} className={`lencana lencana--besar lencana--${s}`}>
+                <span
+                  key={s}
+                  className={`lencana lencana--besar lencana--${s}`}
+                >
                   {LABEL_STATUS[s]}: {ringkasan[s]}
                 </span>
               ))}
@@ -561,12 +559,10 @@ export default function HalamanDetailSantri({
                 <button
                   type="button"
                   className="tombol tombol-sekunder"
-                  onClick={() =>
-                    setBatasSetoran((b) => (b < 100 ? 100 : 200))
-                  }
+                  onClick={() => setBatasSetoran((b) => (b < 100 ? 100 : 200))}
                 >
-                  Muat lebih banyak setoran (kini menampilkan{" "}
-                  {batasSetoran} terakhir)
+                  Muat lebih banyak setoran (kini menampilkan {batasSetoran}{" "}
+                  terakhir)
                 </button>
               </p>
             )}
@@ -605,18 +601,18 @@ export default function HalamanDetailSantri({
             </div>
             <p className="catatan-kaki" style={{ marginTop: 10 }}>
               Hasil per juz (M/BS/B/C/K/G) dihitung dari KB hasil konversi
-              bertahap: 3 RG = 1 KK, 3 KK = 1 KB. Sekali majelis tes adalah
-              2 lembar.
+              bertahap: 3 RG = 1 KK, 3 KK = 1 KB. Sekali majelis tes adalah 2
+              lembar.
             </p>
           </section>
 
           {sumberHifzhContoh && (
             <p className="catatan-kaki">
               Catatan mode contoh: id santri contoh modul hifzh sudah
-              diselaraskan induk (2 Nov 2026) dengan daftar santri contoh
-              utama, jadi riwayat tab ini terisi untuk santri yang punya
-              setoran contoh. Pada data Supabase, setoran dan ujian terikat
-              langsung ke id santri ini.
+              diselaraskan induk (2 Nov 2026) dengan daftar santri contoh utama,
+              jadi riwayat tab ini terisi untuk santri yang punya setoran
+              contoh. Pada data Supabase, setoran dan ujian terikat langsung ke
+              id santri ini.
             </p>
           )}
         </>
@@ -627,16 +623,16 @@ export default function HalamanDetailSantri({
           <section className="kartu">
             <h2>Nilai diniyyah per mapel</h2>
             <p>
-              <strong>{LABEL_MAPEL_CONTOH}:</strong> daftar mata pelajaran
-              ({MAPEL_DINIYYAH_CONTOH.join(", ")}) adalah contoh umum
-              madrasah, bukan daftar resmi pondok — daftar resmi mengikuti
-              PDF jadwal diniyyah dari user.
+              <strong>{LABEL_MAPEL_CONTOH}:</strong> daftar mata pelajaran (
+              {MAPEL_DINIYYAH_CONTOH.join(", ")}) adalah contoh umum madrasah,
+              bukan daftar resmi pondok — daftar resmi mengikuti PDF jadwal
+              diniyyah dari user.
             </p>
             <p>
               Kolom rata-rata memakai <strong>rumus sementara</strong>{" "}
               (rata-rata sederhana). {CATATAN_RUMUS_SEMENTARA}
             </p>
-            <div className="tabel-bungkus">
+            <div className="tabel-bungkus tabel-adaptif">
               <table
                 style={{
                   width: "100%",
@@ -667,10 +663,10 @@ export default function HalamanDetailSantri({
                 <tbody>
                   {ringkasanDiniyyah.map((r) => (
                     <tr key={r.mapel}>
-                      <td style={GAYA_SEL}>
+                      <td data-label="Mapel" style={GAYA_SEL}>
                         <LabelMapel mapel={r.mapel} />
                       </td>
-                      <td style={GAYA_SEL_ANGKA}>
+                      <td data-label="Harian" style={GAYA_SEL_ANGKA}>
                         {formatNilai(r.rataHarian)}
                         {r.jumlahNilaiHarian > 0 && (
                           <span
@@ -684,13 +680,16 @@ export default function HalamanDetailSantri({
                           </span>
                         )}
                       </td>
-                      <td style={GAYA_SEL_ANGKA}>
+                      <td data-label="Ujian gasal" style={GAYA_SEL_ANGKA}>
                         {formatNilai(r.ujianGasal)}
                       </td>
-                      <td style={GAYA_SEL_ANGKA}>
+                      <td data-label="Ujian genap" style={GAYA_SEL_ANGKA}>
                         {formatNilai(r.ujianGenap)}
                       </td>
-                      <td style={{ ...GAYA_SEL_ANGKA, fontWeight: 700 }}>
+                      <td
+                        data-label="Gabungan"
+                        style={{ ...GAYA_SEL_ANGKA, fontWeight: 700 }}
+                      >
                         {formatNilai(r.rataGabungan)}
                       </td>
                     </tr>
@@ -754,16 +753,13 @@ export default function HalamanDetailSantri({
               )}
             </div>
           </section>
-
         </>
       )}
 
       {tabAktif === "catatan" && (
         <section className="kartu">
           <h2>Catatan keseharian santri ini</h2>
-          {catatan.length === 0 && (
-            <p>Belum ada catatan untuk santri ini.</p>
-          )}
+          {catatan.length === 0 && <p>Belum ada catatan untuk santri ini.</p>}
           <div style={{ display: "grid", gap: 14 }}>
             {catatan.map((c) => {
               const ikonKat = IKON_KATEGORI_CATATAN[c.kategori];
@@ -802,8 +798,8 @@ export default function HalamanDetailSantri({
           </div>
           <p className="catatan-kaki" style={{ marginTop: 10 }}>
             Catatan dibaca dari lapisan data catatan (database pada mode
-            Supabase) dan nama pelapor selalu terisi otomatis dari akun
-            yang masuk — tidak bisa dikosongkan.
+            Supabase) dan nama pelapor selalu terisi otomatis dari akun yang
+            masuk — tidak bisa dikosongkan.
           </p>
         </section>
       )}

@@ -55,7 +55,10 @@ const gayaSelKepala: CSSProperties = {
   color: "var(--teks-redup)",
   fontSize: 12,
 };
-const gayaSelKepalaAngka: CSSProperties = { ...gayaSelKepala, textAlign: "center" };
+const gayaSelKepalaAngka: CSSProperties = {
+  ...gayaSelKepala,
+  textAlign: "center",
+};
 const gayaSel: CSSProperties = {
   padding: "7px 6px",
   borderBottom: "1px solid var(--garis)",
@@ -205,7 +208,8 @@ function GrafikPeriode({
                 />
               </div>
               <span style={{ fontSize: 13, color: "var(--teks-redup)" }}>
-                L {totalL} · U {totalU} ({formatPersen(Math.round(persenL * 10) / 10)} Lancar)
+                L {totalL} · U {totalU} (
+                {formatPersen(Math.round(persenL * 10) / 10)} Lancar)
               </span>
             </div>
           </div>
@@ -220,7 +224,7 @@ function TabelSantri({ baris }: { baris: RekapSantriInti[] }) {
     return <p>Belum ada baris rekap pada periode ini.</p>;
   }
   return (
-    <div className="tabel-bungkus">
+    <div className="tabel-bungkus tabel-adaptif">
       <table style={gayaTabel}>
         <thead>
           <tr>
@@ -237,14 +241,31 @@ function TabelSantri({ baris }: { baris: RekapSantriInti[] }) {
         <tbody>
           {baris.map((b) => (
             <tr key={b.santriId}>
-              <td style={gayaSel}>{b.santriNama}</td>
-              <td style={gayaSel}>{b.kelasNama}</td>
-              <td style={gayaSelAngka}>{b.jumlahHadir}</td>
-              <td style={gayaSelAngka}>{b.jumlahSakit}</td>
-              <td style={gayaSelAngka}>{b.jumlahIzin}</td>
-              <td style={gayaSelAngka}>{b.jumlahAlpa}</td>
-              <td style={gayaSelAngka}>{b.totalSesi}</td>
-              <td style={{ ...gayaSelAngka, fontWeight: 700 }}>
+              <td data-label="Santri" style={gayaSel}>
+                {b.santriNama}
+              </td>
+              <td data-label="Kelas" style={gayaSel}>
+                {b.kelasNama}
+              </td>
+              <td data-label="Hadir" style={gayaSelAngka}>
+                {b.jumlahHadir}
+              </td>
+              <td data-label="Sakit" style={gayaSelAngka}>
+                {b.jumlahSakit}
+              </td>
+              <td data-label="Izin" style={gayaSelAngka}>
+                {b.jumlahIzin}
+              </td>
+              <td data-label="Alpa" style={gayaSelAngka}>
+                {b.jumlahAlpa}
+              </td>
+              <td data-label="Total" style={gayaSelAngka}>
+                {b.totalSesi}
+              </td>
+              <td
+                data-label="Kehadiran"
+                style={{ ...gayaSelAngka, fontWeight: 700 }}
+              >
                 {formatPersen(b.persenHadir)}
                 <div
                   className="bilah"
@@ -254,7 +275,9 @@ function TabelSantri({ baris }: { baris: RekapSantriInti[] }) {
                 >
                   <div
                     className="bilah-isi"
-                    style={{ width: `${Math.min(100, Math.max(0, b.persenHadir))}%` }}
+                    style={{
+                      width: `${Math.min(100, Math.max(0, b.persenHadir))}%`,
+                    }}
                   />
                 </div>
               </td>
@@ -270,7 +293,7 @@ function TabelKelas({ baris }: { baris: RekapSantriInti[] }) {
   const ringkasan = useMemo(() => ringkasPerKelas(baris), [baris]);
   if (ringkasan.length === 0) return null;
   return (
-    <div className="tabel-bungkus">
+    <div className="tabel-bungkus tabel-adaptif">
       <table style={gayaTabel}>
         <thead>
           <tr>
@@ -287,14 +310,31 @@ function TabelKelas({ baris }: { baris: RekapSantriInti[] }) {
         <tbody>
           {ringkasan.map((r) => (
             <tr key={r.kelasId || r.kelasNama}>
-              <td style={gayaSel}>{r.kelasNama}</td>
-              <td style={gayaSelAngka}>{r.jumlahSantri}</td>
-              <td style={gayaSelAngka}>{r.jumlahHadir}</td>
-              <td style={gayaSelAngka}>{r.jumlahSakit}</td>
-              <td style={gayaSelAngka}>{r.jumlahIzin}</td>
-              <td style={gayaSelAngka}>{r.jumlahAlpa}</td>
-              <td style={gayaSelAngka}>{r.totalSesi}</td>
-              <td style={{ ...gayaSelAngka, fontWeight: 700 }}>
+              <td data-label="Kelas" style={gayaSel}>
+                {r.kelasNama}
+              </td>
+              <td data-label="Santri" style={gayaSelAngka}>
+                {r.jumlahSantri}
+              </td>
+              <td data-label="Hadir" style={gayaSelAngka}>
+                {r.jumlahHadir}
+              </td>
+              <td data-label="Sakit" style={gayaSelAngka}>
+                {r.jumlahSakit}
+              </td>
+              <td data-label="Izin" style={gayaSelAngka}>
+                {r.jumlahIzin}
+              </td>
+              <td data-label="Alpa" style={gayaSelAngka}>
+                {r.jumlahAlpa}
+              </td>
+              <td data-label="Total" style={gayaSelAngka}>
+                {r.totalSesi}
+              </td>
+              <td
+                data-label="Kehadiran"
+                style={{ ...gayaSelAngka, fontWeight: 700 }}
+              >
                 {formatPersen(r.persenHadir)}
               </td>
             </tr>
@@ -470,12 +510,14 @@ export default function KontenRekap() {
 
         <h3 style={{ margin: "0 0 8px", fontSize: 15 }}>Per santri</h3>
         <TabelSantri baris={barisAktif} />
-        <h3 style={{ margin: "16px 0 8px", fontSize: 15 }}>Ringkasan per kelas</h3>
+        <h3 style={{ margin: "16px 0 8px", fontSize: 15 }}>
+          Ringkasan per kelas
+        </h3>
         <TabelKelas baris={barisAktif} />
         <p className="catatan-kaki" style={{ marginTop: 10 }}>
           Persen hadir = jumlah Hadir dibagi total sesi pada periode itu.
-          Tanggal resmi semester gasal/genap masih menunggu penetapan user;
-          pada mode contoh semester yang tampil adalah semester contoh.
+          Tanggal resmi semester gasal/genap masih menunggu penetapan user; pada
+          mode contoh semester yang tampil adalah semester contoh.
         </p>
       </section>
 
@@ -535,9 +577,9 @@ export default function KontenRekap() {
         />
         <p className="catatan-kaki" style={{ marginTop: 12 }}>
           Batang atas menunjukkan jumlah setoran per jenis pada periode itu;
-          batang tipis di bawahnya menunjukkan proporsi nilai L (Lancar,
-          hijau) berbanding U (Ulang). Pada mode contoh, agregat dihitung
-          dari setoran contoh modul hifzh yang jumlahnya masih sedikit.
+          batang tipis di bawahnya menunjukkan proporsi nilai L (Lancar, hijau)
+          berbanding U (Ulang). Pada mode contoh, agregat dihitung dari setoran
+          contoh modul hifzh yang jumlahnya masih sedikit.
         </p>
       </section>
     </>

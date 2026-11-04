@@ -36,7 +36,11 @@ import PenandaTahap from "@/components/PenandaTahap";
 import KartuGalat from "@/components/KartuGalat";
 import PenjagaModul from "@/components/PenjagaModul";
 import AvatarInisial from "@/components/AvatarInisial";
-import { bolehInput, bolehRevisiKehadiran, pesanModePantauan } from "@/lib/akses";
+import {
+  bolehInput,
+  bolehRevisiKehadiran,
+  pesanModePantauan,
+} from "@/lib/akses";
 import {
   hitungKosong,
   hitungTertimpa,
@@ -210,9 +214,7 @@ function IsiHalamanKehadiran() {
      revisi tetap tampil. Mode contoh (profil contoh admin) tidak
      diterapkan — sejalan doktrin peta akses di lib/akses.ts. */
   const pantauanAdmin =
-    !sumberContoh &&
-    profil !== null &&
-    !bolehInput(profil.peran, "kehadiran");
+    !sumberContoh && profil !== null && !bolehInput(profil.peran, "kehadiran");
 
   /** Status yang sudah tersimpan di basis data, per santri. */
   const petaTersimpan = useMemo(
@@ -405,8 +407,8 @@ function IsiHalamanKehadiran() {
       </div>
       {daftarJadwal.length === 0 && (
         <p className="catatan-kaki" style={{ marginTop: -6 }}>
-          Belum ada jadwal tersedia untuk sesi ini — pencatatan tetap
-          dapat dilanjutkan.
+          Belum ada jadwal tersedia untuk sesi ini — pencatatan tetap dapat
+          dilanjutkan.
         </p>
       )}
 
@@ -471,8 +473,8 @@ function IsiHalamanKehadiran() {
         )}
         {!adalahAdmin && barisTersimpan.length > 0 && (
           <p className="catatan-kaki" style={{ marginTop: -6 }}>
-            Baris bertanda &ldquo;Tersimpan&rdquo; hanya tampil sebagai
-            lencana. Perubahan status tersimpan hanya lewat revisi admin.
+            Baris bertanda &ldquo;Tersimpan&rdquo; hanya tampil sebagai lencana.
+            Perubahan status tersimpan hanya lewat revisi admin.
           </p>
         )}
         <div style={{ display: "grid", gap: 12 }}>
@@ -483,97 +485,101 @@ function IsiHalamanKehadiran() {
             // belum terisi pun tidak bisa diisi dari sini.
             const statusTersimpan = petaTersimpan.get(s.id);
             const bacaSaja =
-              pantauanAdmin ||
-              (!adalahAdmin && statusTersimpan !== undefined);
+              pantauanAdmin || (!adalahAdmin && statusTersimpan !== undefined);
             return (
-            <div key={s.id} className="baris-kehadiran">
-              <div
-                style={{ display: "flex", alignItems: "center", gap: 12 }}
-              >
-                <AvatarInisial nama={s.nama} ukuran="kecil" />
-                <div style={{ flex: 1, minWidth: 0 }}>
-                  <div style={{ fontWeight: 600, fontSize: 14 }}>{s.nama}</div>
-                  <div style={{ color: "var(--teks-redup)", fontSize: 12 }}>
-                    Ayah/Wali: {s.namaAyahWali}
+              <div key={s.id} className="baris-kehadiran">
+                <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+                  <AvatarInisial nama={s.nama} ukuran="kecil" />
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ fontWeight: 600, fontSize: 14 }}>
+                      {s.nama}
+                    </div>
+                    <div style={{ color: "var(--teks-redup)", fontSize: 12 }}>
+                      Ayah/Wali: {s.namaAyahWali}
+                    </div>
                   </div>
                 </div>
-              </div>
-              {bacaSaja ? (
-                <div
-                  style={{ display: "flex", alignItems: "center", gap: 8 }}
-                >
-                  {statusTersimpan !== undefined ? (
-                    <>
-                      <span
-                        className={`lencana lencana--besar lencana--${statusTersimpan}`}
-                      >
-                        {LABEL_STATUS[statusTersimpan as StatusKehadiran]}
-                      </span>
+                {bacaSaja ? (
+                  <div
+                    style={{ display: "flex", alignItems: "center", gap: 8 }}
+                  >
+                    {statusTersimpan !== undefined ? (
+                      <>
+                        <span
+                          className={`lencana lencana--besar lencana--${statusTersimpan}`}
+                        >
+                          {LABEL_STATUS[statusTersimpan as StatusKehadiran]}
+                        </span>
+                        <span
+                          style={{ color: "var(--teks-redup)", fontSize: 13 }}
+                        >
+                          Tersimpan
+                        </span>
+                      </>
+                    ) : (
                       <span
                         style={{ color: "var(--teks-redup)", fontSize: 13 }}
                       >
-                        Tersimpan
+                        Belum diisi
                       </span>
-                    </>
-                  ) : (
-                    <span
-                      style={{ color: "var(--teks-redup)", fontSize: 13 }}
-                    >
-                      Belum diisi
-                    </span>
-                  )}
-                </div>
-              ) : (
-              <div className="pil-status-grup" role="group" aria-label={`Status kehadiran ${s.nama}`}>
-                {STATUS_KEHADIRAN.map((st) => {
-                  const terpilih = pilihan[s.id] === st;
-                  return (
-                    <button
-                      key={st}
-                      type="button"
-                      className={`pil-status pil-status--${st}`}
-                      aria-pressed={terpilih}
-                      title={LABEL_STATUS[st]}
-                      onClick={() => {
-                        setPilihan((lama) => ({ ...lama, [s.id]: st }));
-                        setKotor(true);
-                      }}
-                    >
-                      {SINGKATAN_STATUS[st]}
-                    </button>
-                  );
-                })}
+                    )}
+                  </div>
+                ) : (
+                  <div
+                    className="pil-status-grup"
+                    role="group"
+                    aria-label={`Status kehadiran ${s.nama}`}
+                  >
+                    {STATUS_KEHADIRAN.map((st) => {
+                      const terpilih = pilihan[s.id] === st;
+                      return (
+                        <button
+                          key={st}
+                          type="button"
+                          className={`pil-status pil-status--${st}`}
+                          aria-pressed={terpilih}
+                          title={LABEL_STATUS[st]}
+                          onClick={() => {
+                            setPilihan((lama) => ({ ...lama, [s.id]: st }));
+                            setKotor(true);
+                          }}
+                        >
+                          {SINGKATAN_STATUS[st]}
+                          <span className="pil-status-label">
+                            {LABEL_STATUS[st]}
+                          </span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                )}
               </div>
-              )}
-            </div>
             );
           })}
-          {santriKelas.length === 0 && (
-            <p>Belum ada santri pada kelas ini.</p>
-          )}
+          {santriKelas.length === 0 && <p>Belum ada santri pada kelas ini.</p>}
         </div>
 
         {!pantauanAdmin && (
-        <div className="bilah-aksi">
-          {/* Bilah simpan tetap prototipe: status isian di kiri,
+          <div className="bilah-aksi">
+            {/* Bilah simpan tetap prototipe: status isian di kiri,
               tombol simpan di kanan. Tindakan massal pindah ke
               baris ringkasan di atas daftar. */}
-          <span className="teks-bilah" role="status">
-            {jumlahBelumDiisi > 0
-              ? `${jumlahBelumDiisi} belum diisi`
-              : "Semua santri kelas ini sudah terisi"}
-          </span>
-          <button
-            type="button"
-            className="tombol"
-            onClick={tanganiSimpan}
-            disabled={sedangMenyimpan || jumlahAkanDisimpan === 0}
-          >
-            {sedangMenyimpan
-              ? "Menyimpan…"
-              : `Simpan ${jumlahAkanDisimpan} kehadiran · Kelas ${tingkat}`}
-          </button>
-        </div>
+            <span className="teks-bilah" role="status">
+              {jumlahBelumDiisi > 0
+                ? `${jumlahBelumDiisi} belum diisi`
+                : "Semua santri kelas ini sudah terisi"}
+            </span>
+            <button
+              type="button"
+              className="tombol"
+              onClick={tanganiSimpan}
+              disabled={sedangMenyimpan || jumlahAkanDisimpan === 0}
+            >
+              {sedangMenyimpan
+                ? "Menyimpan…"
+                : `Simpan ${jumlahAkanDisimpan} kehadiran · Kelas ${tingkat}`}
+            </button>
+          </div>
         )}
         {pesanSimpan && (
           <p className="catatan-kaki" role="status" style={{ marginTop: 10 }}>
@@ -599,7 +605,9 @@ function IsiHalamanKehadiran() {
                 onChange={(e) => setRevisiId(e.target.value)}
               >
                 {barisTersimpan.length === 0 && (
-                  <option value="">Belum ada baris tersimpan pada sesi ini</option>
+                  <option value="">
+                    Belum ada baris tersimpan pada sesi ini
+                  </option>
                 )}
                 {barisTersimpan.map((b) => (
                   <option key={b.id} value={b.id}>
@@ -613,7 +621,9 @@ function IsiHalamanKehadiran() {
               <select
                 className="masukan"
                 value={revisiStatus}
-                onChange={(e) => setRevisiStatus(e.target.value as StatusKehadiran)}
+                onChange={(e) =>
+                  setRevisiStatus(e.target.value as StatusKehadiran)
+                }
               >
                 {STATUS_KEHADIRAN.map((st) => (
                   <option key={st} value={st}>
