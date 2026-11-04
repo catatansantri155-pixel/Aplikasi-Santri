@@ -15,10 +15,12 @@
 -- CASCADE di 0001_schema.sql) — perilaku itu disengaja dan disebut
 -- di dialog konfirmasi aplikasi.
 --
--- CATATAN: berkas ini DISIAPKAN saja dan belum dijalankan ke
--- database produksi; dijalankan terpisah dengan persetujuan user.
--- Tanpa migrasi ini, semua fitur ubah/hapus lain tetap berjalan;
--- hanya hapus sesi olahraga oleh staf non-admin yang tertahan.
+-- STATUS: SUDAH DIJALANKAN ke database produksi pada 4 Nov 2026
+-- pukul 14:51 WIB dengan persetujuan user, dan terverifikasi di
+-- pg_policies: policy olahraga_hapus aktif (Admin Utama ATAU staf
+-- pemilik sesi) dan policy lama olahraga_hapus_admin sudah tidak
+-- ada. Staf pemilik sesi kini dapat menghapus sesinya sendiri
+-- dari aplikasi.
 -- =====================================================================
 
 drop policy if exists olahraga_hapus_admin on public.olahraga_sesi;

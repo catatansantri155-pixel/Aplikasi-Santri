@@ -46,7 +46,11 @@ import {
   LABEL_KATEGORI,
   type CatatanMusyrif,
 } from "@/lib/data/catatan";
-import { formatTanggalPanjang } from "@/lib/data/olahraga";
+import {
+  ambilDaftarSesi,
+  formatTanggalPanjang,
+} from "@/lib/data/olahraga";
+import BannerMotivasi from "@/components/BannerMotivasi";
 import AvatarInisial from "@/components/AvatarInisial";
 import Pola from "@/components/Pola";
 import {
@@ -91,9 +95,21 @@ function formatTanggalHariIniPanjang(): string {
   return formatTanggalPanjang(tanggalIsoHariIni());
 }
 
-/** Teks Arab hadis motivasi (HR. Bukhari) — pasangan terjemahan
- *  yang sudah tampil di beranda; huruf Amiri lewat .teks-arab. */
-const MOTIVASI_ARAB = "خَيْرُكُمْ مَنْ تَعَلَّمَ الْقُرْآنَ وَعَلَّمَهُ";
+/** Rentang pekan berjalan (Senin–Ahad) sebagai tanggal ISO —
+ *  dasar hitungan kartu "Olahraga pekan ini" di beranda staf. */
+function rentangPekanBerjalan(): { mulai: string; selesai: string } {
+  const keIso = (d: Date): string =>
+    `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(
+      d.getDate(),
+    ).padStart(2, "0")}`;
+  const hariIni = new Date(`${tanggalIsoHariIni()}T00:00:00`);
+  // getDay(): 0 = Ahad ... 6 = Sabtu → geser ke Senin pekan ini.
+  const senin = new Date(hariIni);
+  senin.setDate(hariIni.getDate() - ((hariIni.getDay() + 6) % 7));
+  const ahad = new Date(senin);
+  ahad.setDate(senin.getDate() + 6);
+  return { mulai: keIso(senin), selesai: keIso(ahad) };
+}
 
 /** Pekan berjalan semester dari tanggal mulai/selesai ASLI:
  *  pekan ke-berapa dari total pekan rentang semester. */
@@ -156,6 +172,10 @@ export default function HalamanBeranda() {
     kehadiran: number;
     setoran: number;
     catatan: number;
+    /** Sesi olahraga pada pekan berjalan (Senin–Ahad) — kartu
+     *  ke-4 kisi ringkasan 2×2 beranda staf (arahan user 4 Nov
+     *  2026). Untuk wali tidak dipakai (nilainya 0). */
+    olahraga: number;
   } | null>(null);
   const [semesterBerjalan, setSemesterBerjalan] =
     useState<SemesterLengkap | null>(null);
@@ -194,13 +214,25 @@ export default function HalamanBeranda() {
       try {
         const hariIni = tanggalIsoHariIni();
         const untukWali = profilLogin.peran === "wali";
-        const [daftarSantri, setoran, catatan, semester] =
+        const [daftarSantri, setoran, catatan, semester, sesiOlahraga] =
           await Promise.all([
             ambilDaftarSantri(),
             ambilSetoranTerakhir(100),
             ambilCatatanTerbaru(50),
             ambilSemesterAdmin(),
+            // Sesi olahraga hanya untuk kartu ringkasan staf;
+            // kegagalannya tidak boleh menyembunyikan statistik
+            // lain, jadi ditangkap terpisah menjadi null.
+            untukWali
+              ? Promise.resolve(null)
+              : ambilDaftarSesi().catch(() => null),
           ]);
+        const pekan = rentangPekanBerjalan();
+        const olahragaPekanIni = sesiOlahraga
+          ? sesiOlahraga.data.filter(
+              (s) => s.tanggal >= pekan.mulai && s.tanggal <= pekan.selesai,
+            ).length
+          : 0;
         let kehadiran = 0;
         if (untukWali) {
           // Total tercatat per anak (RLS hanya meloloskan anaknya).
@@ -244,6 +276,7 @@ export default function HalamanBeranda() {
           catatan: untukWali
             ? catatan.data.length
             : catatan.data.filter((c) => c.tanggal === hariIni).length,
+          olahraga: olahragaPekanIni,
         });
         setSemesterBerjalan(
           semester.data.find((s) => statusSemester(s) === "berjalan") ??
@@ -400,6 +433,15 @@ export default function HalamanBeranda() {
                     sub: "dari musyrif & pengajar",
                   },
                 ]),
+          // Kartu ke-4 (arahan user 4 Nov 2026: kisi ringkasan
+          // jadi 4 kartu rapi 2×2): sesi olahraga pekan berjalan,
+          // dari lapisan data olahraga yang sama dengan halaman
+          // Olahraga — angka nyata, bukan statis.
+          {
+            angka: statistik.olahraga,
+            label: "Olahraga pekan ini",
+            sub: "sesi tercatat pekan ini",
+          },
         ]
       : [];
 
@@ -429,49 +471,44 @@ export default function HalamanBeranda() {
       </>
     );
 
-    // Pasangan semester berjalan + kartu hadis (prototipe: dua
-    // kartu sejajar di PC). Hadis kini lengkap dengan teks Arab.
-    const pasanganSemesterHadis = profilLogin ? (
-      <div className="baris-ganda">
-        {semesterBerjalan && pekanSemester && (
-          <div className="kartu-semester">
-            <div className="semester-baris">
-              <span className="semester-nama">
-                {semesterBerjalan.nama} · {semesterBerjalan.tahunAjaran}
-              </span>
-              <span className="semester-pekan">
-                Pekan {pekanSemester.pekan}/{pekanSemester.total}
-              </span>
-            </div>
-            <div
-              className="bilah"
-              role="img"
-              aria-label={`Pekan ${pekanSemester.pekan} dari ${pekanSemester.total}`}
-            >
-              <div
-                className="bilah-isi"
-                style={{
-                  width: `${Math.round(
-                    (pekanSemester.pekan / pekanSemester.total) * 100,
-                  )}%`,
-                }}
-              />
-            </div>
+    // Strip semester berjalan — sejak arahan user 4 Nov 2026
+    // berdiri sendiri PALING BAWAH beranda (di bawah banner
+    // motivasi), tidak lagi berdampingan dengan kartu hadis.
+    const stripSemester =
+      semesterBerjalan && pekanSemester ? (
+        <div className="kartu-semester">
+          <div className="semester-baris">
+            <span className="semester-nama">
+              {semesterBerjalan.nama} · {semesterBerjalan.tahunAjaran}
+            </span>
+            <span className="semester-pekan">
+              Pekan {pekanSemester.pekan}/{pekanSemester.total}
+            </span>
           </div>
-        )}
-        <div className="banner-motivasi">
-          <Pola className="motivasi-pola" />
-          <p className="motivasi-arab teks-arab" dir="rtl" lang="ar">
-            {MOTIVASI_ARAB}
-          </p>
-          <p className="motivasi-teks">
-            &ldquo;Sebaik-baik kalian adalah yang mempelajari
-            Al-Qur&rsquo;an dan mengajarkannya.&rdquo;
-          </p>
-          <p className="motivasi-sumber">
-            HR. Bukhari — pengingat bagi pengajar dan santri
-          </p>
+          <div
+            className="bilah"
+            role="img"
+            aria-label={`Pekan ${pekanSemester.pekan} dari ${pekanSemester.total}`}
+          >
+            <div
+              className="bilah-isi"
+              style={{
+                width: `${Math.round(
+                  (pekanSemester.pekan / pekanSemester.total) * 100,
+                )}%`,
+              }}
+            />
+          </div>
         </div>
+      ) : null;
+
+    // Tumpukan paling bawah beranda (urutan baru arahan user
+    // 4 Nov 2026): banner motivasi 5 slide DI BAWAH semua modul,
+    // lalu strip semester sebagai penutup.
+    const bagianBawahBeranda = profilLogin ? (
+      <div className="tumpuk-bawah-beranda">
+        <BannerMotivasi />
+        {stripSemester}
       </div>
     ) : null;
 
@@ -585,8 +622,6 @@ export default function HalamanBeranda() {
                 </>
               )}
 
-              {pasanganSemesterHadis}
-
               {catatanTerbaru && (
                 <>
                   <div className="kepala-seksi">
@@ -619,6 +654,8 @@ export default function HalamanBeranda() {
                 </>
               )}
 
+              {bagianBawahBeranda}
+
               <div style={{ marginTop: 16 }}>
                 <Link
                   href="/laporan"
@@ -638,9 +675,12 @@ export default function HalamanBeranda() {
       <>
         {sapaan}
 
+        {/* Urutan beranda baru (arahan user 4 Nov 2026): kartu
+            hero peran selebar penuh, lalu EMPAT kartu ringkasan
+            rapi 2×2 (.kisi-stat: 2 kolom di HP, 4 kolom di PC). */}
         {profilLogin && statistik && (
-          <div className="kisi-ringkasan">
-            <div className="kartu-hero">
+          <>
+            <div className="kartu-hero" style={{ marginBottom: 12 }}>
               <Pola className="hero-pola" />
               <p className="hero-label">{hero.label}</p>
               <p className="hero-nilai">{hero.nilai}</p>
@@ -649,17 +689,17 @@ export default function HalamanBeranda() {
                 {hero.cta}
               </Link>
             </div>
-            {kartuLain.map((s) => (
-              <div key={s.label} className="kartu-stat">
-                <span className="stat-label">{s.label}</span>
-                <span className="stat-angka">{s.angka}</span>
-                <span className="stat-sub">{s.sub}</span>
-              </div>
-            ))}
-          </div>
+            <div className="kisi-stat">
+              {kartuLain.map((s) => (
+                <div key={s.label} className="kartu-stat">
+                  <span className="stat-label">{s.label}</span>
+                  <span className="stat-angka">{s.angka}</span>
+                  <span className="stat-sub">{s.sub}</span>
+                </div>
+              ))}
+            </div>
+          </>
         )}
-
-        {pasanganSemesterHadis}
 
         {profilLogin && (
           <>
@@ -717,6 +757,8 @@ export default function HalamanBeranda() {
               )}
           </>
         )}
+
+        {bagianBawahBeranda}
       </>
     );
   }

@@ -913,25 +913,27 @@ a.info-pengguna-samping:hover {
 
 /* ---------- Judul & seksi ---------- */
 
+/* Judul halaman dalam DIPERKECIL sepadan (arahan user
+   4 Nov 2026): 20px → 18px di HP, 24px → 22px di PC;
+   subjudul 14px → 12,5px. Teks isi/kartu/tombol tidak berubah. */
 h1.judul-halaman {
   margin: 0 0 4px;
-  font-size: 20px;
+  font-size: 18px;
   font-weight: 700;
   letter-spacing: -0.015em;
   line-height: 1.3;
 }
 
-/* Judul halaman prototipe membesar di PC (text-2xl). */
 @media (min-width: 1024px) {
   h1.judul-halaman {
-    font-size: 24px;
+    font-size: 22px;
   }
 }
 
 .subjudul {
   margin: 0 0 16px;
   color: var(--teks-redup);
-  font-size: 14px;
+  font-size: 12.5px;
   line-height: 1.55;
 }
 
@@ -1620,9 +1622,11 @@ textarea.masukan {
 
 /* ---------- Sapaan & hero beranda (prototipe) ---------- */
 
+/* Baris tanggal beranda DIPERKECIL (arahan user 4 Nov 2026):
+   14px → 12px. */
 .sapaan-tanggal {
   margin: 0;
-  font-size: 14px;
+  font-size: 12px;
   color: var(--teks-redup);
 }
 
@@ -1631,9 +1635,11 @@ textarea.masukan {
   color: var(--emas-gelap);
 }
 
+/* Salam beranda DIPERKECIL (arahan user 4 Nov 2026): 24px → 20px
+   di HP, 30px → 24px di PC. */
 h1.sapaan-judul {
   margin: 2px 0 20px;
-  font-size: 24px;
+  font-size: 20px;
   font-weight: 700;
   letter-spacing: -0.015em;
   line-height: 1.25;
@@ -1641,7 +1647,7 @@ h1.sapaan-judul {
 
 @media (min-width: 1024px) {
   h1.sapaan-judul {
-    font-size: 30px;
+    font-size: 24px;
   }
 }
 
@@ -2692,6 +2698,71 @@ h1.sapaan-judul {
   color: var(--emas-gelap);
 }
 
+/* Banner motivasi kini SLIDER 5 hadis (arahan user 4 Nov 2026):
+   bergeser otomatis tiap ±5 detik, titik penanda bisa diketuk.
+   Isi slide berganti dengan animasi masuk lembut (dimatikan oleh
+   aturan prefers-reduced-motion global di awal berkas ini). */
+.motivasi-slide {
+  animation: motivasi-masuk 0.45s ease both;
+}
+
+@keyframes motivasi-masuk {
+  from {
+    opacity: 0;
+    transform: translateX(12px);
+  }
+
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.motivasi-titik {
+  position: relative;
+  display: flex;
+  justify-content: center;
+  gap: 2px;
+  margin-top: 10px;
+}
+
+.motivasi-titik-tombol {
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  background: none;
+  border: none;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.motivasi-titik-tombol::after {
+  content: "";
+  width: 8px;
+  height: 8px;
+  border-radius: 999px;
+  background: rgba(215, 160, 61, 0.4);
+  transition:
+    width 0.2s ease,
+    background 0.2s ease;
+}
+
+.motivasi-titik-tombol[aria-current="true"]::after {
+  width: 24px;
+  background: var(--emas);
+}
+
+/* Tumpukan bawah beranda: banner motivasi lalu strip semester
+   (urutan baru arahan user 4 Nov 2026 — keduanya di bawah semua
+   modul, semester paling akhir). */
+.tumpuk-bawah-beranda {
+  display: grid;
+  gap: 12px;
+  margin-top: 16px;
+}
+
 /* ---------- Halaman Akun: baris pengaturan ---------- */
 
 /* Satu baris pengaturan: label + keterangan kecil di kiri, kendali
@@ -2869,7 +2940,7 @@ body {
 }
 
 .subjudul {
-  font-size: calc(14px * var(--skala-teks, 1));
+  font-size: calc(12.5px * var(--skala-teks, 1));
 }
 
 .catatan-kaki {
@@ -3360,12 +3431,12 @@ html[data-tema="gelap"] .auth-visual-bingkai--luar {
 /* ---------- Skala teks: perluasan cakupan ---------- */
 
 h1.judul-halaman {
-  font-size: calc(20px * var(--skala-teks, 1));
+  font-size: calc(18px * var(--skala-teks, 1));
 }
 
 @media (min-width: 1024px) {
   h1.judul-halaman {
-    font-size: calc(24px * var(--skala-teks, 1));
+    font-size: calc(22px * var(--skala-teks, 1));
   }
 }
 
