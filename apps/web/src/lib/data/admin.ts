@@ -49,7 +49,9 @@ import {
   tambahSemesterAdminContoh,
   tambahTautanWaliContoh,
   ubahSantriAdminContoh,
+  ubahSemesterAdminContoh,
   aturStatusAktifSantriAdminContoh,
+  hapusSemesterAdminContoh,
   hapusTautanWaliContoh,
   idSantriAdminContohBaru,
   idSemesterAdminContohBaru,
@@ -400,10 +402,10 @@ export interface MasukanSemester {
 
 const POLA_TANGGAL = /^\d{4}-\d{2}-\d{2}$/;
 
-/** Buat semester baru. Unik di database: (tahun_ajaran, jenis). */
-export async function tambahSemesterAdmin(
+/** Rapikan + periksa masukan semester (dipakai buat & ubah). */
+function bersihkanMasukanSemester(
   masukan: MasukanSemester,
-): Promise<HasilSantri<SemesterLengkap>> {
+): MasukanSemester {
   const bersih: MasukanSemester = {
     nama: masukan.nama.trim(),
     jenis: masukan.jenis,
@@ -422,6 +424,14 @@ export async function tambahSemesterAdmin(
   if (bersih.tanggalSelesai < bersih.tanggalMulai) {
     throw new Error("Tanggal selesai tidak boleh sebelum tanggal mulai.");
   }
+  return bersih;
+}
+
+/** Buat semester baru. Unik di database: (tahun_ajaran, jenis). */
+export async function tambahSemesterAdmin(
+  masukan: MasukanSemester,
+): Promise<HasilSantri<SemesterLengkap>> {
+  const bersih = bersihkanMasukanSemester(masukan);
 
   if (!supabaseTerhubung()) {
     // MODE CONTOH: tulis ke gudang contoh di memori; unik
@@ -480,6 +490,121 @@ export async function tambahSemesterAdmin(
     },
     sumberContoh: false,
   };
+}
+
+/**
+ * Ubah nama, jenis, tahun ajaran, dan rentang tanggal satu semester.
+ * Khusus admin (policy semester_tulis_admin). Unik (tahun_ajaran,
+ * jenis) tetap dijaga database.
+ */
+export async function ubahSemesterAdmin(
+  semesterId: string,
+  masukan: MasukanSemester,
+): Promise<HasilSantri<SemesterLengkap>> {
+  const bersih = bersihkanMasukanSemester(masukan);
+
+  if (!supabaseTerhubung()) {
+    // MODE CONTOH: ubah gudang contoh di memori; unik
+    // (tahun ajaran + jenis) ditiru dari batasan database.
+    const duplikat = semuaSemesterAdminContoh().find(
+      (s) =>
+        s.id !== semesterId &&
+        s.tahunAjaran === bersih.tahunAjaran &&
+        s.jenis === bersih.jenis,
+    );
+    if (duplikat) {
+      throw new Error(
+        `Sudah ada semester ${LABEL_SEMESTER[bersih.jenis]} untuk tahun ajaran ${bersih.tahunAjaran}.`,
+      );
+    }
+    const diubah = ubahSemesterAdminContoh(semesterId, bersih);
+    if (!diubah) throw new Error("Semester contoh tidak ditemukan.");
+    return { data: diubah, sumberContoh: true };
+  }
+
+  const supabase = buatKlienBrowser();
+  const { data, error } = await supabase
+    .from("semester")
+    .update({
+      nama: bersih.nama,
+      jenis: bersih.jenis,
+      tahun_ajaran: bersih.tahunAjaran,
+      tanggal_mulai: bersih.tanggalMulai,
+      tanggal_selesai: bersih.tanggalSelesai,
+    })
+    .eq("id", semesterId)
+    .select("id, nama, jenis, tahun_ajaran, tanggal_mulai, tanggal_selesai")
+    .maybeSingle();
+  if (error) {
+    if (error.code === "23505") {
+      throw new Error(
+        `Sudah ada semester ${LABEL_SEMESTER[bersih.jenis]} untuk tahun ajaran ${bersih.tahunAjaran}.`,
+      );
+    }
+    throw new Error(`Gagal mengubah semester: ${error.message}`);
+  }
+  if (!data) {
+    throw new Error("Semester tidak ditemukan.");
+  }
+  const baris = data as {
+    id: string;
+    nama: string;
+    jenis: JenisSemester;
+    tahun_ajaran: string;
+    tanggal_mulai: string;
+    tanggal_selesai: string;
+  };
+  return {
+    data: {
+      id: baris.id,
+      nama: baris.nama,
+      jenis: baris.jenis,
+      tahunAjaran: baris.tahun_ajaran,
+      tanggalMulai: baris.tanggal_mulai,
+      tanggalSelesai: baris.tanggal_selesai,
+    },
+    sumberContoh: false,
+  };
+}
+
+/**
+ * Hapus satu semester. Khusus admin (policy semester_tulis_admin).
+ * KEAMANAN DATA: semester yang sudah dipakai baris nilai ujian
+ * (hifzh_ujian / diniyyah_ujian, kunci asing TANPA cascade) TIDAK
+ * dapat dihapus — database menolaknya (23503) dan pesan di bawah
+ * menjelaskannya. Tabel semester tidak punya kolom penanda
+ * aktif/nonaktif, jadi tidak ada jalur "nonaktifkan" tanpa mengubah
+ * skema; semester semacam itu cukup dibiarkan (tidak mengganggu,
+ * karena pilihan semester di form ujian mengikuti data yang ada).
+ */
+export async function hapusSemesterAdmin(
+  semesterId: string,
+): Promise<HasilSantri<{ terhapus: boolean }>> {
+  if (!supabaseTerhubung()) {
+    // MODE CONTOH: hapus dari gudang contoh di memori.
+    return {
+      data: { terhapus: hapusSemesterAdminContoh(semesterId) },
+      sumberContoh: true,
+    };
+  }
+  const supabase = buatKlienBrowser();
+  const { data, error } = await supabase
+    .from("semester")
+    .delete()
+    .eq("id", semesterId)
+    .select("id");
+  if (error) {
+    if (error.code === "23503") {
+      throw new Error(
+        "Semester ini sudah dipakai oleh nilai ujian (hifzh/diniyyah), sehingga tidak dapat dihapus agar riwayat nilai tetap utuh. Semester yang belum dipakai nilai ujian mana pun dapat dihapus.",
+      );
+    }
+    throw new Error(`Gagal menghapus semester: ${error.message}`);
+  }
+  if (!data || data.length === 0) {
+    throw new Error("Semester tidak ditemukan.");
+  }
+  return { data: { terhapus: true }, sumberContoh: false };
 }
 
 /* ------------------------------------------------------------------ */

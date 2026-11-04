@@ -19,30 +19,43 @@
 
    Kelas bersama di berkas ini dipakai SEMUA halaman — perubahan
    token cukup dilakukan di sini.
+
+   PORT DESAIN LOVABLE (4 Nov 2026): token warna/bentuk dan gaya
+   komponen bersama diselaraskan ke prototipe Lovable "Aplikasi
+   Santri" (project 340578cb; salinan referensi di
+   ~/workspace/lovable/port-santri-lovable/): primer #145ec1, tint
+   primer #e4efff, emas #d7a03d + tint #fef0d4, nada status
+   hadir/sakit/izin/alpa versi Lovable, radius kartu 18px, tombol &
+   masukan 14px, bayangan kartu sangat tipis, tab garis bawah,
+   sidebar terang, lencana tanpa garis tepi. Nama variabel lama
+   tetap dipertahankan; yang berubah nilainya dan gaya kelas
+   bersama. Logika/data tidak disentuh oleh port ini.
    ============================================================ */
 
 :root {
   /* Palet biru utama (nama variabel lama dipertahankan) */
-  --hijau-kop: #1565c0;
+  --hijau-kop: #145ec1;
   --hijau-logo: #42a5f5;
-  --hijau-gelap: #0d47a1;
-  --hijau-muda: #e3f0fa;
+  --hijau-gelap: #013e8b;
+  --hijau-muda: #e4efff;
   --biru-terang: #42a5f5;
-  --emas: #f0b000;
-  --biru-buku: #1d6fb8;
+  --emas: #d7a03d;
+  --emas-muda: #fef0d4;
+  --emas-gelap: #6c4302;
+  --biru-buku: #2460b7;
 
   /* Status kehadiran */
-  /* Warna status terpilih dikontraskan ≥4,5:1 (audit Fase 1, hitungan
-     luminansi relatif WCAG): Hadir #0e7a35 dengan teks putih = 5,45:1
-     (sebelumnya #1e9e6a = 3,41:1); Alpa #b3261e dengan teks putih =
-     6,54:1 (sebelumnya #d9534f = 3,96:1); Sakit tetap #e8a100 tetapi
-     teks terpilihnya gelap #4a3500 = 5,29:1 (teks putih hanya 2,20:1);
-     Izin #1d6fb8 dengan teks putih = 5,23:1, sudah lulus, tidak
-     diubah. */
-  --status-hadir: #0e7a35;
-  --status-sakit: #e8a100;
-  --status-izin: #1d6fb8;
-  --status-alpa: #b3261e;
+  /* Nada status kini mengikuti token Lovable (hadir/sakit/izin/alpa);
+     keempatnya tetap lulus kontras ≥4,5:1 dengan teks putih saat
+     terpilih (hitungan luminansi relatif WCAG): Hadir #007840 =
+     ±5,6:1; Sakit #975800 = ±5,6:1 (kuning terang #e8a100 lama
+     diganti cokelat keemasan ini, jadi teks terpilih kembali putih
+     seperti status lain); Izin #2460b7 = ±6,1:1; Alpa #c22826 =
+     ±5,7:1. */
+  --status-hadir: #007840;
+  --status-sakit: #975800;
+  --status-izin: #2460b7;
+  --status-alpa: #c22826;
 
   /* Hasil hifzh (M emas → G merah) */
   --hasil-m: #f0b000;
@@ -55,25 +68,29 @@
   /* Netral — latar abu sangat muda polos (audit visual user
      4 Nov 2026: aplikasi operasional yang bersih; gradasi seluruh
      halaman dikurangi, biru hanya sebagai penekanan). */
-  --latar: #f2f5f8;
+  --latar: #f9fafc;
   --permukaan: #ffffff;
-  --teks: #132433;
+  --teks: #121b29;
   /* Teks redup menjaga kontras ≥4,5:1 di atas putih maupun latar
-     biru muda — Anti Slop. #52677a (abu-biru, selaras palet baru)
-     memberi ±5,8:1 di putih dan ±5,0:1 di #eaf4fe (dihitung, lihat
-     docs/VERIFIKASI-UI-BIRU.md). */
-  --teks-redup: #52677a;
-  --garis: #dde8f2;
+     biru muda — Anti Slop. #525b69 (token muted-foreground Lovable)
+     memberi ±6,3:1 di latar dan ±5,7:1 di tint primer #e4efff. */
+  --teks-redup: #525b69;
+  --garis: #dfe3e8;
+  /* Garis kolom isian (Lovable: --input, lebih tegas dari --garis)
+     dan isian redup untuk segmen/titik penampung (Lovable: --muted). */
+  --masukan: #d3d8de;
+  --redup: #f1f4f7;
 
   /* Bentuk & bayangan — dirampingkan (audit visual user 4 Nov
      2026): radius kartu 12–16px, garis batas tipis, bayangan
      minimal; penekanan tidak lagi menumpuk di semua komponen. */
-  --jari: 14px;
-  --jari-besar: 16px;
-  --jari-tombol: 12px;
-  --jari-masukan: 12px;
-  --bayang: 0 1px 3px rgba(19, 36, 51, 0.08);
-  --bayang-halus: 0 1px 2px rgba(19, 36, 51, 0.05);
+  --jari: 18px;
+  --jari-besar: 22px;
+  --jari-tombol: 14px;
+  --jari-masukan: 14px;
+  --bayang: 0 1px 2px rgba(18, 27, 41, 0.05);
+  --bayang-halus: 0 1px 2px rgba(18, 27, 41, 0.04);
+  --bayang-apung: 0 8px 24px -8px rgba(18, 27, 41, 0.18);
 
   /* Ukuran */
   --tinggi-sentuh: 44px;
@@ -121,7 +138,7 @@ a {
 :focus-visible {
   outline: 2px solid var(--hijau-gelap);
   outline-offset: 2px;
-  box-shadow: 0 0 0 4px rgba(240, 176, 0, 0.55);
+  box-shadow: 0 0 0 4px rgba(215, 160, 61, 0.5);
 }
 
 /* Tautan lewati: tersembunyi sampai menerima fokus keyboard. */
@@ -216,8 +233,8 @@ a {
 }
 
 /* Navigasi bawah: TEPAT 5 slot (arah UI UNPIX) — Beranda, Santri,
-   slot tengah menonjol, Grafik, Akun. Putih, bayangan ke atas,
-   slot aktif biru dengan penanda emas di tepi atas. */
+   slot tengah menonjol, Grafik, Akun. Putih bergaris atas; slot
+   aktif cukup berwarna primer (gaya Lovable, port 4 Nov 2026). */
 .nav-bawah {
   position: fixed;
   right: 0;
@@ -228,7 +245,6 @@ a {
   justify-content: space-around;
   background: var(--permukaan);
   border-top: 1px solid var(--garis);
-  box-shadow: 0 -4px 16px rgba(13, 71, 161, 0.08);
   padding-bottom: env(safe-area-inset-bottom);
 }
 
@@ -241,29 +257,19 @@ a {
   align-items: center;
   justify-content: center;
   gap: 3px;
-  min-height: 58px;
+  min-height: 64px;
   padding: 7px 2px 5px;
-  font-size: 10.5px;
-  font-weight: 500;
+  font-size: 11px;
+  font-weight: 600;
   color: var(--teks-redup);
   text-decoration: none;
 }
 
+/* Slot aktif gaya Lovable: cukup warna primer (penanda emas di tepi
+   atas dari revisi sebelumnya gugur). */
 .nav-slot--aktif {
   color: var(--hijau-kop);
   font-weight: 700;
-}
-
-.nav-slot--aktif::before {
-  content: "";
-  position: absolute;
-  top: 0;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 26px;
-  height: 3px;
-  border-radius: 0 0 999px 999px;
-  background: var(--emas);
 }
 
 /* Slot hampa: penahan geometri 5 slot selama profil belum termuat
@@ -287,14 +293,10 @@ a {
   height: 54px;
   margin-top: -30px;
   border-radius: 50%;
-  border: 3px solid #fff;
-  background: linear-gradient(
-    135deg,
-    var(--biru-terang),
-    var(--hijau-kop)
-  );
+  border: 3px solid var(--permukaan);
+  background: var(--hijau-kop);
   color: #fff;
-  box-shadow: 0 8px 18px rgba(21, 101, 192, 0.35);
+  box-shadow: var(--bayang-apung);
 }
 
 .nav-slot--tengah-aktif {
@@ -303,9 +305,7 @@ a {
 }
 
 .nav-slot--tengah-aktif .nav-tengah-lingkaran {
-  box-shadow:
-    0 0 0 3px var(--emas),
-    0 8px 18px rgba(21, 101, 192, 0.35);
+  box-shadow: var(--bayang-apung);
 }
 
 .nav-tautan {
@@ -331,6 +331,8 @@ a {
     display: flex;
   }
 
+  /* Sidebar TERANG gaya Lovable (port 4 Nov 2026): permukaan putih
+     + garis kanan, menggantikan gradien biru gelap sebelumnya. */
   .sidebar {
     position: sticky;
     top: 0;
@@ -340,8 +342,9 @@ a {
     width: var(--lebar-sidebar);
     height: 100dvh;
     padding: 22px 14px;
-    background: linear-gradient(180deg, var(--hijau-gelap), #082a5e);
-    color: #fff;
+    background: var(--permukaan);
+    border-right: 1px solid var(--garis);
+    color: var(--teks);
   }
 
   /* Blok paling atas sidebar kini IDENTITAS pengguna (avatar +
@@ -368,21 +371,22 @@ a {
   .sidebar .nav-tautan {
     justify-content: flex-start;
     padding: 10px 12px;
-    border-radius: 12px;
-    color: rgba(255, 255, 255, 0.88);
+    border-radius: var(--jari-tombol);
+    color: var(--teks-redup);
     font-size: 14px;
-    font-weight: 500;
+    font-weight: 600;
   }
 
   .sidebar .nav-tautan:hover {
-    background: rgba(255, 255, 255, 0.1);
+    background: var(--redup);
   }
 
+  /* Item aktif gaya Lovable: bidang tint primer + teks biru gelap. */
   .sidebar .nav-tautan--aktif {
-    background: rgba(255, 255, 255, 0.15);
-    color: #fff;
+    background: var(--hijau-muda);
+    color: var(--hijau-gelap);
     font-weight: 700;
-    box-shadow: inset 3px 0 0 var(--emas);
+    box-shadow: none;
   }
 
   .kolom-utama {
@@ -409,9 +413,9 @@ a {
   display: inline-block;
   margin: 0 0 12px;
   padding: 4px 12px;
-  background: #fcf0d3;
-  color: #7a5b00;
-  border: 1px solid #f0d48a;
+  background: var(--emas-muda);
+  color: var(--emas-gelap);
+  border: 1px solid rgba(215, 160, 61, 0.45);
   font-size: 12px;
   font-weight: 700;
   letter-spacing: 0.04em;
@@ -421,8 +425,8 @@ a {
 .pesan-galat {
   margin: 0;
   padding: 10px 14px;
-  background: #fbe3e1;
-  color: #8c2b25;
+  background: #ffe7e4;
+  color: #c22826;
   border: 1px solid #f2b8b2;
   border-radius: var(--jari-masukan);
   font-size: 14px;
@@ -431,8 +435,8 @@ a {
 .pesan-sukses {
   margin: 0;
   padding: 10px 14px;
-  background: #e2f4ea;
-  color: #0e6b3c;
+  background: #daf7e3;
+  color: #007840;
   border: 1px solid #a9ddbe;
   border-radius: var(--jari-masukan);
   font-size: 14px;
@@ -493,14 +497,14 @@ a.info-pengguna-kepala:hover {
 
 /* Di sidebar, ringkasan profil adalah tautan ke halaman Akun. */
 a.info-pengguna-samping {
-  color: #fff;
+  color: var(--teks);
   text-decoration: none;
   border-radius: 12px;
   padding: 6px;
 }
 
 a.info-pengguna-samping:hover {
-  background: rgba(255, 255, 255, 0.1);
+  background: var(--redup);
 }
 
 .info-pengguna-samping .info-pengguna-baris {
@@ -559,9 +563,9 @@ a.info-pengguna-samping .info-pengguna-baris {
 }
 
 .sidebar .tombol-ikon {
-  border-color: rgba(255, 255, 255, 0.25);
-  background: rgba(255, 255, 255, 0.08);
-  color: #fff;
+  border-color: var(--garis);
+  background: var(--permukaan);
+  color: var(--teks-redup);
 }
 
 .nav-tombol {
@@ -580,14 +584,16 @@ a.info-pengguna-samping .info-pengguna-baris {
 
 /* ---------- Avatar inisial ---------- */
 
+/* Avatar gaya Lovable: lingkaran tint primer lembut + inisial biru
+   gelap (bukan lagi gradien biru penuh). */
 .avatar-inisial {
   display: inline-flex;
   align-items: center;
   justify-content: center;
   border-radius: 50%;
-  background: linear-gradient(135deg, var(--hijau-kop), var(--hijau-gelap));
-  color: #fff;
-  font-weight: 800;
+  background: var(--hijau-muda);
+  color: var(--hijau-gelap);
+  font-weight: 700;
   flex-shrink: 0;
   letter-spacing: 0.02em;
 }
@@ -613,17 +619,20 @@ a.info-pengguna-samping .info-pengguna-baris {
 .avatar-inisial--di-banner {
   background: rgba(255, 255, 255, 0.18);
   border: 1.5px solid rgba(255, 255, 255, 0.55);
+  color: #fff;
 }
 
 /* ---------- Ikon dalam lingkaran tint ---------- */
 
+/* Ubin ikon gaya Lovable: kotak bersudut membulat (bukan lingkaran)
+   berisi ikon garis di atas tint lembut. */
 .ikon-lingkaran {
   display: inline-flex;
   align-items: center;
   justify-content: center;
   width: 40px;
   height: 40px;
-  border-radius: 50%;
+  border-radius: var(--jari-tombol);
   flex-shrink: 0;
 }
 
@@ -631,6 +640,7 @@ a.info-pengguna-samping .info-pengguna-baris {
 .ikon-lingkaran--besar {
   width: 56px;
   height: 56px;
+  border-radius: var(--jari);
 }
 
 /* Ikon gambar 3D di kisi Fast Menu (pengganti lingkaran tint). */
@@ -642,30 +652,30 @@ a.info-pengguna-samping .info-pengguna-baris {
   flex-shrink: 0;
 }
 
-/* Tint "hijau" kini biru muda (nama kelas dipertahankan). */
+/* Tint "hijau" kini tint primer Lovable (nama kelas dipertahankan). */
 .ikon-lingkaran--hijau {
-  background: #e3f0fa;
-  color: #1565c0;
+  background: var(--hijau-muda);
+  color: var(--hijau-kop);
 }
 
 .ikon-lingkaran--emas {
-  background: #fcf0d3;
-  color: #9a7200;
+  background: var(--emas-muda);
+  color: var(--emas-gelap);
 }
 
 .ikon-lingkaran--kuning {
-  background: #fdf3d7;
-  color: #8a6100;
+  background: var(--emas-muda);
+  color: var(--emas-gelap);
 }
 
 .ikon-lingkaran--biru {
-  background: #e1eefa;
-  color: #14507f;
+  background: var(--hijau-muda);
+  color: var(--biru-buku);
 }
 
 .ikon-lingkaran--merah {
-  background: #fbe3e1;
-  color: #b03a32;
+  background: #ffe7e4;
+  color: var(--status-alpa);
 }
 
 /* ---------- Kartu & banner ---------- */
@@ -699,23 +709,17 @@ a.info-pengguna-samping .info-pengguna-baris {
   border-top: 4px solid var(--emas);
 }
 
-/* Banner gradien biru BERSIH tanpa ornamen (revisi biru: ornamen
-   geometris bintang segi delapan dihapus atas arahan user —
-   bagian atas halaman dibuat kosong seperti referensi UNPIX). */
+/* Banner biru SOLID gaya Lovable (port 4 Nov 2026): kartu hero
+   statistik memakai bidang primer datar, bukan gradien. */
 .banner {
   position: relative;
   overflow: hidden;
   margin-bottom: 16px;
   padding: 20px;
   border-radius: var(--jari-besar);
-  background: linear-gradient(
-    135deg,
-    var(--hijau-gelap) 0%,
-    var(--hijau-kop) 58%,
-    var(--biru-terang) 100%
-  );
+  background: var(--hijau-kop);
   color: #fff;
-  box-shadow: 0 10px 24px rgba(13, 71, 161, 0.22);
+  box-shadow: var(--bayang-apung);
 }
 
 .banner--kecil {
@@ -856,7 +860,7 @@ h1.judul-halaman {
   margin: 0 0 4px;
   font-size: 20px;
   font-weight: 700;
-  letter-spacing: -0.01em;
+  letter-spacing: -0.015em;
   line-height: 1.3;
 }
 
@@ -875,10 +879,14 @@ h1.judul-halaman {
   margin: 20px 0 10px;
 }
 
+/* Judul seksi gaya Lovable: kapital kecil berlabel, redup. */
 .kepala-seksi .judul-seksi {
   margin: 0;
-  font-size: 15px;
-  font-weight: 600;
+  font-size: 13px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--teks-redup);
 }
 
 .kepala-seksi .aksi-seksi {
@@ -977,7 +985,7 @@ h1.judul-halaman {
   min-height: var(--tinggi-sentuh);
   padding: 8px 16px;
   border-radius: 999px;
-  border: 1.5px solid var(--garis);
+  border: 1.5px solid var(--masukan);
   background: var(--permukaan);
   color: var(--teks);
   font: inherit;
@@ -986,26 +994,30 @@ h1.judul-halaman {
   cursor: pointer;
 }
 
+/* Pilihan aktif gaya Lovable: tint primer + tepi primer + teks
+   biru gelap (bukan lagi bidang biru penuh berteks putih). */
 .chip[aria-pressed="true"],
 .chip--aktif {
-  background: var(--hijau-kop);
+  background: var(--hijau-muda);
   border-color: var(--hijau-kop);
-  color: #fff;
+  color: var(--hijau-gelap);
 }
 
+/* Segmen gaya Lovable: rel redup bersudut 14px, pilihan aktif =
+   kartu permukaan putih berbayangan tipis (bukan lagi pil biru). */
 .segmen {
   display: inline-flex;
   gap: 4px;
   padding: 4px;
-  border-radius: 999px;
-  background: #e3f0fa;
+  border-radius: var(--jari-tombol);
+  background: var(--redup);
 }
 
 .segmen button {
   min-height: var(--tinggi-sentuh);
   padding: 8px 18px;
   border: none;
-  border-radius: 999px;
+  border-radius: 10px;
   background: transparent;
   color: var(--teks-redup);
   font: inherit;
@@ -1016,23 +1028,25 @@ h1.judul-halaman {
 
 .segmen button[aria-pressed="true"],
 .segmen button[data-aktif="true"] {
-  background: var(--hijau-kop);
-  color: #fff;
+  background: var(--permukaan);
+  color: var(--teks);
+  box-shadow: var(--bayang-halus);
 }
 
-/* Tab sederhana (audit visual user 4 Nov 2026): bilah bidang
-   warna ringan, tab aktif = bidang putih + penanda garis bawah
-   biru tipis. TIDAK membungkus: semua tab selalu SATU baris
-   dengan lebar sama (memperbaiki susunan 3+1 di detail santri);
-   label boleh menyusut di layar sempit, bukan pindah baris. */
+/* Tab GARIS BAWAH gaya Lovable (port 4 Nov 2026, menggantikan
+   bilah bidang terang audit 4 Nov): wadah transparan bergaris
+   bawah penuh; tab aktif = teks primer + garis bawah primer 2px.
+   Sifat audit Fase 3 DIPERTAHANKAN: TIDAK membungkus — semua tab
+   selalu SATU baris dengan lebar sama (memperbaiki susunan 3+1
+   di detail santri); label boleh menyusut di layar sempit, bukan
+   pindah baris. */
 .tab-pil {
   display: flex;
   flex-wrap: nowrap;
-  gap: 4px;
-  padding: 4px;
+  gap: 0;
+  padding: 0;
   margin-bottom: 16px;
-  border-radius: var(--jari);
-  background: #e7edf3;
+  border-bottom: 1px solid var(--garis);
 }
 
 .tab-pil button,
@@ -1042,7 +1056,8 @@ h1.judul-halaman {
   min-height: var(--tinggi-sentuh);
   padding: 9px 10px;
   border: none;
-  border-radius: 10px;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -1px;
   background: transparent;
   color: var(--teks-redup);
   font: inherit;
@@ -1063,7 +1078,7 @@ h1.judul-halaman {
 }
 
 /* Tab berupa tautan (halaman Laporan): samakan tampilannya dengan
-   tombol tab — tanpa garis bawah, teks di tengah vertikal. */
+   tombol tab — tanpa garis bawah teks, teks di tengah vertikal. */
 .tab-pil a {
   display: inline-flex;
   align-items: center;
@@ -1073,22 +1088,24 @@ h1.judul-halaman {
 
 .tab-pil button[aria-selected="true"],
 .tab-pil a[aria-selected="true"] {
-  background: var(--permukaan);
-  color: var(--hijau-gelap);
+  background: transparent;
+  color: var(--hijau-kop);
   font-weight: 700;
-  box-shadow: inset 0 -3px 0 var(--hijau-kop);
+  box-shadow: inset 0 -2px 0 var(--hijau-kop);
 }
 
 /* ---------- Lencana status & hasil ---------- */
 
+/* Lencana gaya Lovable: tanpa garis tepi, sudut 10px, tint lembut
+   + teks nada penuh. */
 .lencana {
   display: inline-flex;
   align-items: center;
   justify-content: center;
   gap: 4px;
   padding: 3px 11px;
-  border: 1px solid transparent;
-  border-radius: 999px;
+  border: none;
+  border-radius: 10px;
   font-size: 12px;
   font-weight: 700;
   white-space: nowrap;
@@ -1101,81 +1118,68 @@ h1.judul-halaman {
 }
 
 .lencana--hadir {
-  background: #e2f4ea;
-  color: #0e6b3c;
-  border-color: #9fd8b4;
+  background: #daf7e3;
+  color: var(--status-hadir);
 }
 
 .lencana--sakit {
-  background: #fcf0d3;
-  color: #8a6100;
-  border-color: #f0d48a;
+  background: #ffecc9;
+  color: var(--status-sakit);
 }
 
 .lencana--izin {
-  background: #e1eefa;
-  color: #14507f;
-  border-color: #a9cdef;
+  background: var(--hijau-muda);
+  color: var(--status-izin);
 }
 
 .lencana--alpa {
-  background: #fbe3e1;
-  color: #9c2b25;
-  border-color: #f2b8b2;
+  background: #ffe7e4;
+  color: var(--status-alpa);
 }
 
 .lencana--l {
-  background: #e2f4ea;
-  color: #0e6b3c;
-  border-color: var(--status-hadir);
+  background: #daf7e3;
+  color: var(--status-hadir);
 }
 
 .lencana--u {
-  background: #fbe3e1;
-  color: #9c2b25;
-  border-color: #e5a09a;
+  background: #ffe7e4;
+  color: var(--status-alpa);
 }
 
 .lencana--hasil-m {
-  background: linear-gradient(135deg, #f5c33b, var(--emas));
-  color: #2a1e00;
-  border-color: #d99a00;
+  background: var(--emas-muda);
+  color: var(--emas-gelap);
 }
 
 .lencana--hasil-bs {
-  background: #dff2e4;
-  color: #0e6b3c;
-  border-color: var(--status-hadir);
+  background: #daf7e3;
+  color: var(--status-hadir);
 }
 
 .lencana--hasil-b {
   background: #edf5df;
   color: #4a6b12;
-  border-color: var(--hasil-b);
 }
 
 .lencana--hasil-c {
-  background: #fcf0d3;
-  color: #8a6100;
-  border-color: var(--hasil-c);
+  background: #ffecc9;
+  color: var(--status-sakit);
 }
 
 .lencana--hasil-k {
   background: #fdebd8;
   color: #8a4a0b;
-  border-color: var(--hasil-k);
 }
 
 .lencana--hasil-g {
-  background: #fbe3e1;
-  color: #9c2b25;
-  border-color: var(--hasil-g);
+  background: #ffe7e4;
+  color: var(--status-alpa);
 }
 
 .lencana--netral {
   background: var(--hijau-muda);
   color: var(--hijau-gelap);
-  border-color: #bcd6ee;
 }
 
 /* ---------- Tombol pilihan status kehadiran ---------- */
@@ -1207,45 +1211,38 @@ h1.judul-halaman {
 
 .pil-status--hadir {
   --st: var(--status-hadir);
-  --st-teks: #0e6b3c;
+  --st-teks: #007840;
 }
 
 .pil-status--sakit {
   --st: var(--status-sakit);
-  --st-teks: #8a6100;
+  --st-teks: #975800;
 }
 
 .pil-status--izin {
   --st: var(--status-izin);
-  --st-teks: #14507f;
+  --st-teks: #2460b7;
 }
 
 .pil-status--alpa {
   --st: var(--status-alpa);
-  --st-teks: #9c2b25;
+  --st-teks: #c22826;
 }
 
 .pil-status[aria-pressed="true"] {
   background: var(--st);
   border-color: var(--st);
   color: #fff;
-  box-shadow: 0 4px 10px rgba(13, 71, 161, 0.18);
 }
 
 .pil-status[aria-pressed="true"] .pil-status-label {
   opacity: 0.88;
 }
 
-/* Sakit terpilih: latar kuning tidak pernah cukup kontras dengan teks
-   putih (2,20:1), jadi teksnya gelap — #4a3500 di atas #e8a100 =
-   5,29:1 (audit Fase 1). */
-.pil-status--sakit[aria-pressed="true"] {
-  color: #4a3500;
-}
-
-.pil-status--sakit[aria-pressed="true"] .pil-status-label {
-  opacity: 1;
-}
+/* Sakit terpilih kini memakai cokelat keemasan Lovable #975800
+   (bukan lagi kuning terang #e8a100), sehingga teks putih lulus
+   kontras ±5,6:1 seperti status lain — pengecualian teks gelap
+   audit Fase 1 gugur. */
 
 /* ---------- Tombol aksi ---------- */
 
@@ -1367,7 +1364,7 @@ h1.judul-halaman {
   font-size: 15px;
   color: var(--teks);
   background: var(--permukaan);
-  border: 1.5px solid var(--garis);
+  border: 1.5px solid var(--masukan);
   border-radius: var(--jari-masukan);
 }
 
@@ -1382,7 +1379,7 @@ textarea.masukan {
 .formulir textarea:focus,
 .masukan:focus {
   border-color: var(--hijau-kop);
-  box-shadow: 0 0 0 3px rgba(21, 101, 192, 0.16);
+  box-shadow: 0 0 0 2px rgba(20, 94, 193, 0.2);
   outline: none;
 }
 
@@ -1392,7 +1389,7 @@ textarea.masukan {
   align-items: center;
   min-height: 48px;
   padding: 11px 14px;
-  border: 1.5px dashed #b8d2ec;
+  border: 1.5px dashed var(--masukan);
   border-radius: var(--jari-masukan);
   background: var(--hijau-muda);
   color: var(--hijau-gelap);
@@ -1423,13 +1420,13 @@ textarea.masukan {
   font-size: 15px;
   color: var(--teks);
   background: var(--permukaan);
-  border: 1.5px solid var(--garis);
+  border: 1.5px solid var(--masukan);
   border-radius: 999px;
 }
 
 .pencarian input:focus {
   border-color: var(--hijau-kop);
-  box-shadow: 0 0 0 3px rgba(21, 101, 192, 0.16);
+  box-shadow: 0 0 0 2px rgba(20, 94, 193, 0.2);
   outline: none;
 }
 
@@ -1497,21 +1494,22 @@ textarea.masukan {
 
 /* ---------- Bilah kemajuan ---------- */
 
+/* Bilah kemajuan gaya Lovable: rel redup, isian warna datar. */
 .bilah {
   height: 8px;
   border-radius: 999px;
-  background: #e3f0fa;
+  background: var(--redup);
   overflow: hidden;
 }
 
 .bilah-isi {
   height: 100%;
   border-radius: 999px;
-  background: linear-gradient(90deg, var(--hijau-kop), var(--hijau-logo));
+  background: var(--hijau-kop);
 }
 
 .bilah--emas .bilah-isi {
-  background: linear-gradient(90deg, #f5c33b, var(--emas));
+  background: var(--emas);
 }
 
 /* ---------- Pratinjau nilai (hifzh) ---------- */
@@ -1591,15 +1589,10 @@ textarea.masukan {
   overflow: hidden;
   padding: 18px 18px 18px;
   border-radius: var(--jari-besar);
-  background: linear-gradient(
-    150deg,
-    var(--hijau-gelap) 0%,
-    var(--hijau-kop) 58%,
-    var(--biru-terang) 100%
-  );
+  background: var(--hijau-kop);
   color: #fff;
   text-align: center;
-  box-shadow: 0 10px 24px rgba(13, 71, 161, 0.22);
+  box-shadow: var(--bayang-apung);
 }
 
 /* Logo hero mengikuti maket user (4 Nov 2026): kotak bersudut
@@ -1764,7 +1757,7 @@ textarea.masukan {
 
 .tombol-keluar {
   background: var(--permukaan);
-  color: #9c2b25;
+  color: var(--status-alpa);
   border: 1.5px solid #e5a09a;
   box-shadow: none;
 }
@@ -1897,13 +1890,8 @@ textarea.masukan {
   min-height: 210px;
   padding: 22px 18px;
   border-radius: var(--jari-besar);
-  background: linear-gradient(
-    150deg,
-    var(--hijau-gelap) 0%,
-    var(--hijau-kop) 58%,
-    var(--biru-terang) 100%
-  );
-  box-shadow: 0 10px 24px rgba(13, 71, 161, 0.22);
+  background: var(--hijau-kop);
+  box-shadow: var(--bayang-apung);
 }
 
 .sambutan-visual .ikon-gambar {
@@ -1967,7 +1955,7 @@ textarea.masukan {
   width: 10px;
   height: 10px;
   border-radius: 50%;
-  background: #c3d7ea;
+  background: var(--masukan);
 }
 
 .sambutan-titik-tombol[aria-current="true"]::after {
@@ -2100,8 +2088,9 @@ textarea.masukan {
     padding: 28px 20px;
   }
 
-  /* Panel gradien besar membulat (image 4): ilustrasi di atas,
-     judul ajakan, lalu tiga kartu langkah di bawah. */
+  /* Panel besar membulat (image 4): ilustrasi di atas, judul
+     ajakan, lalu tiga kartu langkah di bawah. Bidang kini primer
+     SOLID gaya Lovable (port 4 Nov 2026), bukan gradien. */
   .login-panel {
     display: flex;
     flex-direction: column;
@@ -2109,14 +2098,9 @@ textarea.masukan {
     gap: 18px;
     padding: 30px;
     border-radius: 28px;
-    background: linear-gradient(
-      155deg,
-      var(--hijau-gelap) 0%,
-      var(--hijau-kop) 55%,
-      var(--biru-terang) 100%
-    );
+    background: var(--hijau-kop);
     color: #fff;
-    box-shadow: 0 16px 36px rgba(13, 71, 161, 0.28);
+    box-shadow: var(--bayang-apung);
     overflow: hidden;
   }
 
@@ -2188,13 +2172,17 @@ textarea.masukan {
 
 /* Strip semester berjalan di bawah kisi modul: satu baris ringkas
    berisi ikon kalender, nama semester, dan rentang tanggalnya. */
+/* Strip semester gaya Lovable: kartu permukaan bergaris tipis
+   (sebelumnya bidang tint primer penuh). */
 .kartu-semester {
   display: flex;
   align-items: center;
   gap: 12px;
   margin-top: 16px;
   padding: 14px 16px;
-  background: var(--hijau-muda);
+  background: var(--permukaan);
+  border: 1px solid var(--garis);
+  box-shadow: var(--bayang-halus);
   border-radius: var(--jari);
   color: var(--teks);
   text-decoration: none;
@@ -2204,15 +2192,17 @@ textarea.masukan {
   font-size: 14px;
 }
 
-/* Banner motivasi di beranda DIKECILKAN menjadi bagian
-   pendamping (audit visual user 4 Nov 2026): biru solid, bantalan
-   lebih ramping, agar pekerjaan utama lebih menonjol. */
+/* Kartu motivasi gaya Lovable (kartu hadis prototipe): bidang
+   tint emas lembut bergaris emas, teks utama gelap, sumber dalam
+   nada emas gelap. Ukuran tetap ramping sebagai pendamping
+   (audit visual user 4 Nov 2026). */
 .banner-motivasi {
   margin-top: 14px;
   padding: 12px 14px;
   border-radius: var(--jari);
-  background: var(--hijau-kop);
-  color: #fff;
+  background: var(--emas-muda);
+  border: 1px solid rgba(215, 160, 61, 0.4);
+  color: var(--teks);
 }
 
 .banner-motivasi .motivasi-teks {
@@ -2225,7 +2215,7 @@ textarea.masukan {
 .banner-motivasi .motivasi-sumber {
   margin: 6px 0 0;
   font-size: 12px;
-  opacity: 0.88;
+  color: var(--emas-gelap);
 }
 
 /* ---------- Halaman Akun: baris pengaturan ---------- */
@@ -2279,15 +2269,22 @@ textarea.masukan {
 
 /* ---------- Mode gelap (data-tema="gelap") ---------- */
 
+/* Token gelap mengikuti palet gelap Lovable (port 4 Nov 2026).
+   --hijau-kop SENGAJA tidak diganti di mode gelap: tombol aplikasi
+   selalu berteks putih, dan primer terang Lovable (#5599f3) tidak
+   lulus kontras dengan teks putih; primer tetap #145ec1. */
 html[data-tema="gelap"] {
-  --latar: #0a1727;
-  --permukaan: #152a42;
-  --teks: #e9f2fb;
-  --teks-redup: #a9c0d8;
-  --garis: #2a4763;
-  --hijau-muda: #1d3d5f;
-  --bayang: 0 1px 3px rgba(0, 0, 0, 0.4);
-  --bayang-halus: 0 1px 2px rgba(0, 0, 0, 0.3);
+  --latar: #0c1016;
+  --permukaan: #151a22;
+  --teks: #eceff2;
+  --teks-redup: #9ca5b1;
+  --garis: #292e37;
+  --hijau-muda: #1a2e4c;
+  --masukan: #373d48;
+  --redup: #1d2229;
+  --bayang: 0 1px 2px rgba(0, 0, 0, 0.3);
+  --bayang-halus: 0 1px 2px rgba(0, 0, 0, 0.25);
+  --bayang-apung: 0 8px 24px -8px rgba(0, 0, 0, 0.6);
 }
 
 html[data-tema="gelap"] body {
@@ -2295,32 +2292,41 @@ html[data-tema="gelap"] body {
 }
 
 html[data-tema="gelap"] .segmen {
-  background: #1d3d5f;
+  background: var(--redup);
 }
 
 html[data-tema="gelap"] .tab-pil {
-  background: #10233a;
+  background: transparent;
+  border-bottom-color: var(--garis);
 }
 
 html[data-tema="gelap"] .catatan-pantauan {
-  background: #12283f;
-  border-color: #2a4763;
+  background: #1a2029;
+  border-color: var(--garis);
 }
 
 html[data-tema="gelap"] .kolom-terkunci {
-  background: #1d3d5f;
-  border-color: #2a4763;
+  background: #1a2e4c;
+  border-color: var(--masukan);
   color: var(--teks);
 }
 
 html[data-tema="gelap"] .bilah {
-  background: #1d3d5f;
+  background: var(--redup);
 }
 
 html[data-tema="gelap"] .penanda-tahap {
-  background: #3a2f10;
-  color: #f5cf6b;
+  background: #3b2b0d;
+  color: #e6b55d;
   border-color: #6b5518;
+}
+
+/* Teks biru gelap di atas tint primer gelap tidak terbaca; elemen
+   bertint lembut ini memakai biru terang Lovable di mode gelap. */
+html[data-tema="gelap"] .avatar-inisial,
+html[data-tema="gelap"] .lencana--netral,
+html[data-tema="gelap"] .tombol-kecil {
+  color: #acd1ff;
 }
 
 html[data-tema="gelap"] .pesan-galat {
@@ -2336,24 +2342,24 @@ html[data-tema="gelap"] .pesan-sukses {
 }
 
 html[data-tema="gelap"] .ikon-lingkaran--hijau {
-  background: #1d3d5f;
-  color: #8fc3f2;
+  background: #1a2e4c;
+  color: #acd1ff;
 }
 
 html[data-tema="gelap"] .ikon-lingkaran--biru {
-  background: #1d3d5f;
-  color: #9ecdf5;
+  background: #1a2e4c;
+  color: #acd1ff;
 }
 
 html[data-tema="gelap"] .ikon-lingkaran--emas,
 html[data-tema="gelap"] .ikon-lingkaran--kuning {
-  background: #3a2f10;
-  color: #f5cf6b;
+  background: #3b2b0d;
+  color: #e6b55d;
 }
 
 html[data-tema="gelap"] .ikon-lingkaran--merah {
   background: #3d1d1a;
-  color: #f3a49d;
+  color: #fb817a;
 }
 
 html[data-tema="gelap"] .tombol-keluar {
@@ -2533,7 +2539,7 @@ body {
 }
 
 html[data-tema="gelap"] .bilah-simpan {
-  background: rgba(21, 42, 66, 0.97);
+  background: rgba(21, 26, 34, 0.97);
 }
 
 /* Filter Kehadiran ringkas: di HP tampil satu baris konteks +

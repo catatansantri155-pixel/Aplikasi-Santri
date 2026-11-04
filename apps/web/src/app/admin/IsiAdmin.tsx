@@ -8,9 +8,12 @@
  * halaman Laporan.
  * 1) Santri: daftar semua santri per kelas (termasuk nonaktif),
  *    tambah, ubah nama / nama ayah-wali / kelas, aktif/nonaktifkan.
- * 2) Semester: daftar semester lengkap + buat baru. Skema TIDAK
- *    punya kolom penanda aktif — lencana keadaan semester di sini
- *    diturunkan dari rentang tanggalnya (lihat catatan di halaman).
+ * 2) Semester: daftar semester lengkap + buat baru, ubah nama /
+ *    jenis / tahun ajaran / rentang tanggal, dan hapus (berkonfirmasi;
+ *    semester yang sudah dipakai nilai ujian ditolak database agar
+ *    riwayat nilai tetap utuh). Skema TIDAK punya kolom penanda
+ *    aktif — lencana keadaan semester di sini diturunkan dari
+ *    rentang tanggalnya (lihat catatan di halaman).
  * 3) Tautan Wali: akun berperan wali dari tabel profiles, santri
  *    yang tertaut kepadanya, tambah & lepas tautan. Akun wali kini
  *    dibuat lewat tab Akun di panel ini atau didaftarkan sendiri
@@ -49,12 +52,14 @@ import {
   ambilSemuaSantriAdmin,
   ambilTautanWali,
   aturStatusAktifSantriAdmin,
+  hapusSemesterAdmin,
   hapusTautanWali,
   statusSemester,
   tambahSantriAdmin,
   tambahSemesterAdmin,
   tambahTautanWali,
   ubahSantriAdmin,
+  ubahSemesterAdmin,
   LABEL_SEMESTER,
   LABEL_STATUS_SEMESTER,
   type AkunWali,
@@ -123,6 +128,15 @@ export default function IsiHalamanAdmin({ tab }: { tab: TabAdmin }) {
   const [tanggalSelesai, setTanggalSelesai] = useState("");
   const [pesanSemester, setPesanSemester] = useState<string | null>(null);
   const [sedangSimpanSemester, setSedangSimpanSemester] = useState(false);
+
+  // Formulir ubah semester (satu baris pada satu waktu)
+  const [editSemesterId, setEditSemesterId] = useState<string | null>(null);
+  const [namaSemesterEdit, setNamaSemesterEdit] = useState("");
+  const [jenisSemesterEdit, setJenisSemesterEdit] =
+    useState<JenisSemester>("gasal");
+  const [tahunAjaranEdit, setTahunAjaranEdit] = useState("");
+  const [tanggalMulaiEdit, setTanggalMulaiEdit] = useState("");
+  const [tanggalSelesaiEdit, setTanggalSelesaiEdit] = useState("");
 
   // Formulir tautan wali
   const [waliPilih, setWaliPilih] = useState("");
@@ -339,6 +353,68 @@ export default function IsiHalamanAdmin({ tab }: { tab: TabAdmin }) {
       );
     } finally {
       setSedangSimpanSemester(false);
+    }
+  }
+
+  /* ---------------- Semester: ubah / hapus ---------------- */
+
+  function mulaiUbahSemester(sem: SemesterLengkap) {
+    setEditSemesterId(sem.id);
+    setNamaSemesterEdit(sem.nama);
+    setJenisSemesterEdit(sem.jenis);
+    setTahunAjaranEdit(sem.tahunAjaran);
+    setTanggalMulaiEdit(sem.tanggalMulai);
+    setTanggalSelesaiEdit(sem.tanggalSelesai);
+    setPesanSemester(null);
+  }
+
+  async function tanganiSimpanUbahSemester() {
+    if (!editSemesterId) return;
+    setPesanSemester(null);
+    setSedangSimpanSemester(true);
+    try {
+      const hasil = await ubahSemesterAdmin(editSemesterId, {
+        nama: namaSemesterEdit,
+        jenis: jenisSemesterEdit,
+        tahunAjaran: tahunAjaranEdit,
+        tanggalMulai: tanggalMulaiEdit,
+        tanggalSelesai: tanggalSelesaiEdit,
+      });
+      setPesanSemester(
+        `Perubahan semester tersimpan: ${hasil.data.nama} (${LABEL_SEMESTER[hasil.data.jenis]}, ${hasil.data.tahunAjaran}).`,
+      );
+      setEditSemesterId(null);
+      await muatSemua();
+    } catch (e: unknown) {
+      setPesanSemester(
+        e instanceof Error ? e.message : "Gagal mengubah semester.",
+      );
+    } finally {
+      setSedangSimpanSemester(false);
+    }
+  }
+
+  async function tanganiHapusSemester(sem: SemesterLengkap) {
+    // Konfirmasi menyebut nama semester dan batas amannya: semester
+    // yang sudah dipakai nilai ujian ditolak database (dijelaskan
+    // lapisan data) agar riwayat nilai tidak yatim.
+    if (
+      !window.confirm(
+        `Hapus semester "${sem.nama}" (${LABEL_SEMESTER[sem.jenis]}, ${sem.tahunAjaran})? Semester yang sudah dipakai nilai ujian tidak dapat dihapus dan akan ditolak sistem.`,
+      )
+    ) {
+      return;
+    }
+    setPesanSemester(null);
+    try {
+      await hapusSemesterAdmin(sem.id);
+      setPesanSemester(`Semester dihapus: ${sem.nama}.`);
+      if (editSemesterId === sem.id) setEditSemesterId(null);
+      await muatSemua();
+    } catch (e: unknown) {
+      setPesanSemester(
+        e instanceof Error ? e.message : "Gagal menghapus semester.",
+      );
     }
   }
 
@@ -697,7 +773,8 @@ export default function IsiHalamanAdmin({ tab }: { tab: TabAdmin }) {
         <h2>Kelola semester</h2>
         <p>
           Semester dipakai formulir nilai ujian (hifzh &amp; diniyyah) dan
-          rekap semesteran.
+          rekap semesteran. Semester yang sudah dipakai nilai ujian tidak
+          dapat dihapus, agar riwayat nilai tetap utuh.
         </p>
         <h3 style={{ margin: "14px 0 8px" }}>Buat semester baru</h3>
         <div className="formulir" style={{ maxWidth: "100%" }}>
@@ -779,28 +856,128 @@ export default function IsiHalamanAdmin({ tab }: { tab: TabAdmin }) {
             {daftarSemester.map((sem) => {
               const status = statusSemester(sem);
               return (
-                <div key={sem.id} className="baris-daftar">
-                  <LingkaranIkon nama="kalender" warna="biru" />
-                  <span className="baris-teks">
-                    <span className="baris-judul">{sem.nama}</span>
-                    <span className="baris-ket">
-                      {LABEL_SEMESTER[sem.jenis]} · Tahun ajaran{" "}
-                      {sem.tahunAjaran}
+                <div key={sem.id}>
+                  <div className="baris-daftar">
+                    <LingkaranIkon nama="kalender" warna="biru" />
+                    <span className="baris-teks">
+                      <span className="baris-judul">{sem.nama}</span>
+                      <span className="baris-ket">
+                        {LABEL_SEMESTER[sem.jenis]} · Tahun ajaran{" "}
+                        {sem.tahunAjaran}
+                      </span>
+                      <span className="baris-ket">
+                        {formatTanggalSingkat(sem.tanggalMulai)} –{" "}
+                        {formatTanggalSingkat(sem.tanggalSelesai)}
+                      </span>
                     </span>
-                    <span className="baris-ket">
-                      {formatTanggalSingkat(sem.tanggalMulai)} –{" "}
-                      {formatTanggalSingkat(sem.tanggalSelesai)}
+                    <span
+                      className={`lencana ${
+                        status === "berjalan"
+                          ? "lencana--hadir"
+                          : "lencana--netral"
+                      }`}
+                    >
+                      {LABEL_STATUS_SEMESTER[status]}
                     </span>
-                  </span>
-                  <span
-                    className={`lencana ${
-                      status === "berjalan"
-                        ? "lencana--hadir"
-                        : "lencana--netral"
-                    }`}
-                  >
-                    {LABEL_STATUS_SEMESTER[status]}
-                  </span>
+                    <span style={{ display: "flex", gap: 6 }}>
+                      <button
+                        type="button"
+                        className="tombol tombol-kecil tombol-sekunder"
+                        onClick={() =>
+                          editSemesterId === sem.id
+                            ? setEditSemesterId(null)
+                            : mulaiUbahSemester(sem)
+                        }
+                      >
+                        {editSemesterId === sem.id ? "Tutup" : "Ubah"}
+                      </button>
+                      <button
+                        type="button"
+                        className="tombol tombol-kecil tombol-sekunder"
+                        onClick={() => void tanganiHapusSemester(sem)}
+                      >
+                        Hapus
+                      </button>
+                    </span>
+                  </div>
+
+                  {editSemesterId === sem.id && (
+                    <div
+                      className="formulir"
+                      style={{ maxWidth: "100%", marginTop: 10 }}
+                    >
+                      <label>
+                        Nama semester
+                        <input
+                          type="text"
+                          className="masukan"
+                          value={namaSemesterEdit}
+                          onChange={(e) => setNamaSemesterEdit(e.target.value)}
+                        />
+                      </label>
+                      <label>
+                        Jenis
+                        <select
+                          className="masukan"
+                          value={jenisSemesterEdit}
+                          onChange={(e) =>
+                            setJenisSemesterEdit(
+                              e.target.value as JenisSemester,
+                            )
+                          }
+                        >
+                          <option value="gasal">{LABEL_SEMESTER.gasal}</option>
+                          <option value="genap">{LABEL_SEMESTER.genap}</option>
+                        </select>
+                      </label>
+                      <label>
+                        Tahun ajaran
+                        <input
+                          type="text"
+                          className="masukan"
+                          value={tahunAjaranEdit}
+                          onChange={(e) => setTahunAjaranEdit(e.target.value)}
+                        />
+                      </label>
+                      <label>
+                        Tanggal mulai
+                        <input
+                          type="date"
+                          value={tanggalMulaiEdit}
+                          onChange={(e) => setTanggalMulaiEdit(e.target.value)}
+                        />
+                      </label>
+                      <label>
+                        Tanggal selesai
+                        <input
+                          type="date"
+                          value={tanggalSelesaiEdit}
+                          onChange={(e) =>
+                            setTanggalSelesaiEdit(e.target.value)
+                          }
+                        />
+                      </label>
+                      <div style={{ display: "flex", gap: 6 }}>
+                        <button
+                          type="button"
+                          className="tombol"
+                          onClick={tanganiSimpanUbahSemester}
+                          disabled={sedangSimpanSemester}
+                        >
+                          {sedangSimpanSemester
+                            ? "Menyimpan…"
+                            : "Simpan perubahan"}
+                        </button>
+                        <button
+                          type="button"
+                          className="tombol tombol-sekunder"
+                          onClick={() => setEditSemesterId(null)}
+                        >
+                          Batal
+                        </button>
+                      </div>
+                    </div>
+                  )}
                 </div>
               );
             })}

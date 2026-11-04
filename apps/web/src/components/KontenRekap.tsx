@@ -194,7 +194,7 @@ function GrafikPeriode({
                   height: 8,
                   borderRadius: 999,
                   overflow: "hidden",
-                  background: "#fbe9e7",
+                  background: "#ffe7e4",
                 }}
               >
                 <div

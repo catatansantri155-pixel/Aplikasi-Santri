@@ -19,25 +19,43 @@
  * formulir Setoran dan formulir Ujian (BagianUjian) disembunyikan —
  * yang tampil tab Riwayat dan catatan mode pantauan; input awal
  * adalah tugas pengajar hifzh (bolehInput di src/lib/akses.ts).
+ *
+ * Koreksi entri (perintah user 4 Nov 2026): setiap setoran di tab
+ * Riwayat punya aksi Ubah & Hapus (hapus berkonsfirmasi) untuk
+ * penyimak pemilik entri dan Admin Utama — sesuai policy
+ * setoran_ubah / setoran_hapus di database.
  */
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import PenandaTahap from "@/components/PenandaTahap";
 import { LABEL_PERAN, PERAN, type Peran } from "@/lib/peran";
 import { bolehInput, pesanModePantauan } from "@/lib/akses";
-import { LABEL_NILAI_SETORAN } from "@/lib/hifzh";
+import {
+  LABEL_NILAI_SETORAN,
+  SEMUA_JENIS_SETORAN,
+  nilaiSetoran,
+  type JenisSetoran,
+} from "@/lib/hifzh";
 import {
   NAMA_PENYIMAK_CONTOH,
   ambilDaftarSantri,
   ambilSetoranTerakhir,
+  hapusSetoran,
+  ubahSetoran,
   type SantriRingkas,
   type SetoranHifzh,
   type SumberData,
 } from "@/lib/data/hifzh";
 import { ambilProfilLogin } from "@/lib/sesi";
-import FormSetoran from "./FormSetoran";
+import FormSetoran, { formatHijriah } from "./FormSetoran";
 import BagianUjian from "./BagianUjian";
-import { gayaLencanaNilai, gayaPetunjuk } from "./gaya";
+import {
+  gayaKisiDua,
+  gayaLabel,
+  gayaLencanaNilai,
+  gayaMasukan,
+  gayaPetunjuk,
+} from "./gaya";
 
 /**
  * Akun paraf terkunci pada MODE CONTOH (env Supabase kosong). Pada mode
@@ -91,6 +109,23 @@ export default function IsiHalamanHifzh({ tab }: { tab: TabHifzh }) {
   const [memuat, setMemuat] = useState(true);
   const [penggunaMasuk, setPenggunaMasuk] = useState(PENGGUNA_MASUK_CONTOH);
   const [peranMasuk, setPeranMasuk] = useState<Peran | null>(null);
+  const [idMasuk, setIdMasuk] = useState<string | null>(null);
+
+  // Aksi koreksi setoran tersimpan (ubah & hapus per entri)
+  const [editId, setEditId] = useState<string | null>(null);
+  const [eTanggal, setETanggal] = useState("");
+  const [eJenis, setEJenis] = useState<JenisSetoran>("BR");
+  const [eHalaman, setEHalaman] = useState("");
+  const [eSurat, setESurat] = useState("");
+  const [eAyatDari, setEAyatDari] = useState("");
+  const [eAyatSampai, setEAyatSampai] = useState("");
+  const [eRg, setERg] = useState("0");
+  const [eKk, setEKk] = useState("0");
+  const [eKb, setEKb] = useState("0");
+  const [eCatatan, setECatatan] = useState("");
+  const [eTugas, setETugas] = useState("");
+  const [pesanAksi, setPesanAksi] = useState<string | null>(null);
+  const [sibukAksi, setSibukAksi] = useState(false);
 
   useEffect(() => {
     let batal = false;
@@ -112,6 +147,7 @@ export default function IsiHalamanHifzh({ tab }: { tab: TabHifzh }) {
               labelPeran: LABEL_PERAN[profil.peran],
             });
             setPeranMasuk(profil.peran);
+            setIdMasuk(profil.id);
           }
         }
       })
@@ -137,6 +173,134 @@ export default function IsiHalamanHifzh({ tab }: { tab: TabHifzh }) {
      dialihkan tampil sebagai Riwayat. */
   const tabEfektif: TabHifzh =
     pantauanAdmin && tab === "setoran" ? "riwayat" : tab;
+
+  /* Aksi ubah/hapus setoran tersimpan: tampil untuk Admin Utama dan
+     penyimak pemilik entri (penegakan asli policy setoran_ubah &
+     setoran_hapus di database). Mode contoh: semua entri boleh
+     dikelola (data fiksi, tersimpan lokal). Baris gema lokal mode
+     Supabase (id "lokal-…", belum termuat ulang dari database) tidak
+     diberi aksi sampai halaman dimuat ulang. */
+  function bolehKelolaSetoran(s: SetoranHifzh): boolean {
+    if (sumber === "contoh") return true;
+    if (s.id.startsWith("lokal-")) return false;
+    if (peranMasuk === PERAN.ADMIN) return true;
+    return idMasuk !== null && s.penyimakId === idMasuk;
+  }
+
+  function mulaiUbahSetoran(s: SetoranHifzh) {
+    setEditId(s.id);
+    setETanggal(s.tanggalMasehi);
+    setEJenis(s.jenis);
+    setEHalaman(String(s.halaman));
+    setESurat(s.surat);
+    setEAyatDari(String(s.ayatDari));
+    setEAyatSampai(String(s.ayatSampai));
+    setERg(String(s.rg));
+    setEKk(String(s.kk));
+    setEKb(String(s.kb));
+    setECatatan(s.catatanRincian ?? "");
+    setETugas(s.tugasBerikutnya ?? "");
+    setPesanAksi(null);
+  }
+
+  async function tanganiSimpanUbahSetoran(s: SetoranHifzh) {
+    const keAngka = (teks: string) => {
+      const n = Number.parseInt(teks, 10);
+      return Number.isFinite(n) ? n : 0;
+    };
+    const halamanN = keAngka(eHalaman);
+    const ayatDariN = keAngka(eAyatDari);
+    const ayatSampaiN = keAngka(eAyatSampai);
+    if (!eTanggal) {
+      setPesanAksi("Tanggal setoran wajib diisi.");
+      return;
+    }
+    if (halamanN < 1) {
+      setPesanAksi("Halaman harus diisi (angka mulai dari 1).");
+      return;
+    }
+    if (!eSurat.trim()) {
+      setPesanAksi("Surat harus diisi.");
+      return;
+    }
+    if (ayatDariN < 1 || ayatSampaiN < ayatDariN) {
+      setPesanAksi(
+        "Ayat harus benar: ayat dari mulai 1 dan ayat sampai tidak boleh lebih kecil.",
+      );
+      return;
+    }
+    const masukan = {
+      tanggalMasehi: eTanggal,
+      tanggalHijriah: formatHijriah(eTanggal),
+      jenis: eJenis,
+      halaman: halamanN,
+      surat: eSurat.trim(),
+      ayatDari: ayatDariN,
+      ayatSampai: ayatSampaiN,
+      rg: Math.max(0, keAngka(eRg)),
+      kk: Math.max(0, keAngka(eKk)),
+      kb: Math.max(0, keAngka(eKb)),
+      catatanRincian: eCatatan.trim() || null,
+      tugasBerikutnya: eTugas.trim() || null,
+    };
+    setSibukAksi(true);
+    setPesanAksi(null);
+    try {
+      await ubahSetoran(s.id, masukan);
+      setSetoran((lama) =>
+        lama.map((x) =>
+          x.id === s.id
+            ? {
+                ...x,
+                ...masukan,
+                nilaiHuruf: nilaiSetoran(
+                  masukan.jenis,
+                  masukan.rg,
+                  masukan.kk,
+                  masukan.kb,
+                ),
+              }
+            : x,
+        ),
+      );
+      setEditId(null);
+      setPesanAksi(
+        `Setoran ${s.santriNama} (${masukan.surat} ayat ${masukan.ayatDari}–${masukan.ayatSampai}) diperbarui.`,
+      );
+    } catch (e: unknown) {
+      setPesanAksi(
+        e instanceof Error ? e.message : "Gagal mengubah setoran.",
+      );
+    } finally {
+      setSibukAksi(false);
+    }
+  }
+
+  async function tanganiHapusSetoran(s: SetoranHifzh) {
+    if (
+      !window.confirm(
+        `Hapus setoran ${s.santriNama} — ${s.surat} ayat ${s.ayatDari}–${s.ayatSampai} (${s.tanggalMasehi})? Tindakan ini tidak dapat dibatalkan.`,
+      )
+    ) {
+      return;
+    }
+    setSibukAksi(true);
+    setPesanAksi(null);
+    try {
+      await hapusSetoran(s.id);
+      setSetoran((lama) => lama.filter((x) => x.id !== s.id));
+      if (editId === s.id) setEditId(null);
+      setPesanAksi(
+        `Setoran ${s.santriNama} (${s.surat} ayat ${s.ayatDari}–${s.ayatSampai}) dihapus.`,
+      );
+    } catch (e: unknown) {
+      setPesanAksi(
+        e instanceof Error ? e.message : "Gagal menghapus setoran.",
+      );
+    } finally {
+      setSibukAksi(false);
+    }
+  }
 
   return (
     <>
@@ -206,6 +370,11 @@ export default function IsiHalamanHifzh({ tab }: { tab: TabHifzh }) {
       {tabEfektif === "riwayat" && (
       <section className="kartu">
         <h2>Setoran Terakhir</h2>
+        {pesanAksi && (
+          <p className="catatan-kaki" role="status">
+            {pesanAksi}
+          </p>
+        )}
         {memuat ? (
           <p style={gayaPetunjuk}>Memuat setoran…</p>
         ) : setoran.length === 0 ? (
@@ -255,6 +424,182 @@ export default function IsiHalamanHifzh({ tab }: { tab: TabHifzh }) {
                     ? ` · Tugas berikutnya: ${s.tugasBerikutnya}`
                     : ""}
                 </p>
+                {bolehKelolaSetoran(s) && editId !== s.id && (
+                  <div style={{ display: "flex", gap: 6, marginTop: 8 }}>
+                    <button
+                      type="button"
+                      className="tombol tombol-kecil tombol-sekunder"
+                      onClick={() => mulaiUbahSetoran(s)}
+                    >
+                      Ubah
+                    </button>
+                    <button
+                      type="button"
+                      className="tombol tombol-kecil tombol-sekunder"
+                      onClick={() => void tanganiHapusSetoran(s)}
+                      disabled={sibukAksi}
+                    >
+                      Hapus
+                    </button>
+                  </div>
+                )}
+                {bolehKelolaSetoran(s) && editId === s.id && (
+                  <div style={{ marginTop: 10 }}>
+                    <div style={gayaKisiDua}>
+                      <label style={gayaLabel}>
+                        Tanggal
+                        <input
+                          type="date"
+                          value={eTanggal}
+                          onChange={(e) => setETanggal(e.target.value)}
+                          style={gayaMasukan}
+                        />
+                        <span style={gayaPetunjuk}>
+                          {formatHijriah(eTanggal)} (Hijriah)
+                        </span>
+                      </label>
+                      <label style={gayaLabel}>
+                        Jenis hafalan
+                        <select
+                          value={eJenis}
+                          onChange={(e) =>
+                            setEJenis(e.target.value as JenisSetoran)
+                          }
+                          style={gayaMasukan}
+                        >
+                          {SEMUA_JENIS_SETORAN.map((j) => (
+                            <option key={j} value={j}>
+                              {j}
+                            </option>
+                          ))}
+                        </select>
+                      </label>
+                    </div>
+                    <div style={gayaKisiDua}>
+                      <label style={gayaLabel}>
+                        Halaman
+                        <input
+                          type="number"
+                          min={1}
+                          inputMode="numeric"
+                          value={eHalaman}
+                          onChange={(e) => setEHalaman(e.target.value)}
+                          style={gayaMasukan}
+                        />
+                      </label>
+                      <label style={gayaLabel}>
+                        Surat
+                        <input
+                          type="text"
+                          value={eSurat}
+                          onChange={(e) => setESurat(e.target.value)}
+                          style={gayaMasukan}
+                        />
+                      </label>
+                    </div>
+                    <div style={gayaKisiDua}>
+                      <label style={gayaLabel}>
+                        Ayat dari
+                        <input
+                          type="number"
+                          min={1}
+                          inputMode="numeric"
+                          value={eAyatDari}
+                          onChange={(e) => setEAyatDari(e.target.value)}
+                          style={gayaMasukan}
+                        />
+                      </label>
+                      <label style={gayaLabel}>
+                        Ayat sampai
+                        <input
+                          type="number"
+                          min={1}
+                          inputMode="numeric"
+                          value={eAyatSampai}
+                          onChange={(e) => setEAyatSampai(e.target.value)}
+                          style={gayaMasukan}
+                        />
+                      </label>
+                    </div>
+                    <div style={gayaKisiDua}>
+                      <label style={gayaLabel}>
+                        RG
+                        <input
+                          type="number"
+                          min={0}
+                          inputMode="numeric"
+                          value={eRg}
+                          onChange={(e) => setERg(e.target.value)}
+                          style={gayaMasukan}
+                        />
+                      </label>
+                      <label style={gayaLabel}>
+                        KK
+                        <input
+                          type="number"
+                          min={0}
+                          inputMode="numeric"
+                          value={eKk}
+                          onChange={(e) => setEKk(e.target.value)}
+                          style={gayaMasukan}
+                        />
+                      </label>
+                      <label style={gayaLabel}>
+                        KB
+                        <input
+                          type="number"
+                          min={0}
+                          inputMode="numeric"
+                          value={eKb}
+                          onChange={(e) => setEKb(e.target.value)}
+                          style={gayaMasukan}
+                        />
+                      </label>
+                    </div>
+                    <label style={gayaLabel}>
+                      Catatan hafalan — rincian kesalahan
+                      <textarea
+                        value={eCatatan}
+                        onChange={(e) => setECatatan(e.target.value)}
+                        style={{
+                          ...gayaMasukan,
+                          minHeight: 56,
+                          resize: "vertical",
+                        }}
+                      />
+                    </label>
+                    <label style={gayaLabel}>
+                      Tugas berikutnya
+                      <input
+                        type="text"
+                        value={eTugas}
+                        onChange={(e) => setETugas(e.target.value)}
+                        style={gayaMasukan}
+                      />
+                    </label>
+                    <p style={gayaPetunjuk}>
+                      Nilai dihitung ulang otomatis dari RG/KK/KB baru
+                      saat disimpan.
+                    </p>
+                    <div style={{ display: "flex", gap: 6 }}>
+                      <button
+                        type="button"
+                        className="tombol tombol-kecil"
+                        onClick={() => void tanganiSimpanUbahSetoran(s)}
+                        disabled={sibukAksi}
+                      >
+                        {sibukAksi ? "Menyimpan…" : "Simpan perubahan"}
+                      </button>
+                      <button
+                        type="button"
+                        className="tombol tombol-kecil tombol-sekunder"
+                        onClick={() => setEditId(null)}
+                      >
+                        Batal
+                      </button>
+                    </div>
+                  </div>
+                )}
               </article>
             ))}
           </div>

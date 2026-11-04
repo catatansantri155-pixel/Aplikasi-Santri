@@ -59,6 +59,8 @@ export interface SetoranHifzh {
   kb: number;
   catatanRincian: string | null;
   nilaiHuruf: NilaiSetoran;
+  /** Id akun penyimak (untuk gerbang aksi ubah/hapus: pemilik atau admin). */
+  penyimakId: string | null;
   penyimakNama: string;
   tugasBerikutnya: string | null;
 }
@@ -149,6 +151,7 @@ const SETORAN_CONTOH: SetoranHifzh[] = [
     kb: 0,
     catatanRincian: null,
     nilaiHuruf: "L",
+    penyimakId: null,
     penyimakNama: NAMA_PENYIMAK_CONTOH,
     tugasBerikutnya: "Al-Kahf ayat 9–16",
   },
@@ -168,6 +171,7 @@ const SETORAN_CONTOH: SetoranHifzh[] = [
     kb: 0,
     catatanRincian: "Ayat 47: lafazh terragukan di tengah ayat.",
     nilaiHuruf: "L",
+    penyimakId: null,
     penyimakNama: NAMA_PENYIMAK_CONTOH,
     tugasBerikutnya: "Maryam ayat 56–70",
   },
@@ -187,6 +191,7 @@ const SETORAN_CONTOH: SetoranHifzh[] = [
     kb: 0,
     catatanRincian: "Ayat 6: berhenti tidak pada tempatnya 2x.",
     nilaiHuruf: "U",
+    penyimakId: null,
     penyimakNama: NAMA_PENYIMAK_CONTOH,
     tugasBerikutnya: "Ulangi Al-Ahzab ayat 1–10",
   },
@@ -206,6 +211,7 @@ const SETORAN_CONTOH: SetoranHifzh[] = [
     kb: 0,
     catatanRincian: null,
     nilaiHuruf: "L",
+    penyimakId: null,
     penyimakNama: NAMA_PENYIMAK_CONTOH,
     tugasBerikutnya: "Hafalkan Al-Anfal ayat 20–28",
   },
@@ -225,6 +231,7 @@ const SETORAN_CONTOH: SetoranHifzh[] = [
     kb: 4,
     catatanRincian: "Ayat 7–9: empat lafazh tidak terbaca setelah diingatkan 3x.",
     nilaiHuruf: "U",
+    penyimakId: null,
     penyimakNama: NAMA_PENYIMAK_CONTOH,
     tugasBerikutnya: "Ulangi Al-Jatsiyah ayat 1–13",
   },
@@ -296,7 +303,7 @@ export async function ambilSetoranTerakhir(
     const { data, error } = await supabase
       .from("hifzh_setoran")
       .select(
-        "id, santri_id, tanggal_masehi, tanggal_hijriah, jenis, halaman, surat, ayat_dari, ayat_sampai, rg, kk, kb, catatan_rincian, nilai_huruf, tugas_berikutnya, santri:santri_id ( nama ), penyimak:penyimak_id ( nama )",
+        "id, santri_id, penyimak_id, tanggal_masehi, tanggal_hijriah, jenis, halaman, surat, ayat_dari, ayat_sampai, rg, kk, kb, catatan_rincian, nilai_huruf, tugas_berikutnya, santri:santri_id ( nama ), penyimak:penyimak_id ( nama )",
       )
       .order("tanggal_masehi", { ascending: false })
       .order("created_at", { ascending: false })
@@ -335,7 +342,7 @@ export async function ambilSetoranSantri(
     const { data, error } = await supabase
       .from("hifzh_setoran")
       .select(
-        "id, santri_id, tanggal_masehi, tanggal_hijriah, jenis, halaman, surat, ayat_dari, ayat_sampai, rg, kk, kb, catatan_rincian, nilai_huruf, tugas_berikutnya, santri:santri_id ( nama ), penyimak:penyimak_id ( nama )",
+        "id, santri_id, penyimak_id, tanggal_masehi, tanggal_hijriah, jenis, halaman, surat, ayat_dari, ayat_sampai, rg, kk, kb, catatan_rincian, nilai_huruf, tugas_berikutnya, santri:santri_id ( nama ), penyimak:penyimak_id ( nama )",
       )
       .eq("santri_id", santriId)
       .order("tanggal_masehi", { ascending: false })
@@ -437,6 +444,82 @@ export async function simpanSetoran(
   return { sumber: "supabase", tersimpanKeDatabase: true };
 }
 
+/** Masukan ubah setoran — santri & penyimak TIDAK ikut diubah. */
+export type MasukanUbahSetoran = Omit<SetoranBaru, "santriId">;
+
+/**
+ * Ubah satu setoran tersimpan (koreksi oleh penyimak pemilik entri
+ * atau Admin Utama — ditegakkan policy setoran_ubah di database:
+ * admin ATAU penyimak_id = akun login). nilai_huruf dihitung ulang
+ * pemicu database dari RG/KK/KB baru. Mode contoh mengubah gudang
+ * contoh di memori bila entrinya ada di sana.
+ */
+export async function ubahSetoran(
+  id: string,
+  masukan: MasukanUbahSetoran,
+): Promise<HasilSimpan> {
+  if (!envSupabaseTerisi()) {
+    const lama = SETORAN_CONTOH.find((s) => s.id === id);
+    if (lama) {
+      Object.assign(lama, masukan);
+      lama.nilaiHuruf = nilaiSetoran(lama.jenis, lama.rg, lama.kk, lama.kb);
+    }
+    return { sumber: "contoh", tersimpanKeDatabase: false };
+  }
+  const supabase = buatKlienBrowser();
+  const { data, error } = await supabase
+    .from("hifzh_setoran")
+    .update({
+      tanggal_masehi: masukan.tanggalMasehi,
+      tanggal_hijriah: masukan.tanggalHijriah,
+      jenis: masukan.jenis,
+      halaman: masukan.halaman,
+      surat: masukan.surat,
+      ayat_dari: masukan.ayatDari,
+      ayat_sampai: masukan.ayatSampai,
+      rg: masukan.rg,
+      kk: masukan.kk,
+      kb: masukan.kb,
+      catatan_rincian: masukan.catatanRincian,
+      tugas_berikutnya: masukan.tugasBerikutnya,
+    })
+    .eq("id", id)
+    .select("id");
+  if (error) throw error;
+  if (!data || data.length === 0) {
+    throw new Error(
+      "Setoran tidak ditemukan, atau Anda tidak berhak mengubahnya (hanya penyimak pemilik entri atau Admin Utama).",
+    );
+  }
+  return { sumber: "supabase", tersimpanKeDatabase: true };
+}
+
+/**
+ * Hapus satu setoran tersimpan (policy setoran_hapus: admin ATAU
+ * penyimak pemilik entri). Mode contoh menghapus dari gudang contoh
+ * di memori bila entrinya ada di sana.
+ */
+export async function hapusSetoran(id: string): Promise<HasilSimpan> {
+  if (!envSupabaseTerisi()) {
+    const indeks = SETORAN_CONTOH.findIndex((s) => s.id === id);
+    if (indeks >= 0) SETORAN_CONTOH.splice(indeks, 1);
+    return { sumber: "contoh", tersimpanKeDatabase: false };
+  }
+  const supabase = buatKlienBrowser();
+  const { data, error } = await supabase
+    .from("hifzh_setoran")
+    .delete()
+    .eq("id", id)
+    .select("id");
+  if (error) throw error;
+  if (!data || data.length === 0) {
+    throw new Error(
+      "Setoran tidak ditemukan, atau Anda tidak berhak menghapusnya (hanya penyimak pemilik entri atau Admin Utama).",
+    );
+  }
+  return { sumber: "supabase", tersimpanKeDatabase: true };
+}
+
 /**
  * Simpan baris ujian per juz.
  * Mode Supabase membutuhkan semester_id; penentuan semester aktif belum
@@ -514,6 +597,7 @@ function petakanSetoran(baris: Record<string, unknown>): SetoranHifzh {
     nilaiHuruf:
       (baris.nilai_huruf as NilaiSetoran | null) ??
       nilaiSetoran(jenis, rg, kk, kb),
+    penyimakId: (baris.penyimak_id as string | null) ?? null,
     penyimakNama: ambilNamaTersarang(baris, "penyimak"),
     tugasBerikutnya: (baris.tugas_berikutnya as string | null) ?? null,
   };

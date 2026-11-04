@@ -4,7 +4,7 @@
  * Token warna, lencana bersama, dan kelas komponen kini hidup di
  * globals.css (sistem desain). Berkas ini tinggal menampung gaya
  * tata letak spesifik modul (kisi formulir 8 kolom, tabel ujian)
- * yang merujuk token yang sama — radius masukan 12px, target sentuh
+ * yang merujuk token yang sama — radius masukan 14px, target sentuh
  * 48px, dan palet hasil M (emas) → G (merah) selaras panduan.
  */
 import type { CSSProperties } from "react";
@@ -21,8 +21,8 @@ export const gayaMasukan: CSSProperties = {
   minHeight: 48,
   padding: "11px 14px",
   fontSize: 15,
-  border: "1.5px solid var(--garis)",
-  borderRadius: 12,
+  border: "1.5px solid var(--masukan)",
+  borderRadius: 14,
   background: "var(--permukaan)",
   color: "var(--teks)",
   width: "100%",
@@ -30,7 +30,7 @@ export const gayaMasukan: CSSProperties = {
 
 export const gayaMasukanTerkunci: CSSProperties = {
   ...gayaMasukan,
-  border: "1.5px dashed #bcd3ea",
+  border: "1.5px dashed var(--masukan)",
   background: "var(--hijau-muda)",
   color: "var(--hijau-gelap)",
   fontWeight: 700,
@@ -61,32 +61,34 @@ export const gayaPetunjuk: CSSProperties = {
   fontWeight: 400,
 };
 
-/** Lencana nilai setoran: L hijau (lancar), U merah bata (ulang). */
+/** Lencana nilai setoran: L hijau (lancar), U merah bata (ulang).
+ *  Gaya Lovable (port 4 Nov 2026): tanpa garis tepi, sudut 10px,
+ *  tint lembut + teks nada status. */
 export function gayaLencanaNilai(nilai: NilaiSetoran): CSSProperties {
   return {
     display: "inline-block",
     minWidth: 34,
     textAlign: "center",
     padding: "2px 10px",
-    borderRadius: 999,
+    borderRadius: 10,
     fontWeight: 700,
     fontSize: 13,
-    background: nilai === "L" ? "#e2f4ea" : "#fbe3e1",
-    color: nilai === "L" ? "var(--hijau-gelap)" : "#9c2b25",
-    border: `1px solid ${nilai === "L" ? "var(--status-hadir)" : "#e5a09a"}`,
+    background: nilai === "L" ? "#daf7e3" : "#ffe7e4",
+    color: nilai === "L" ? "var(--status-hadir)" : "var(--status-alpa)",
   };
 }
 
-/** Lencana hasil ujian per juz, bertingkat dari M (terbaik) ke G. */
+/** Lencana hasil ujian per juz, bertingkat dari M (terbaik) ke G.
+ *  Gaya Lovable: M kini tint emas datar (bukan gradien emas penuh);
+ *  tingkat lain memakai tint nada yang sama dengan lencana bersama. */
 export function gayaLencanaHasil(hasil: HasilUjian): CSSProperties {
-  const peta: Record<HasilUjian, { latar: string; teks: string; garis: string }> = {
-    // M = Mutqin: EMAS penuh sesuai panduan (sebelumnya hijau).
-    M: { latar: "linear-gradient(135deg, #f5c33b, var(--emas))", teks: "#2a1e00", garis: "#d99a00" },
-    BS: { latar: "#dff2e4", teks: "#0e6b3c", garis: "var(--status-hadir)" },
-    B: { latar: "#edf5df", teks: "#4a6b12", garis: "var(--hasil-b)" },
-    C: { latar: "#fcf0d3", teks: "#8a6100", garis: "var(--hasil-c)" },
-    K: { latar: "#fdebd8", teks: "#8a4a0b", garis: "var(--hasil-k)" },
-    G: { latar: "#fbe3e1", teks: "#9c2b25", garis: "var(--hasil-g)" },
+  const peta: Record<HasilUjian, { latar: string; teks: string }> = {
+    M: { latar: "var(--emas-muda)", teks: "var(--emas-gelap)" },
+    BS: { latar: "#daf7e3", teks: "var(--status-hadir)" },
+    B: { latar: "#edf5df", teks: "#4a6b12" },
+    C: { latar: "#ffecc9", teks: "var(--status-sakit)" },
+    K: { latar: "#fdebd8", teks: "#8a4a0b" },
+    G: { latar: "#ffe7e4", teks: "var(--status-alpa)" },
   };
   const warna = peta[hasil];
   return {
@@ -94,12 +96,11 @@ export function gayaLencanaHasil(hasil: HasilUjian): CSSProperties {
     minWidth: 40,
     textAlign: "center",
     padding: "2px 10px",
-    borderRadius: 999,
+    borderRadius: 10,
     fontWeight: 700,
     fontSize: 13,
     background: warna.latar,
     color: warna.teks,
-    border: `1px solid ${warna.garis}`,
   };
 }
 

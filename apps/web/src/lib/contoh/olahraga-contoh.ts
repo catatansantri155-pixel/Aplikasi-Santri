@@ -145,6 +145,27 @@ export function idSesiOlahragaContohBaru(): string {
   return `olahraga-contoh-baru-${penomoranSesi}`;
 }
 
+export function ubahSesiOlahragaContoh(
+  id: string,
+  masukan: { tanggal: string; kegiatan: string; catatan: string | null },
+): SesiOlahragaContoh | undefined {
+  const indeks = gudangSesi.findIndex((s) => s.id === id);
+  if (indeks < 0) return undefined;
+  gudangSesi[indeks] = { ...gudangSesi[indeks], ...masukan };
+  return gudangSesi[indeks];
+}
+
+/** Hapus sesi beserta baris kehadirannya (meniru ON DELETE CASCADE). */
+export function hapusSesiOlahragaContoh(id: string): boolean {
+  const indeks = gudangSesi.findIndex((s) => s.id === id);
+  if (indeks < 0) return false;
+  gudangSesi.splice(indeks, 1);
+  for (let i = gudangKehadiran.length - 1; i >= 0; i -= 1) {
+    if (gudangKehadiran[i].sesiId === id) gudangKehadiran.splice(i, 1);
+  }
+  return true;
+}
+
 export function semuaKehadiranOlahragaContoh(): KehadiranOlahragaContoh[] {
   return [...gudangKehadiran];
 }

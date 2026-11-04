@@ -94,6 +94,8 @@ export interface NilaiHarian {
   tanggal: string;
   mapel: string;
   nilai: number;
+  /** Id akun pengisi (gerbang aksi ubah/hapus: pemilik atau admin). */
+  pengisiId: string | null;
   pengisiNama: string | null;
 }
 
@@ -105,6 +107,8 @@ export interface NilaiUjian {
   semesterNama: string;
   mapel: string;
   nilai: number;
+  /** Id akun pengisi (gerbang aksi ubah/hapus: pemilik atau admin). */
+  pengisiId: string | null;
   pengisiNama: string | null;
 }
 
@@ -217,20 +221,20 @@ function idContohBaru(awalan: string): string {
 }
 
 const gudangHarianContoh: NilaiHarian[] = [
-  { id: "contoh-diniyyah-harian-1", santriId: "d0000000-0000-4000-8000-000000000001", tanggal: "2026-10-26", mapel: "Nahwu", nilai: 80, pengisiNama: NAMA_PENGISI_CONTOH },
-  { id: "contoh-diniyyah-harian-2", santriId: "d0000000-0000-4000-8000-000000000001", tanggal: "2026-10-28", mapel: "Nahwu", nilai: 85, pengisiNama: NAMA_PENGISI_CONTOH },
-  { id: "contoh-diniyyah-harian-3", santriId: "d0000000-0000-4000-8000-000000000001", tanggal: "2026-11-01", mapel: "Nahwu", nilai: 90, pengisiNama: NAMA_PENGISI_CONTOH },
-  { id: "contoh-diniyyah-harian-4", santriId: "d0000000-0000-4000-8000-000000000001", tanggal: "2026-10-27", mapel: "Fiqih", nilai: 75, pengisiNama: NAMA_PENGISI_CONTOH },
-  { id: "contoh-diniyyah-harian-5", santriId: "d0000000-0000-4000-8000-000000000001", tanggal: "2026-10-29", mapel: "Fiqih", nilai: 88, pengisiNama: NAMA_PENGISI_CONTOH },
-  { id: "contoh-diniyyah-harian-6", santriId: "d0000000-0000-4000-8000-000000000003", tanggal: "2026-10-30", mapel: "Tauhid", nilai: 92, pengisiNama: NAMA_PENGISI_CONTOH },
-  { id: "contoh-diniyyah-harian-7", santriId: "d0000000-0000-4000-8000-000000000003", tanggal: "2026-10-30", mapel: "Shorof", nilai: 70, pengisiNama: NAMA_PENGISI_CONTOH },
-  { id: "contoh-diniyyah-harian-8", santriId: "d0000000-0000-4000-8000-000000000002", tanggal: "2026-11-01", mapel: "Nahwu", nilai: 65, pengisiNama: NAMA_PENGISI_CONTOH },
+  { id: "contoh-diniyyah-harian-1", santriId: "d0000000-0000-4000-8000-000000000001", tanggal: "2026-10-26", mapel: "Nahwu", nilai: 80, pengisiNama: NAMA_PENGISI_CONTOH, pengisiId: null },
+  { id: "contoh-diniyyah-harian-2", santriId: "d0000000-0000-4000-8000-000000000001", tanggal: "2026-10-28", mapel: "Nahwu", nilai: 85, pengisiNama: NAMA_PENGISI_CONTOH, pengisiId: null },
+  { id: "contoh-diniyyah-harian-3", santriId: "d0000000-0000-4000-8000-000000000001", tanggal: "2026-11-01", mapel: "Nahwu", nilai: 90, pengisiNama: NAMA_PENGISI_CONTOH, pengisiId: null },
+  { id: "contoh-diniyyah-harian-4", santriId: "d0000000-0000-4000-8000-000000000001", tanggal: "2026-10-27", mapel: "Fiqih", nilai: 75, pengisiNama: NAMA_PENGISI_CONTOH, pengisiId: null },
+  { id: "contoh-diniyyah-harian-5", santriId: "d0000000-0000-4000-8000-000000000001", tanggal: "2026-10-29", mapel: "Fiqih", nilai: 88, pengisiNama: NAMA_PENGISI_CONTOH, pengisiId: null },
+  { id: "contoh-diniyyah-harian-6", santriId: "d0000000-0000-4000-8000-000000000003", tanggal: "2026-10-30", mapel: "Tauhid", nilai: 92, pengisiNama: NAMA_PENGISI_CONTOH, pengisiId: null },
+  { id: "contoh-diniyyah-harian-7", santriId: "d0000000-0000-4000-8000-000000000003", tanggal: "2026-10-30", mapel: "Shorof", nilai: 70, pengisiNama: NAMA_PENGISI_CONTOH, pengisiId: null },
+  { id: "contoh-diniyyah-harian-8", santriId: "d0000000-0000-4000-8000-000000000002", tanggal: "2026-11-01", mapel: "Nahwu", nilai: 65, pengisiNama: NAMA_PENGISI_CONTOH, pengisiId: null },
 ];
 
 const gudangUjianContoh: NilaiUjian[] = [
-  { id: "contoh-diniyyah-ujian-1", santriId: "d0000000-0000-4000-8000-000000000001", semesterId: "contoh-semester-gasal", jenisSemester: "gasal", semesterNama: "Semester Gasal (Contoh)", mapel: "Nahwu", nilai: 82, pengisiNama: NAMA_PENGISI_CONTOH },
-  { id: "contoh-diniyyah-ujian-2", santriId: "d0000000-0000-4000-8000-000000000001", semesterId: "contoh-semester-gasal", jenisSemester: "gasal", semesterNama: "Semester Gasal (Contoh)", mapel: "Fiqih", nilai: 78, pengisiNama: NAMA_PENGISI_CONTOH },
-  { id: "contoh-diniyyah-ujian-3", santriId: "d0000000-0000-4000-8000-000000000003", semesterId: "contoh-semester-gasal", jenisSemester: "gasal", semesterNama: "Semester Gasal (Contoh)", mapel: "Tauhid", nilai: 95, pengisiNama: NAMA_PENGISI_CONTOH },
+  { id: "contoh-diniyyah-ujian-1", santriId: "d0000000-0000-4000-8000-000000000001", semesterId: "contoh-semester-gasal", jenisSemester: "gasal", semesterNama: "Semester Gasal (Contoh)", mapel: "Nahwu", nilai: 82, pengisiNama: NAMA_PENGISI_CONTOH, pengisiId: null },
+  { id: "contoh-diniyyah-ujian-2", santriId: "d0000000-0000-4000-8000-000000000001", semesterId: "contoh-semester-gasal", jenisSemester: "gasal", semesterNama: "Semester Gasal (Contoh)", mapel: "Fiqih", nilai: 78, pengisiNama: NAMA_PENGISI_CONTOH, pengisiId: null },
+  { id: "contoh-diniyyah-ujian-3", santriId: "d0000000-0000-4000-8000-000000000003", semesterId: "contoh-semester-gasal", jenisSemester: "gasal", semesterNama: "Semester Gasal (Contoh)", mapel: "Tauhid", nilai: 95, pengisiNama: NAMA_PENGISI_CONTOH, pengisiId: null },
 ];
 
 /** Nama santri contoh dari id-nya (mode contoh saja). */
@@ -287,6 +291,7 @@ interface BarisHarianDb {
   tanggal: string;
   mapel: string;
   nilai: number | string;
+  pengisi_id: string | null;
   pengisi: { nama: string } | null;
 }
 
@@ -297,6 +302,7 @@ function barisDbKeHarian(b: BarisHarianDb): NilaiHarian {
     tanggal: b.tanggal,
     mapel: b.mapel,
     nilai: Number(b.nilai),
+    pengisiId: b.pengisi_id ?? null,
     pengisiNama: b.pengisi?.nama ?? null,
   };
 }
@@ -316,7 +322,7 @@ export async function ambilNilaiHarianSantri(
   const { data, error } = await supabase
     .from("diniyyah_nilai_harian")
     .select(
-      "id, santri_id, tanggal, mapel, nilai, pengisi:pengisi_id ( nama )",
+      "id, santri_id, tanggal, mapel, nilai, pengisi_id, pengisi:pengisi_id ( nama )",
     )
     .eq("santri_id", santriId)
     .order("tanggal", { ascending: false });
@@ -335,6 +341,7 @@ interface BarisUjianDb {
   semester_id: string;
   mapel: string;
   nilai: number | string;
+  pengisi_id: string | null;
   pengisi: { nama: string } | null;
   semester: { jenis: JenisSemester; nama: string } | null;
 }
@@ -348,6 +355,7 @@ function barisDbKeUjian(b: BarisUjianDb): NilaiUjian {
     semesterNama: b.semester?.nama ?? "-",
     mapel: b.mapel,
     nilai: Number(b.nilai),
+    pengisiId: b.pengisi_id ?? null,
     pengisiNama: b.pengisi?.nama ?? null,
   };
 }
@@ -365,7 +373,7 @@ export async function ambilNilaiUjianSantri(
   const { data, error } = await supabase
     .from("diniyyah_ujian")
     .select(
-      "id, santri_id, semester_id, mapel, nilai, pengisi:pengisi_id ( nama ), semester:semester_id ( jenis, nama )",
+      "id, santri_id, semester_id, mapel, nilai, pengisi_id, pengisi:pengisi_id ( nama ), semester:semester_id ( jenis, nama )",
     )
     .eq("santri_id", santriId)
     .order("mapel", { ascending: true });
@@ -434,6 +442,7 @@ export async function simpanNilaiHarian(
       mapel: masukan.mapel,
       nilai: masukan.nilai,
       pengisiNama: NAMA_PENGISI_CONTOH,
+      pengisiId: null,
     };
     if (lama >= 0) gudangHarianContoh[lama] = baris;
     else gudangHarianContoh.unshift(baris);
@@ -455,7 +464,7 @@ export async function simpanNilaiHarian(
       { onConflict: "santri_id,tanggal,mapel" },
     )
     .select(
-      "id, santri_id, tanggal, mapel, nilai, pengisi:pengisi_id ( nama )",
+      "id, santri_id, tanggal, mapel, nilai, pengisi_id, pengisi:pengisi_id ( nama )",
     )
     .single();
   if (error) {
@@ -506,6 +515,7 @@ export async function simpanNilaiUjian(
       mapel: masukan.mapel,
       nilai: masukan.nilai,
       pengisiNama: NAMA_PENGISI_CONTOH,
+      pengisiId: null,
     };
     if (lama >= 0) gudangUjianContoh[lama] = baris;
     else gudangUjianContoh.push(baris);
@@ -544,7 +554,7 @@ export async function simpanNilaiUjian(
       { onConflict: "santri_id,semester_id,mapel" },
     )
     .select(
-      "id, santri_id, semester_id, mapel, nilai, pengisi:pengisi_id ( nama ), semester:semester_id ( jenis, nama )",
+      "id, santri_id, semester_id, mapel, nilai, pengisi_id, pengisi:pengisi_id ( nama ), semester:semester_id ( jenis, nama )",
     )
     .single();
   if (error) {
@@ -554,4 +564,145 @@ export async function simpanNilaiUjian(
     data: barisDbKeUjian(data as unknown as BarisUjianDb),
     sumberContoh: false,
   };
+}
+
+/* ------------------------------------------------------------------ */
+/* Mengubah & menghapus nilai tersimpan                                 */
+/* ------------------------------------------------------------------ */
+
+/**
+ * Ubah nilai satu entri nilai harian tersimpan (koreksi). Hak akses
+ * ditegakkan policy nilai_harian_ubah di database: Admin Utama ATAU
+ * pengisi pemilik entri. Identitas entri (santri, tanggal, mapel)
+ * tidak diubah — yang dikoreksi hanya angkanya.
+ */
+export async function ubahNilaiHarian(
+  id: string,
+  nilai: number,
+): Promise<HasilSantri<NilaiHarian>> {
+  periksaNilai(nilai);
+  if (!supabaseTerhubung()) {
+    // MODE CONTOH: ubah gudang contoh di memori.
+    const lama = gudangHarianContoh.find((n) => n.id === id);
+    if (!lama) throw new Error("Nilai harian contoh tidak ditemukan.");
+    lama.nilai = nilai;
+    return { data: lama, sumberContoh: true };
+  }
+  const supabase = buatKlienBrowser();
+  const { data, error } = await supabase
+    .from("diniyyah_nilai_harian")
+    .update({ nilai })
+    .eq("id", id)
+    .select(
+      "id, santri_id, tanggal, mapel, nilai, pengisi_id, pengisi:pengisi_id ( nama )",
+    )
+    .maybeSingle();
+  if (error) {
+    throw new Error(`Gagal mengubah nilai harian: ${error.message}`);
+  }
+  if (!data) {
+    throw new Error(
+      "Nilai tidak ditemukan, atau Anda tidak berhak mengubahnya (hanya pengisi pemilik entri atau Admin Utama).",
+    );
+  }
+  return {
+    data: barisDbKeHarian(data as unknown as BarisHarianDb),
+    sumberContoh: false,
+  };
+}
+
+/** Hapus satu entri nilai harian (policy nilai_harian_hapus). */
+export async function hapusNilaiHarian(
+  id: string,
+): Promise<HasilSantri<{ terhapus: boolean }>> {
+  if (!supabaseTerhubung()) {
+    // MODE CONTOH: hapus dari gudang contoh di memori.
+    const indeks = gudangHarianContoh.findIndex((n) => n.id === id);
+    if (indeks < 0) throw new Error("Nilai harian contoh tidak ditemukan.");
+    gudangHarianContoh.splice(indeks, 1);
+    return { data: { terhapus: true }, sumberContoh: true };
+  }
+  const supabase = buatKlienBrowser();
+  const { data, error } = await supabase
+    .from("diniyyah_nilai_harian")
+    .delete()
+    .eq("id", id)
+    .select("id");
+  if (error) {
+    throw new Error(`Gagal menghapus nilai harian: ${error.message}`);
+  }
+  if (!data || data.length === 0) {
+    throw new Error(
+      "Nilai tidak ditemukan, atau Anda tidak berhak menghapusnya (hanya pengisi pemilik entri atau Admin Utama).",
+    );
+  }
+  return { data: { terhapus: true }, sumberContoh: false };
+}
+
+/**
+ * Ubah nilai satu entri nilai ujian tersimpan (koreksi). Hak akses
+ * ditegakkan policy ujian_diniyyah_ubah: Admin Utama ATAU pengisi
+ * pemilik entri. Identitas entri (santri, semester, mapel) tetap.
+ */
+export async function ubahNilaiUjian(
+  id: string,
+  nilai: number,
+): Promise<HasilSantri<NilaiUjian>> {
+  periksaNilai(nilai);
+  if (!supabaseTerhubung()) {
+    // MODE CONTOH: ubah gudang contoh di memori.
+    const lama = gudangUjianContoh.find((u) => u.id === id);
+    if (!lama) throw new Error("Nilai ujian contoh tidak ditemukan.");
+    lama.nilai = nilai;
+    return { data: lama, sumberContoh: true };
+  }
+  const supabase = buatKlienBrowser();
+  const { data, error } = await supabase
+    .from("diniyyah_ujian")
+    .update({ nilai })
+    .eq("id", id)
+    .select(
+      "id, santri_id, semester_id, mapel, nilai, pengisi_id, pengisi:pengisi_id ( nama ), semester:semester_id ( jenis, nama )",
+    )
+    .maybeSingle();
+  if (error) {
+    throw new Error(`Gagal mengubah nilai ujian: ${error.message}`);
+  }
+  if (!data) {
+    throw new Error(
+      "Nilai tidak ditemukan, atau Anda tidak berhak mengubahnya (hanya pengisi pemilik entri atau Admin Utama).",
+    );
+  }
+  return {
+    data: barisDbKeUjian(data as unknown as BarisUjianDb),
+    sumberContoh: false,
+  };
+}
+
+/** Hapus satu entri nilai ujian (policy ujian_diniyyah_hapus). */
+export async function hapusNilaiUjian(
+  id: string,
+): Promise<HasilSantri<{ terhapus: boolean }>> {
+  if (!supabaseTerhubung()) {
+    // MODE CONTOH: hapus dari gudang contoh di memori.
+    const indeks = gudangUjianContoh.findIndex((u) => u.id === id);
+    if (indeks < 0) throw new Error("Nilai ujian contoh tidak ditemukan.");
+    gudangUjianContoh.splice(indeks, 1);
+    return { data: { terhapus: true }, sumberContoh: true };
+  }
+  const supabase = buatKlienBrowser();
+  const { data, error } = await supabase
+    .from("diniyyah_ujian")
+    .delete()
+    .eq("id", id)
+    .select("id");
+  if (error) {
+    throw new Error(`Gagal menghapus nilai ujian: ${error.message}`);
+  }
+  if (!data || data.length === 0) {
+    throw new Error(
+      "Nilai tidak ditemukan, atau Anda tidak berhak menghapusnya (hanya pengisi pemilik entri atau Admin Utama).",
+    );
+  }
+  return { data: { terhapus: true }, sumberContoh: false };
 }

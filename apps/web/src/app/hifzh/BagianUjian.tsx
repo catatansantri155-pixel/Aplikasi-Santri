@@ -332,7 +332,7 @@ export default function BagianUjian({
         </div>
 
         {ralat && (
-          <p role="alert" style={{ margin: 0, color: "#8e2f24", fontSize: 14 }}>
+          <p role="alert" style={{ margin: 0, color: "#c22826", fontSize: 14 }}>
             {ralat}
           </p>
         )}

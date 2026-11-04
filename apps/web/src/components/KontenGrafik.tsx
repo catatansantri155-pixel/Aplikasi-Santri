@@ -160,10 +160,7 @@ function GrafikBatangVertikal({
                   maxWidth: 46,
                   height: `${Math.max(0, (d.nilai / maks) * 100)}%`,
                   minHeight: d.nilai > 0 ? 5 : 0,
-                  background:
-                    gaya === "bulat"
-                      ? "linear-gradient(180deg, #42a5f5, #1565c0)"
-                      : "#1565c0",
+                  background: "var(--hijau-kop)",
                   borderRadius:
                     gaya === "bulat" ? "999px 999px 4px 4px" : "4px 4px 0 0",
                 }}
@@ -358,18 +355,18 @@ function GrafikGaris({ data }: { data: TitikBatang[] }) {
           .map((d) => `${d.label}: ${d.nilai} setoran`)
           .join(", ")}
       >
-        {area && <path d={area} fill="rgba(21, 101, 192, 0.14)" />}
+        {area && <path d={area} fill="rgba(20, 94, 193, 0.14)" />}
         <polyline
           points={garis}
           fill="none"
-          stroke="#1565c0"
+          stroke="#145ec1"
           strokeWidth="2.5"
           strokeLinejoin="round"
           strokeLinecap="round"
         />
         {titik.map((t) => (
           <g key={t.label}>
-            <circle cx={t.x} cy={t.y} r="4" fill="#1565c0" stroke="#fff" strokeWidth="1.5" />
+            <circle cx={t.x} cy={t.y} r="4" fill="#145ec1" stroke="#fff" strokeWidth="1.5" />
             <text
               x={t.x}
               y={Math.max(11, t.y - 9)}
@@ -478,7 +475,7 @@ function GrafikProporsiLU({ l, u }: { l: number; u: number }) {
           height: 20,
           borderRadius: 10,
           overflow: "hidden",
-          background: "#fbe9e7",
+          background: "#ffe7e4",
         }}
       >
         <div

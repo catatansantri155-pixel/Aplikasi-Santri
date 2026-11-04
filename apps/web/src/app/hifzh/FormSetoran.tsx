@@ -236,6 +236,7 @@ export default function FormSetoran({
         kb: masukan.kb,
         catatanRincian: masukan.catatanRincian,
         nilaiHuruf: nilaiSetoran(masukan.jenis, masukan.rg, masukan.kk, masukan.kb),
+        penyimakId: null,
         penyimakNama: namaPenyimak,
         tugasBerikutnya: masukan.tugasBerikutnya,
       });
@@ -461,7 +462,7 @@ export default function FormSetoran({
       </div>
 
       {ralat && (
-        <p role="alert" style={{ margin: "12px 0 0", color: "#8e2f24", fontSize: 14 }}>
+        <p role="alert" style={{ margin: "12px 0 0", color: "#c22826", fontSize: 14 }}>
           {ralat}
         </p>
       )}

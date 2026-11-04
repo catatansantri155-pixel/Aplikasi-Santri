@@ -37,6 +37,7 @@ import {
   type StatusKehadiran,
 } from "@/lib/data/kehadiran";
 import {
+  hapusSesiOlahragaContoh,
   idSesiOlahragaContohBaru,
   kehadiranOlahragaContohSesi,
   semuaKehadiranOlahragaContoh,
@@ -44,6 +45,7 @@ import {
   sesiOlahragaContohPadaTanggal,
   simpanKehadiranOlahragaContoh,
   tambahSesiOlahragaContoh,
+  ubahSesiOlahragaContoh,
 } from "@/lib/contoh/olahraga-contoh";
 
 export type { StatusKehadiran };
@@ -122,6 +124,8 @@ export interface SesiOlahraga {
   hariLabel: string;
   kegiatan: string;
   catatan: string | null;
+  /** Id akun pembuat sesi (gerbang aksi ubah/hapus: pemilik atau admin). */
+  pengisiId: string | null;
   pengisiNama: string | null;
   /** Jumlah santri berstatus hadir pada sesi ini. */
   jumlahHadir: number;
@@ -174,6 +178,7 @@ export async function ambilDaftarSesi(): Promise<
           tanggal: s.tanggal,
           kegiatan: s.kegiatan,
           catatan: s.catatan,
+          pengisiId: null,
           pengisiNama: s.pengisiNama,
           jumlahHadir: baris.filter((k) => k.status === "hadir").length,
           jumlahTerisi: baris.length,
@@ -186,7 +191,7 @@ export async function ambilDaftarSesi(): Promise<
   const { data: sesiDb, error: galatSesi } = await supabase
     .from("olahraga_sesi")
     .select(
-      "id, tanggal, kegiatan, catatan, pengisi:pengisi_id ( nama )",
+      "id, tanggal, kegiatan, catatan, pengisi_id, pengisi:pengisi_id ( nama )",
     )
     .order("tanggal", { ascending: false });
   if (galatSesi) {
@@ -197,6 +202,7 @@ export async function ambilDaftarSesi(): Promise<
     tanggal: string;
     kegiatan: string;
     catatan: string | null;
+    pengisi_id: string | null;
     pengisi: { nama: string } | null;
   }[];
 
@@ -233,6 +239,7 @@ export async function ambilDaftarSesi(): Promise<
         tanggal: s.tanggal,
         kegiatan: s.kegiatan,
         catatan: s.catatan,
+        pengisiId: s.pengisi_id ?? null,
         pengisiNama: s.pengisi?.nama ?? null,
         jumlahHadir: hitungan.get(s.id)?.hadir ?? 0,
         jumlahTerisi: hitungan.get(s.id)?.terisi ?? 0,
@@ -286,6 +293,7 @@ export async function buatSesiBaru(
         tanggal: sesi.tanggal,
         kegiatan: sesi.kegiatan,
         catatan: sesi.catatan,
+        pengisiId: null,
         pengisiNama: sesi.pengisiNama,
         jumlahHadir: 0,
         jumlahTerisi: 0,
@@ -325,12 +333,139 @@ export async function buatSesiBaru(
       tanggal: baris.tanggal,
       kegiatan: baris.kegiatan,
       catatan: baris.catatan,
+      pengisiId: profil.data.id,
       pengisiNama: profil.data.nama,
       jumlahHadir: 0,
       jumlahTerisi: 0,
     }),
     sumberContoh: false,
   };
+}
+
+/* ------------------------------------------------------------------ */
+/* Mengubah & menghapus sesi                                            */
+/* ------------------------------------------------------------------ */
+
+/**
+ * Ubah tanggal, kegiatan, dan catatan satu sesi tersimpan. Hak akses
+ * ditegakkan policy olahraga_ubah di database: Admin Utama ATAU staf
+ * pembuat sesi. Tanggal baru tetap tunduk aturan satu sesi per
+ * tanggal (unik di database).
+ */
+export async function ubahSesiOlahraga(
+  id: string,
+  permintaan: PermintaanSesiBaru,
+): Promise<HasilSantri<SesiOlahraga>> {
+  const tanggal = permintaan.tanggal.trim();
+  const kegiatan = permintaan.kegiatan.trim();
+  const catatan = permintaan.catatan?.trim() || null;
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(tanggal)) {
+    throw new Error("Tanggal sesi wajib dipilih.");
+  }
+  if (!kegiatan) {
+    throw new Error("Kegiatan sesi wajib diisi.");
+  }
+
+  if (!supabaseTerhubung()) {
+    // MODE CONTOH: ubah gudang contoh di memori.
+    const bentrok = sesiOlahragaContohPadaTanggal(tanggal);
+    if (bentrok && bentrok.id !== id) {
+      throw new Error(
+        `Sudah ada sesi olahraga pada tanggal ${tanggal}; satu tanggal hanya boleh punya satu sesi.`,
+      );
+    }
+    const diubah = ubahSesiOlahragaContoh(id, { tanggal, kegiatan, catatan });
+    if (!diubah) throw new Error("Sesi olahraga contoh tidak ditemukan.");
+    const baris = kehadiranOlahragaContohSesi(id);
+    return {
+      data: lengkapiSesi({
+        id: diubah.id,
+        tanggal: diubah.tanggal,
+        kegiatan: diubah.kegiatan,
+        catatan: diubah.catatan,
+        pengisiId: null,
+        pengisiNama: diubah.pengisiNama,
+        jumlahHadir: baris.filter((k) => k.status === "hadir").length,
+        jumlahTerisi: baris.length,
+      }),
+      sumberContoh: true,
+    };
+  }
+
+  const supabase = buatKlienBrowser();
+  const { data, error } = await supabase
+    .from("olahraga_sesi")
+    .update({ tanggal, kegiatan, catatan })
+    .eq("id", id)
+    .select("id, tanggal, kegiatan, catatan, pengisi_id")
+    .maybeSingle();
+  if (error) {
+    if (error.code === "23505") {
+      throw new Error(
+        `Sudah ada sesi olahraga pada tanggal ${tanggal}; satu tanggal hanya boleh punya satu sesi.`,
+      );
+    }
+    throw new Error(`Gagal mengubah sesi olahraga: ${error.message}`);
+  }
+  if (!data) {
+    throw new Error(
+      "Sesi tidak ditemukan, atau Anda tidak berhak mengubahnya (hanya pembuat sesi atau Admin Utama).",
+    );
+  }
+  const baris = data as {
+    id: string;
+    tanggal: string;
+    kegiatan: string;
+    catatan: string | null;
+    pengisi_id: string | null;
+  };
+  const lama = await ambilKehadiranSesi(id);
+  return {
+    data: lengkapiSesi({
+      id: baris.id,
+      tanggal: baris.tanggal,
+      kegiatan: baris.kegiatan,
+      catatan: baris.catatan,
+      pengisiId: baris.pengisi_id ?? null,
+      pengisiNama: null,
+      jumlahHadir: lama.data.filter((k) => k.status === "hadir").length,
+      jumlahTerisi: lama.data.length,
+    }),
+    sumberContoh: false,
+  };
+}
+
+/**
+ * Hapus satu sesi olahraga beserta seluruh kehadirannya (baris
+ * kehadiran terhapus otomatis oleh ON DELETE CASCADE di database).
+ * Hak akses: Admin Utama selalu boleh; staf pembuat sesi boleh
+ * SETELAH migrasi 0007 dijalankan (policy DELETE 0003 khusus admin).
+ */
+export async function hapusSesiOlahraga(
+  id: string,
+): Promise<HasilSantri<{ terhapus: boolean }>> {
+  if (!supabaseTerhubung()) {
+    // MODE CONTOH: hapus dari gudang contoh di memori.
+    if (!hapusSesiOlahragaContoh(id)) {
+      throw new Error("Sesi olahraga contoh tidak ditemukan.");
+    }
+    return { data: { terhapus: true }, sumberContoh: true };
+  }
+  const supabase = buatKlienBrowser();
+  const { data, error } = await supabase
+    .from("olahraga_sesi")
+    .delete()
+    .eq("id", id)
+    .select("id");
+  if (error) {
+    throw new Error(`Gagal menghapus sesi olahraga: ${error.message}`);
+  }
+  if (!data || data.length === 0) {
+    throw new Error(
+      "Sesi tidak ditemukan, atau Anda tidak berhak menghapusnya (hanya pembuat sesi atau Admin Utama).",
+    );
+  }
+  return { data: { terhapus: true }, sumberContoh: false };
 }
 
 /* ------------------------------------------------------------------ */

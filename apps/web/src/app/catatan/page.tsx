@@ -43,7 +43,9 @@ import {
   LABEL_KATEGORI,
   ambilCatatanTerbaru,
   ambilProfilPelapor,
+  hapusCatatan,
   simpanCatatan,
+  ubahCatatan,
   type CatatanMusyrif,
   type KategoriCatatan,
   type ProfilPelapor,
@@ -115,6 +117,13 @@ function IsiHalamanCatatan() {
   const [pesanSukses, setPesanSukses] = useState<string | null>(null);
   const [pesanGalatForm, setPesanGalatForm] = useState<string | null>(null);
   const [sedangMenyimpan, setSedangMenyimpan] = useState(false);
+
+  // Aksi koreksi catatan tersimpan (ubah & hapus per entri)
+  const [editId, setEditId] = useState<string | null>(null);
+  const [editKategori, setEditKategori] = useState<KategoriCatatan>("akhlaq");
+  const [editIsi, setEditIsi] = useState("");
+  const [pesanAksi, setPesanAksi] = useState<string | null>(null);
+  const [sibukAksi, setSibukAksi] = useState(false);
 
   // Filter riwayat (klien, dari catatan yang sudah termuat)
   const [filterSantriId, setFilterSantriId] = useState<string>("");
@@ -214,6 +223,72 @@ function IsiHalamanCatatan() {
       );
     } finally {
       setSedangMenyimpan(false);
+    }
+  }
+
+  /* Aksi ubah/hapus catatan tersimpan: tampil untuk Admin Utama dan
+     pelapor pemilik catatan (penegakan asli policy catatan_ubah &
+     catatan_hapus di database). Mode contoh: semua catatan boleh
+     dikelola (data fiksi). */
+  function bolehKelolaCatatan(c: CatatanMusyrif): boolean {
+    if (sumberContoh) return true;
+    if (!profil) return false;
+    return profil.peran === "admin" || c.pelaporId === profil.id;
+  }
+
+  function mulaiUbahCatatan(c: CatatanMusyrif) {
+    setEditId(c.id);
+    setEditKategori(c.kategori);
+    setEditIsi(c.isi);
+    setPesanAksi(null);
+  }
+
+  async function tanganiSimpanUbahCatatan(c: CatatanMusyrif) {
+    if (!editIsi.trim()) {
+      setPesanAksi("Isi catatan wajib diisi.");
+      return;
+    }
+    setSibukAksi(true);
+    setPesanAksi(null);
+    try {
+      await ubahCatatan(c.id, { kategori: editKategori, isi: editIsi });
+      setEditId(null);
+      setPesanAksi(
+        `Catatan ${LABEL_KATEGORI[editKategori]} untuk ${c.santriNama} diperbarui.`,
+      );
+      await muatCatatan();
+    } catch (e: unknown) {
+      setPesanAksi(
+        e instanceof Error ? e.message : "Gagal mengubah catatan.",
+      );
+    } finally {
+      setSibukAksi(false);
+    }
+  }
+
+  async function tanganiHapusCatatan(c: CatatanMusyrif) {
+    if (
+      !window.confirm(
+        `Hapus catatan ${LABEL_KATEGORI[c.kategori]} untuk ${c.santriNama} (${c.tanggal})? Tindakan ini tidak dapat dibatalkan.`,
+      )
+    ) {
+      return;
+    }
+    setSibukAksi(true);
+    setPesanAksi(null);
+    try {
+      await hapusCatatan(c.id);
+      if (editId === c.id) setEditId(null);
+      setPesanAksi(
+        `Catatan ${LABEL_KATEGORI[c.kategori]} untuk ${c.santriNama} dihapus.`,
+      );
+      await muatCatatan();
+    } catch (e: unknown) {
+      setPesanAksi(
+        e instanceof Error ? e.message : "Gagal menghapus catatan.",
+      );
+    } finally {
+      setSibukAksi(false);
     }
   }
 
@@ -367,6 +442,11 @@ function IsiHalamanCatatan() {
       {/* ------------ Riwayat catatan ------------ */}
       <section className="kartu">
         <h2>Riwayat catatan</h2>
+        {pesanAksi && (
+          <p className="catatan-kaki" role="status">
+            {pesanAksi}
+          </p>
+        )}
         <div className="formulir" style={{ maxWidth: "100%", marginBottom: 14 }}>
           <label>
             Santri
@@ -483,6 +563,70 @@ function IsiHalamanCatatan() {
                     >
                       Pelapor: <strong>{c.pelaporNama}</strong>
                     </p>
+                    {bolehKelolaCatatan(c) && editId !== c.id && (
+                      <div style={{ display: "flex", gap: 6, marginTop: 8 }}>
+                        <button
+                          type="button"
+                          className="tombol tombol-kecil tombol-sekunder"
+                          onClick={() => mulaiUbahCatatan(c)}
+                        >
+                          Ubah
+                        </button>
+                        <button
+                          type="button"
+                          className="tombol tombol-kecil tombol-sekunder"
+                          onClick={() => void tanganiHapusCatatan(c)}
+                          disabled={sibukAksi}
+                        >
+                          Hapus
+                        </button>
+                      </div>
+                    )}
+                    {bolehKelolaCatatan(c) && editId === c.id && (
+                      <div style={{ marginTop: 10 }}>
+                        <div
+                          className="grup-chip"
+                          role="group"
+                          aria-label="Kategori catatan"
+                        >
+                          {KATEGORI_CATATAN.map((k) => (
+                            <button
+                              key={k}
+                              type="button"
+                              className="chip"
+                              aria-pressed={editKategori === k}
+                              onClick={() => setEditKategori(k)}
+                            >
+                              {LABEL_KATEGORI[k]}
+                            </button>
+                          ))}
+                        </div>
+                        <textarea
+                          value={editIsi}
+                          onChange={(e) => setEditIsi(e.target.value)}
+                          rows={4}
+                          style={{ ...GAYA_AREA_TEKS, width: "100%", marginTop: 10 }}
+                          aria-label="Isi catatan"
+                        />
+                        <div style={{ display: "flex", gap: 6, marginTop: 8 }}>
+                          <button
+                            type="button"
+                            className="tombol tombol-kecil"
+                            onClick={() => void tanganiSimpanUbahCatatan(c)}
+                            disabled={sibukAksi}
+                          >
+                            {sibukAksi ? "Menyimpan…" : "Simpan perubahan"}
+                          </button>
+                          <button
+                            type="button"
+                            className="tombol tombol-kecil tombol-sekunder"
+                            onClick={() => setEditId(null)}
+                          >
+                            Batal
+                          </button>
+                        </div>
+                      </div>
+                    )}
                   </div>
                 </article>
               );

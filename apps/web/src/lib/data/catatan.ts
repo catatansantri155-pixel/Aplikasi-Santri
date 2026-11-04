@@ -338,3 +338,82 @@ export async function simpanCatatan(
     sumberContoh: false,
   };
 }
+
+/* ------------------------------------------------------------------ */
+/* Mengubah & menghapus catatan tersimpan                               */
+/* ------------------------------------------------------------------ */
+
+export interface MasukanUbahCatatan {
+  kategori: KategoriCatatan;
+  isi: string;
+}
+
+/**
+ * Ubah kategori & isi satu catatan tersimpan (koreksi). Hak akses
+ * ditegakkan policy catatan_ubah di database: Admin Utama ATAU
+ * pelapor pemilik catatan. Santri, tanggal, dan nama pelapor TIDAK
+ * diubah — pelapor_nama tetap diisi pemicu dari akun pemilik asli.
+ */
+export async function ubahCatatan(
+  id: string,
+  masukan: MasukanUbahCatatan,
+): Promise<HasilSantri<CatatanMusyrif>> {
+  if (!masukan.isi.trim()) {
+    throw new Error("Isi catatan wajib diisi.");
+  }
+  if (!supabaseTerhubung()) {
+    // MODE CONTOH: ubah gudang contoh di memori.
+    const lama = gudangCatatanContoh.find((c) => c.id === id);
+    if (!lama) throw new Error("Catatan contoh tidak ditemukan.");
+    lama.kategori = masukan.kategori;
+    lama.isi = masukan.isi.trim();
+    return { data: lama, sumberContoh: true };
+  }
+  const supabase = buatKlienBrowser();
+  const { data, error } = await supabase
+    .from("catatan_musyrif")
+    .update({ kategori: masukan.kategori, isi: masukan.isi.trim() })
+    .eq("id", id)
+    .select(PILIHAN_CATATAN)
+    .maybeSingle();
+  if (error) {
+    throw new Error(`Gagal mengubah catatan: ${error.message}`);
+  }
+  if (!data) {
+    throw new Error(
+      "Catatan tidak ditemukan, atau Anda tidak berhak mengubahnya (hanya pelapor pemilik catatan atau Admin Utama).",
+    );
+  }
+  return {
+    data: barisDbKeCatatan(data as unknown as BarisCatatanDb),
+    sumberContoh: false,
+  };
+}
+
+/** Hapus satu catatan tersimpan (policy catatan_hapus). */
+export async function hapusCatatan(
+  id: string,
+): Promise<HasilSantri<{ terhapus: boolean }>> {
+  if (!supabaseTerhubung()) {
+    // MODE CONTOH: hapus dari gudang contoh di memori.
+    const indeks = gudangCatatanContoh.findIndex((c) => c.id === id);
+    if (indeks < 0) throw new Error("Catatan contoh tidak ditemukan.");
+    gudangCatatanContoh.splice(indeks, 1);
+    return { data: { terhapus: true }, sumberContoh: true };
+  }
+  const supabase = buatKlienBrowser();
+  const { data, error } = await supabase
+    .from("catatan_musyrif")
+    .delete()
+    .eq("id", id)
+    .select("id");
+  if (error) {
+    throw new Error(`Gagal menghapus catatan: ${error.message}`);
+  }
+  if (!data || data.length === 0) {
+    throw new Error(
+      "Catatan tidak ditemukan, atau Anda tidak berhak menghapusnya (hanya pelapor pemilik catatan atau Admin Utama).",
+    );
+  }
+  return { data: { terhapus: true }, sumberContoh: false };
+}

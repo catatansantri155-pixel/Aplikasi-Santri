@@ -29,6 +29,11 @@
  * formulir Harian & Ujian disembunyikan — tab Ringkasan tetap tampil
  * beserta pemilih santri & mapel; input awal adalah tugas pengajar
  * diniyyah (bolehInput di src/lib/akses.ts).
+ *
+ * Koreksi entri (perintah user 4 Nov 2026): di tab Ringkasan, setiap
+ * nilai harian & nilai ujian tersimpan punya aksi Ubah & Hapus
+ * (hapus berkonsfirmasi) untuk pengisi pemilik entri dan Admin
+ * Utama — sesuai policy ubah/hapus di database.
  */
 import {
   useCallback,
@@ -54,9 +59,13 @@ import {
   ambilNilaiUjianSantri,
   ambilSemester,
   formatNilai,
+  hapusNilaiHarian,
+  hapusNilaiUjian,
   hitungRingkasanMapel,
   simpanNilaiHarian,
   simpanNilaiUjian,
+  ubahNilaiHarian,
+  ubahNilaiUjian,
   type NilaiHarian,
   type NilaiUjian,
   type SemesterRef,
@@ -125,6 +134,15 @@ export default function IsiHalamanDiniyyah({ tab }: { tab: TabDiniyyah }) {
   const [daftarSemester, setDaftarSemester] = useState<SemesterRef[]>([]);
   const [sumberContoh, setSumberContoh] = useState(false);
   const [peranMasuk, setPeranMasuk] = useState<Peran | null>(null);
+  const [idMasuk, setIdMasuk] = useState<string | null>(null);
+
+  // Aksi koreksi nilai tersimpan (ubah & hapus per entri)
+  const [editHarianId, setEditHarianId] = useState<string | null>(null);
+  const [nilaiEditHarian, setNilaiEditHarian] = useState("");
+  const [editUjianId, setEditUjianId] = useState<string | null>(null);
+  const [nilaiEditUjian, setNilaiEditUjian] = useState("");
+  const [pesanAksi, setPesanAksi] = useState<string | null>(null);
+  const [sibukAksi, setSibukAksi] = useState(false);
   const [galatMuat, setGalatMuat] = useState<string | null>(null);
   const [muatSelesai, setMuatSelesai] = useState(false);
 
@@ -159,6 +177,7 @@ export default function IsiHalamanDiniyyah({ tab }: { tab: TabDiniyyah }) {
         ambilProfilLogin(),
       ]);
       setPeranMasuk(profilLogin?.peran ?? null);
+      setIdMasuk(profilLogin?.id ?? null);
       setSemuaSantri(santriHasil.data);
       setDaftarSemester(semesterHasil.data);
       setSumberContoh(santriHasil.sumberContoh || semesterHasil.sumberContoh);
@@ -223,6 +242,9 @@ export default function IsiHalamanDiniyyah({ tab }: { tab: TabDiniyyah }) {
     setNilaiUjianInput("");
     setPesanHarian(null);
     setPesanUjian(null);
+    setEditHarianId(null);
+    setEditUjianId(null);
+    setPesanAksi(null);
   }, [santriId, mapel]);
 
   const santriTerpilih = useMemo(
@@ -353,6 +375,116 @@ export default function IsiHalamanDiniyyah({ tab }: { tab: TabDiniyyah }) {
       );
     } finally {
       setSimpanUjianBerjalan(false);
+    }
+  }
+
+  /* Aksi ubah/hapus nilai tersimpan: tampil untuk Admin Utama dan
+     pengisi pemilik entri (penegakan asli policy nilai_harian_ubah /
+     nilai_harian_hapus / ujian_diniyyah_ubah / ujian_diniyyah_hapus
+     di database). Mode contoh: semua entri boleh dikelola (fiktif). */
+  function bolehKelolaNilai(pengisiId: string | null): boolean {
+    if (sumberContoh) return true;
+    if (peranMasuk === "admin") return true;
+    return idMasuk !== null && pengisiId === idMasuk;
+  }
+
+  function periksaNilaiEdit(teks: string): number | null {
+    const nilai = Number(teks);
+    if (teks.trim() === "" || Number.isNaN(nilai) || nilai < 0 || nilai > 100) {
+      return null;
+    }
+    return nilai;
+  }
+
+  async function tanganiSimpanUbahHarian(n: NilaiHarian) {
+    const nilai = periksaNilaiEdit(nilaiEditHarian);
+    if (nilai === null) {
+      setPesanAksi("Nilai harus berupa angka 0 sampai 100.");
+      return;
+    }
+    setSibukAksi(true);
+    setPesanAksi(null);
+    try {
+      await ubahNilaiHarian(n.id, nilai);
+      setEditHarianId(null);
+      setPesanAksi(
+        `Nilai harian ${n.mapel} tanggal ${n.tanggal} diperbarui menjadi ${formatNilai(nilai)}.`,
+      );
+      await muatNilai(santriId);
+    } catch (e: unknown) {
+      setPesanAksi(e instanceof Error ? e.message : "Gagal mengubah nilai.");
+    } finally {
+      setSibukAksi(false);
+    }
+  }
+
+  async function tanganiHapusHarian(n: NilaiHarian) {
+    if (
+      !window.confirm(
+        `Hapus nilai harian ${n.mapel} tanggal ${n.tanggal} (nilai ${formatNilai(n.nilai)})? Tindakan ini tidak dapat dibatalkan.`,
+      )
+    ) {
+      return;
+    }
+    setSibukAksi(true);
+    setPesanAksi(null);
+    try {
+      await hapusNilaiHarian(n.id);
+      if (editHarianId === n.id) setEditHarianId(null);
+      setPesanAksi(
+        `Nilai harian ${n.mapel} tanggal ${n.tanggal} dihapus.`,
+      );
+      await muatNilai(santriId);
+    } catch (e: unknown) {
+      setPesanAksi(e instanceof Error ? e.message : "Gagal menghapus nilai.");
+    } finally {
+      setSibukAksi(false);
+    }
+  }
+
+  async function tanganiSimpanUbahUjian(u: NilaiUjian) {
+    const nilai = periksaNilaiEdit(nilaiEditUjian);
+    if (nilai === null) {
+      setPesanAksi("Nilai harus berupa angka 0 sampai 100.");
+      return;
+    }
+    setSibukAksi(true);
+    setPesanAksi(null);
+    try {
+      await ubahNilaiUjian(u.id, nilai);
+      setEditUjianId(null);
+      setPesanAksi(
+        `Nilai ujian ${u.mapel} (${u.semesterNama}) diperbarui menjadi ${formatNilai(nilai)}.`,
+      );
+      await muatNilai(santriId);
+    } catch (e: unknown) {
+      setPesanAksi(e instanceof Error ? e.message : "Gagal mengubah nilai.");
+    } finally {
+      setSibukAksi(false);
+    }
+  }
+
+  async function tanganiHapusUjian(u: NilaiUjian) {
+    if (
+      !window.confirm(
+        `Hapus nilai ujian ${u.mapel} (${u.semesterNama}, nilai ${formatNilai(u.nilai)})? Tindakan ini tidak dapat dibatalkan.`,
+      )
+    ) {
+      return;
+    }
+    setSibukAksi(true);
+    setPesanAksi(null);
+    try {
+      await hapusNilaiUjian(u.id);
+      if (editUjianId === u.id) setEditUjianId(null);
+      setPesanAksi(
+        `Nilai ujian ${u.mapel} (${u.semesterNama}) dihapus.`,
+      );
+      await muatNilai(santriId);
+    } catch (e: unknown) {
+      setPesanAksi(e instanceof Error ? e.message : "Gagal menghapus nilai.");
+    } finally {
+      setSibukAksi(false);
     }
   }
 
@@ -656,6 +788,11 @@ export default function IsiHalamanDiniyyah({ tab }: { tab: TabDiniyyah }) {
           Kolom rata-rata memakai <strong>rumus sementara</strong> (rata-rata
           sederhana). {CATATAN_RUMUS_SEMENTARA}
         </p>
+        {pesanAksi && (
+          <p className="catatan-kaki" role="status">
+            {pesanAksi}
+          </p>
+        )}
         <div className="tabel-bungkus">
           <table
             style={{ width: "100%", borderCollapse: "collapse" }}
@@ -725,7 +862,9 @@ export default function IsiHalamanDiniyyah({ tab }: { tab: TabDiniyyah }) {
                 style={{
                   display: "flex",
                   justifyContent: "space-between",
+                  alignItems: "center",
                   gap: 10,
+                  flexWrap: "wrap",
                   paddingBottom: 6,
                   borderBottom: "1px solid var(--garis)",
                   fontSize: 14,
@@ -734,9 +873,154 @@ export default function IsiHalamanDiniyyah({ tab }: { tab: TabDiniyyah }) {
                 <span>
                   {n.tanggal} · <LabelMapel mapel={n.mapel} />
                 </span>
-                <strong style={{ fontVariantNumeric: "tabular-nums" }}>
-                  {formatNilai(n.nilai)}
-                </strong>
+                {editHarianId === n.id ? (
+                  <span style={{ display: "flex", gap: 6, alignItems: "center" }}>
+                    <input
+                      type="number"
+                      min={0}
+                      max={100}
+                      step="0.5"
+                      inputMode="decimal"
+                      value={nilaiEditHarian}
+                      onChange={(e) => setNilaiEditHarian(e.target.value)}
+                      aria-label={`Nilai baru ${n.mapel} ${n.tanggal}`}
+                      style={{ width: 90, minHeight: 40 }}
+                    />
+                    <button
+                      type="button"
+                      className="tombol tombol-kecil"
+                      onClick={() => void tanganiSimpanUbahHarian(n)}
+                      disabled={sibukAksi}
+                    >
+                      Simpan
+                    </button>
+                    <button
+                      type="button"
+                      className="tombol tombol-kecil tombol-sekunder"
+                      onClick={() => setEditHarianId(null)}
+                    >
+                      Batal
+                    </button>
+                  </span>
+                ) : (
+                  <span style={{ display: "flex", gap: 6, alignItems: "center" }}>
+                    <strong style={{ fontVariantNumeric: "tabular-nums" }}>
+                      {formatNilai(n.nilai)}
+                    </strong>
+                    {bolehKelolaNilai(n.pengisiId) && (
+                      <>
+                        <button
+                          type="button"
+                          className="tombol tombol-kecil tombol-sekunder"
+                          onClick={() => {
+                            setEditHarianId(n.id);
+                            setNilaiEditHarian(String(n.nilai));
+                            setPesanAksi(null);
+                          }}
+                        >
+                          Ubah
+                        </button>
+                        <button
+                          type="button"
+                          className="tombol tombol-kecil tombol-sekunder"
+                          onClick={() => void tanganiHapusHarian(n)}
+                          disabled={sibukAksi}
+                        >
+                          Hapus
+                        </button>
+                      </>
+                    )}
+                  </span>
+                )}
+              </div>
+            ))}
+          </div>
+        )}
+
+        <h3 style={{ margin: "16px 0 6px", fontSize: 15 }}>
+          Rincian nilai ujian
+        </h3>
+        {ujian.length === 0 ? (
+          <p>Belum ada nilai ujian untuk santri ini.</p>
+        ) : (
+          <div style={{ display: "grid", gap: 6 }}>
+            {ujian.map((u) => (
+              <div
+                key={u.id}
+                style={{
+                  display: "flex",
+                  justifyContent: "space-between",
+                  alignItems: "center",
+                  gap: 10,
+                  flexWrap: "wrap",
+                  paddingBottom: 6,
+                  borderBottom: "1px solid var(--garis)",
+                  fontSize: 14,
+                }}
+              >
+                <span>
+                  {u.semesterNama} ({LABEL_SEMESTER[u.jenisSemester]}) ·{" "}
+                  <LabelMapel mapel={u.mapel} />
+                </span>
+                {editUjianId === u.id ? (
+                  <span style={{ display: "flex", gap: 6, alignItems: "center" }}>
+                    <input
+                      type="number"
+                      min={0}
+                      max={100}
+                      step="0.5"
+                      inputMode="decimal"
+                      value={nilaiEditUjian}
+                      onChange={(e) => setNilaiEditUjian(e.target.value)}
+                      aria-label={`Nilai ujian baru ${u.mapel} ${u.semesterNama}`}
+                      style={{ width: 90, minHeight: 40 }}
+                    />
+                    <button
+                      type="button"
+                      className="tombol tombol-kecil"
+                      onClick={() => void tanganiSimpanUbahUjian(u)}
+                      disabled={sibukAksi}
+                    >
+                      Simpan
+                    </button>
+                    <button
+                      type="button"
+                      className="tombol tombol-kecil tombol-sekunder"
+                      onClick={() => setEditUjianId(null)}
+                    >
+                      Batal
+                    </button>
+                  </span>
+                ) : (
+                  <span style={{ display: "flex", gap: 6, alignItems: "center" }}>
+                    <strong style={{ fontVariantNumeric: "tabular-nums" }}>
+                      {formatNilai(u.nilai)}
+                    </strong>
+                    {bolehKelolaNilai(u.pengisiId) && (
+                      <>
+                        <button
+                          type="button"
+                          className="tombol tombol-kecil tombol-sekunder"
+                          onClick={() => {
+                            setEditUjianId(u.id);
+                            setNilaiEditUjian(String(u.nilai));
+                            setPesanAksi(null);
+                          }}
+                        >
+                          Ubah
+                        </button>
+                        <button
+                          type="button"
+                          className="tombol tombol-kecil tombol-sekunder"
+                          onClick={() => void tanganiHapusUjian(u)}
+                          disabled={sibukAksi}
+                        >
+                          Hapus
+                        </button>
+                      </>
+                    )}
+                  </span>
+                )}
               </div>
             ))}
           </div>

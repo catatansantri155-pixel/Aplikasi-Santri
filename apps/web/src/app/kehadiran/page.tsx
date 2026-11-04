@@ -568,6 +568,31 @@ function IsiHalamanKehadiran() {
           >
             Isi yang kosong sebagai Hadir
           </button>
+          {/* Penimpaan total kini tombol TERLIHAT sejajar aksi lain
+              (perintah user 4 Nov 2026 mengikuti prototipe Lovable,
+              menggantikan penempatan di menu "Tindakan lain" pada
+              audit visual pagi harinya). Perilakunya TIDAK berubah:
+              tetap berkonsfirmasi dan dialognya menyebut jumlah
+              status yang akan tertimpa. */}
+          <button
+            type="button"
+            className="tombol tombol-sekunder"
+            onClick={() => {
+              const tertimpa = hitungTertimpa(pilihan, idBisaDiubah);
+              if (
+                tertimpa > 0 &&
+                !window.confirm(
+                  `${tertimpa} status yang sudah dipilih akan tertimpa menjadi Hadir. Lanjutkan?`,
+                )
+              ) {
+                return;
+              }
+              setPilihan((lama) => timpaSemuaJadiHadir(lama, idBisaDiubah));
+              setKotor(true);
+            }}
+          >
+            Timpa semua jadi Hadir
+          </button>
           <button
             type="button"
             className="tombol tombol-besar"
@@ -584,32 +609,6 @@ function IsiHalamanKehadiran() {
               : "Semua santri kelas ini sudah terisi"}
           </span>
         </div>
-        {/* Tindakan penimpaan total dipindah ke menu tindakan lain
-            (audit visual user 4 Nov 2026): tidak sejajar aksi rutin. */}
-        <details className="tindakan-lain">
-          <summary>Tindakan lain</summary>
-          <div className="isi-tindakan">
-            <button
-              type="button"
-              className="tombol tombol-kecil tombol-sekunder"
-              onClick={() => {
-                const tertimpa = hitungTertimpa(pilihan, idBisaDiubah);
-                if (
-                  tertimpa > 0 &&
-                  !window.confirm(
-                    `${tertimpa} status yang sudah dipilih akan tertimpa menjadi Hadir. Lanjutkan?`,
-                  )
-                ) {
-                  return;
-                }
-                setPilihan((lama) => timpaSemuaJadiHadir(lama, idBisaDiubah));
-                setKotor(true);
-              }}
-            >
-              Timpa semua jadi Hadir
-            </button>
-          </div>
-        </details>
         </>
         )}
         {pesanSimpan && (

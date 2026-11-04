@@ -56,8 +56,10 @@ import {
   apakahHariOlahragaRutin,
   buatSesiBaru,
   formatTanggalPanjang,
+  hapusSesiOlahraga,
   hariDariTanggal,
   simpanKehadiranSesi,
+  ubahSesiOlahraga,
   type SesiOlahraga,
 } from "@/lib/data/olahraga";
 
@@ -102,6 +104,14 @@ function IsiHalamanOlahraga() {
   const [catatanBaru, setCatatanBaru] = useState("");
   const [pesanBuat, setPesanBuat] = useState<string | null>(null);
   const [sedangMembuat, setSedangMembuat] = useState(false);
+
+  // Kelola sesi terpilih (ubah & hapus sesi)
+  const [editSesiTerbuka, setEditSesiTerbuka] = useState(false);
+  const [eTanggal, setETanggal] = useState("");
+  const [eKegiatan, setEKegiatan] = useState("");
+  const [eCatatan, setECatatan] = useState("");
+  const [pesanSesi, setPesanSesi] = useState<string | null>(null);
+  const [sibukSesi, setSibukSesi] = useState(false);
 
   const muatDaftarSesi = useCallback(async (pilihId?: string | null) => {
     const hasil = await ambilDaftarSesi();
@@ -227,6 +237,78 @@ function IsiHalamanOlahraga() {
       );
     } finally {
       setSedangMembuat(false);
+    }
+  }
+
+  /* Aksi ubah/hapus sesi: tampil untuk Admin Utama dan staf pembuat
+     sesi (policy olahraga_ubah; hapus oleh pemilik menunggu migrasi
+     0007 — sebelum itu RLS hanya mengizinkan admin, dan lapisan data
+     menyampaikan penolakannya sebagai pesan). Mode contoh: semua
+     sesi boleh dikelola (data fiksi). Blok ini SENGAJA di luar mode
+     pantauan admin: mengoreksi sesi memang tugas admin. */
+  function bolehKelolaSesi(s: SesiOlahraga): boolean {
+    if (sumberContoh) return true;
+    if (!profil) return false;
+    return profil.peran === "admin" || s.pengisiId === profil.id;
+  }
+
+  function mulaiUbahSesi() {
+    if (!sesiTerpilih) return;
+    setETanggal(sesiTerpilih.tanggal);
+    setEKegiatan(sesiTerpilih.kegiatan);
+    setECatatan(sesiTerpilih.catatan ?? "");
+    setPesanSesi(null);
+    setEditSesiTerbuka(true);
+  }
+
+  async function tanganiSimpanUbahSesi() {
+    if (!sesiTerpilih) return;
+    setSibukSesi(true);
+    setPesanSesi(null);
+    try {
+      const hasil = await ubahSesiOlahraga(sesiTerpilih.id, {
+        tanggal: eTanggal,
+        kegiatan: eKegiatan,
+        catatan: eCatatan,
+      });
+      setEditSesiTerbuka(false);
+      setPesanSesi(
+        `Sesi diperbarui: ${hasil.data.kegiatan} — ${formatTanggalPanjang(hasil.data.tanggal)}.`,
+      );
+      await muatDaftarSesi(sesiTerpilih.id);
+    } catch (e: unknown) {
+      setPesanSesi(
+        e instanceof Error ? e.message : "Gagal mengubah sesi olahraga.",
+      );
+    } finally {
+      setSibukSesi(false);
+    }
+  }
+
+  async function tanganiHapusSesi() {
+    if (!sesiTerpilih) return;
+    if (
+      !window.confirm(
+        `Hapus sesi "${sesiTerpilih.kegiatan}" (${formatTanggalPanjang(sesiTerpilih.tanggal)})? Seluruh kehadiran pada sesi ini (${sesiTerpilih.jumlahTerisi} santri terisi) ikut terhapus. Tindakan ini tidak dapat dibatalkan.`,
+      )
+    ) {
+      return;
+    }
+    setSibukSesi(true);
+    setPesanSesi(null);
+    try {
+      await hapusSesiOlahraga(sesiTerpilih.id);
+      setEditSesiTerbuka(false);
+      setPesanSesi(
+        `Sesi "${sesiTerpilih.kegiatan}" (${formatTanggalPanjang(sesiTerpilih.tanggal)}) dihapus beserta kehadirannya.`,
+      );
+      await muatDaftarSesi(null);
+    } catch (e: unknown) {
+      setPesanSesi(
+        e instanceof Error ? e.message : "Gagal menghapus sesi olahraga.",
+      );
+    } finally {
+      setSibukSesi(false);
     }
   }
 
@@ -361,7 +443,11 @@ function IsiHalamanOlahraga() {
                   type="button"
                   className="baris-daftar"
                   aria-pressed={terpilih}
-                  onClick={() => setSesiId(s.id)}
+                  onClick={() => {
+                    setSesiId(s.id);
+                    setEditSesiTerbuka(false);
+                    setPesanSesi(null);
+                  }}
                   style={{
                     width: "100%",
                     textAlign: "left",
@@ -423,6 +509,82 @@ function IsiHalamanOlahraga() {
             {jumlahTerisi} dari {semuaSantri.length} santri. Status yang
             sudah tersimpan untuk sesi ini terisi otomatis.
           </p>
+          {pesanSesi && (
+            <p className="catatan-kaki" role="status">
+              {pesanSesi}
+            </p>
+          )}
+          {bolehKelolaSesi(sesiTerpilih) && !editSesiTerbuka && (
+            <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
+              <button
+                type="button"
+                className="tombol tombol-kecil tombol-sekunder"
+                onClick={mulaiUbahSesi}
+              >
+                Ubah sesi
+              </button>
+              <button
+                type="button"
+                className="tombol tombol-kecil tombol-sekunder"
+                onClick={() => void tanganiHapusSesi()}
+                disabled={sibukSesi}
+              >
+                Hapus sesi
+              </button>
+            </div>
+          )}
+          {bolehKelolaSesi(sesiTerpilih) && editSesiTerbuka && (
+            <div className="formulir" style={{ maxWidth: "100%" }}>
+              <label>
+                Tanggal sesi
+                <input
+                  type="date"
+                  value={eTanggal}
+                  onChange={(e) => setETanggal(e.target.value)}
+                />
+              </label>
+              {eTanggal && (
+                <p className="catatan-kaki" style={{ margin: 0 }}>
+                  Hari: <strong>{hariDariTanggal(eTanggal).label}</strong>
+                </p>
+              )}
+              <label>
+                Kegiatan
+                <input
+                  type="text"
+                  className="masukan"
+                  value={eKegiatan}
+                  onChange={(e) => setEKegiatan(e.target.value)}
+                />
+              </label>
+              <label>
+                Catatan (boleh kosong)
+                <input
+                  type="text"
+                  className="masukan"
+                  value={eCatatan}
+                  onChange={(e) => setECatatan(e.target.value)}
+                />
+              </label>
+              <div style={{ display: "flex", gap: 6 }}>
+                <button
+                  type="button"
+                  className="tombol tombol-kecil"
+                  onClick={() => void tanganiSimpanUbahSesi()}
+                  disabled={sibukSesi}
+                >
+                  {sibukSesi ? "Menyimpan…" : "Simpan perubahan"}
+                </button>
+                <button
+                  type="button"
+                  className="tombol tombol-kecil tombol-sekunder"
+                  onClick={() => setEditSesiTerbuka(false)}
+                >
+                  Batal
+                </button>
+              </div>
+            </div>
+          )}
           <div className="formulir" style={{ maxWidth: "100%" }}>
             <label>
               Tampilkan kelas

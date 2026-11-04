@@ -141,6 +141,23 @@ export function tambahSemesterAdminContoh(
   return semester;
 }
 
+export function ubahSemesterAdminContoh(
+  id: string,
+  masukan: Omit<SemesterAdminContoh, "id">,
+): SemesterAdminContoh | undefined {
+  const indeks = gudangSemester.findIndex((s) => s.id === id);
+  if (indeks < 0) return undefined;
+  gudangSemester[indeks] = { id, ...masukan };
+  return gudangSemester[indeks];
+}
+
+export function hapusSemesterAdminContoh(id: string): boolean {
+  const indeks = gudangSemester.findIndex((s) => s.id === id);
+  if (indeks < 0) return false;
+  gudangSemester.splice(indeks, 1);
+  return true;
+}
+
 /* ------------------------------------------------------------------ */
 /* Akun wali contoh & tautan wali <-> santri                            */
 /* ------------------------------------------------------------------ */
