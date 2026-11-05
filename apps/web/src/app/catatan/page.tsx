@@ -23,11 +23,18 @@
  */
 import {
   useCallback,
+  useRef,
   useEffect,
   useMemo,
   useState,
   type CSSProperties,
 } from "react";
+import FilterPeriode from "@/components/FilterPeriode";
+import {
+  cocokPeriode,
+  SEMUA_PERIODE,
+  type FilterPeriode as NilaiFilter,
+} from "@/lib/filter-periode";
 import PenandaTahap from "@/components/PenandaTahap";
 import KartuGalat from "@/components/KartuGalat";
 import PenjagaModul from "@/components/PenjagaModul";
@@ -125,28 +132,34 @@ function IsiHalamanCatatan() {
   const [pesanAksi, setPesanAksi] = useState<string | null>(null);
   const [sibukAksi, setSibukAksi] = useState(false);
 
-  // Filter riwayat (klien, dari catatan yang sudah termuat)
+  // Filter periode dikirim ke server; santri/kategori disaring dari hasil yang termuat
   const [filterSantriId, setFilterSantriId] = useState<string>("");
   const [filterKategori, setFilterKategori] = useState<"" | KategoriCatatan>(
     "",
   );
-  const [filterTanggal, setFilterTanggal] = useState<string>("");
+  const [filterPeriode, setFilterPeriode] =
+    useState<NilaiFilter>(SEMUA_PERIODE);
 
+  const nomorPermintaan = useRef(0);
   const muatCatatan = useCallback(async () => {
-    const hasil = await ambilCatatanTerbaru(20);
+    const nomor = ++nomorPermintaan.current;
+    const hasil = await ambilCatatanTerbaru(100, filterPeriode);
+    if (nomor !== nomorPermintaan.current) return;
     setDaftarCatatan(hasil.data);
-  }, []);
+  }, [filterPeriode]);
 
   /* Muat profil pelapor + daftar santri + catatan terbaru sekali;
      juga target tombol coba lagi. */
   const muatAwal = useCallback(async () => {
+    const nomor = ++nomorPermintaan.current;
     setGalatMuat(null);
     try {
       const [profilHasil, santriHasil, catatanHasil] = await Promise.all([
         ambilProfilPelapor(),
         ambilDaftarSantri(),
-        ambilCatatanTerbaru(20),
+        ambilCatatanTerbaru(100, filterPeriode),
       ]);
+      if (nomor !== nomorPermintaan.current) return;
       setProfil(profilHasil.data);
       setSemuaSantri(santriHasil.data);
       setDaftarCatatan(catatanHasil.data);
@@ -159,14 +172,18 @@ function IsiHalamanCatatan() {
       // kosong agar catatan tidak berisiko masuk ke anak yang salah;
       // pengguna wajib memilih secara sadar.
     } catch (e: unknown) {
+      if (nomor !== nomorPermintaan.current) return;
       setGalatMuat(
         e instanceof Error ? e.message : "Gagal memuat data catatan.",
       );
     }
-  }, []);
+  }, [filterPeriode]);
 
   useEffect(() => {
     void muatAwal();
+    return () => {
+      nomorPermintaan.current++;
+    };
   }, [muatAwal]);
 
   /** Pelapor siap bila profil termuat DAN namanya tidak kosong. */
@@ -287,19 +304,21 @@ function IsiHalamanCatatan() {
   }
 
   /* Riwayat tersaring: filter santri/kategori/tanggal diterapkan di
-     klien atas catatan yang sudah termuat (20 terbaru). */
+     klien atas maksimal 100 catatan terbaru pada periode yang diminta. */
   const catatanTampil = useMemo(
     () =>
       daftarCatatan.filter(
         (c) =>
           (filterSantriId === "" || c.santriId === filterSantriId) &&
           (filterKategori === "" || c.kategori === filterKategori) &&
-          (filterTanggal === "" || c.tanggal === filterTanggal),
+          cocokPeriode(c.tanggal, filterPeriode),
       ),
-    [daftarCatatan, filterSantriId, filterKategori, filterTanggal],
+    [daftarCatatan, filterSantriId, filterKategori, filterPeriode],
   );
   const filterAktif =
-    filterSantriId !== "" || filterKategori !== "" || filterTanggal !== "";
+    filterSantriId !== "" ||
+    filterKategori !== "" ||
+    filterPeriode.mode !== "semua";
 
   return (
     <>
@@ -483,19 +502,12 @@ function IsiHalamanCatatan() {
               ))}
             </select>
           </label>
-          <label>
-            Tanggal
-            <input
-              type="date"
-              value={filterTanggal}
-              onChange={(e) => setFilterTanggal(e.target.value)}
-            />
-          </label>
+          <FilterPeriode nilai={filterPeriode} onUbah={setFilterPeriode} />
         </div>
         {daftarCatatan.length > 0 && (
           <p className="catatan-kaki" style={{ marginTop: 0 }}>
             Menampilkan {catatanTampil.length} dari {daftarCatatan.length}{" "}
-            catatan terbaru.
+            catatan terbaru pada periode terpilih (maksimal 100).
             {filterAktif && (
               <>
                 {" "}
@@ -505,7 +517,7 @@ function IsiHalamanCatatan() {
                   onClick={() => {
                     setFilterSantriId("");
                     setFilterKategori("");
-                    setFilterTanggal("");
+                    setFilterPeriode(SEMUA_PERIODE);
                   }}
                 >
                   Kosongkan filter

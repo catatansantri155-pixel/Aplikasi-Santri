@@ -1,3 +1,9 @@
+import {
+  batasPeriode,
+  cocokPeriode,
+  SEMUA_PERIODE,
+  type FilterPeriode,
+} from "@/lib/filter-periode";
 /**
  * Lapisan data — CATATAN MUSYRIF (Jalur E, Tahap 2).
  *
@@ -217,21 +223,24 @@ function urutTerbaru(a: CatatanMusyrif, b: CatatanMusyrif): number {
 /** Catatan terbaru lintas santri (untuk daftar di halaman Catatan). */
 export async function ambilCatatanTerbaru(
   batas = 20,
+  filter: FilterPeriode = SEMUA_PERIODE,
 ): Promise<HasilSantri<CatatanMusyrif[]>> {
   if (!supabaseTerhubung()) {
     // MODE CONTOH: dari gudang contoh di memori, terbaru lebih dulu.
     const data = [...gudangCatatanContoh]
+      .filter((c) => cocokPeriode(c.tanggal, filter))
       .sort(urutTerbaru)
       .slice(0, batas);
     return { data, sumberContoh: true };
   }
-  const supabase = buatKlienBrowser();
-  const { data, error } = await supabase
+  const b = batasPeriode(filter);
+  let q = buatKlienBrowser()
     .from("catatan_musyrif")
     .select(PILIHAN_CATATAN)
     .order("tanggal", { ascending: false })
-    .order("created_at", { ascending: false })
-    .limit(batas);
+    .order("created_at", { ascending: false });
+  if (b) q = q.gte("tanggal", b.mulai).lte("tanggal", b.selesai);
+  const { data, error } = await q.limit(batas);
   if (error) {
     throw new Error(`Gagal membaca catatan musyrif: ${error.message}`);
   }

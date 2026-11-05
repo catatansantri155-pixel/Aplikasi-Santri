@@ -30,6 +30,12 @@
  * src/lib/akses.ts).
  */
 import { useCallback, useEffect, useMemo, useState } from "react";
+import FilterPeriode from "@/components/FilterPeriode";
+import {
+  cocokPeriode,
+  SEMUA_PERIODE,
+  type FilterPeriode as NilaiFilter,
+} from "@/lib/filter-periode";
 import PenandaTahap from "@/components/PenandaTahap";
 import KartuGalat from "@/components/KartuGalat";
 import PenjagaModul from "@/components/PenjagaModul";
@@ -98,7 +104,9 @@ function IsiHalamanOlahraga() {
   const [sedangMenyimpan, setSedangMenyimpan] = useState(false);
 
   // Formulir sesi baru
-  const [tanggalBaru, setTanggalBaru] = useState<string>(() => tanggalHariIni());
+  const [tanggalBaru, setTanggalBaru] = useState<string>(() =>
+    tanggalHariIni(),
+  );
   const [kegiatanBaru, setKegiatanBaru] = useState("");
   const [catatanBaru, setCatatanBaru] = useState("");
   const [pesanBuat, setPesanBuat] = useState<string | null>(null);
@@ -178,10 +186,14 @@ function IsiHalamanOlahraga() {
   /* Daftar sesi selalu urut tanggal terbaru dulu (audit Fase 3),
      apa pun urutan dari lapisan data; yang dirender dibatasi
      batasSesi dan diperluas lewat tombol "Muat lebih banyak". */
+  const [filterPeriode, setFilterPeriode] =
+    useState<NilaiFilter>(SEMUA_PERIODE);
   const sesiTerurut = useMemo(
     () =>
-      [...daftarSesi].sort((a, b) => b.tanggal.localeCompare(a.tanggal)),
-    [daftarSesi],
+      [...daftarSesi]
+        .filter((s) => cocokPeriode(s.tanggal, filterPeriode))
+        .sort((a, b) => b.tanggal.localeCompare(a.tanggal)),
+    [daftarSesi, filterPeriode],
   );
   const sesiTampil = sesiTerurut.slice(0, batasSesi);
 
@@ -200,9 +212,7 @@ function IsiHalamanOlahraga() {
      terkonfirmasi — buat sesi disembunyikan, kehadiran baca-saja.
      Mode contoh (profil contoh admin) tidak diterapkan. */
   const pantauanAdmin =
-    !sumberContoh &&
-    profil !== null &&
-    !bolehInput(profil.peran, "olahraga");
+    !sumberContoh && profil !== null && !bolehInput(profil.peran, "olahraga");
 
   async function tanganiBuatSesi() {
     setPesanBuat(null);
@@ -322,7 +332,9 @@ function IsiHalamanOlahraga() {
       status,
     }));
     if (entri.length === 0) {
-      setPesanSimpan("Belum ada santri yang diberi status. Ketuk H/S/I/A dulu.");
+      setPesanSimpan(
+        "Belum ada santri yang diberi status. Ketuk H/S/I/A dulu.",
+      );
       return;
     }
     setSedangMenyimpan(true);
@@ -365,55 +377,57 @@ function IsiHalamanOlahraga() {
         <h2>Buat sesi baru</h2>
         {pantauanAdmin ? (
           <p className="catatan-pantauan" role="note">
-            {pesanModePantauan("pengajar hifzh, pengajar diniyyah, dan musyrif")}
+            {pesanModePantauan(
+              "pengajar hifzh, pengajar diniyyah, dan musyrif",
+            )}
           </p>
         ) : (
-        <div className="formulir" style={{ maxWidth: "100%" }}>
-          <label>
-            Tanggal sesi
-            <input
-              type="date"
-              value={tanggalBaru}
-              onChange={(e) => setTanggalBaru(e.target.value)}
-            />
-          </label>
-          {hariBaru && (
-            <p className="catatan-kaki" style={{ margin: 0 }}>
-              Hari: <strong>{hariBaru.label}</strong>
-              {apakahHariOlahragaRutin(tanggalBaru)
-                ? " — sesuai jadwal rutin olahraga (Ahad/Kamis pagi)."
-                : " — di luar jadwal rutin (Ahad/Kamis pagi), tetap boleh dibuat."}
-            </p>
-          )}
-          <label>
-            Kegiatan
-            <input
-              type="text"
-              className="masukan"
-              value={kegiatanBaru}
-              onChange={(e) => setKegiatanBaru(e.target.value)}
-              placeholder="Mis. Senam pagi & lari keliling lapangan"
-            />
-          </label>
-          <label>
-            Catatan (boleh kosong)
-            <input
-              type="text"
-              className="masukan"
-              value={catatanBaru}
-              onChange={(e) => setCatatanBaru(e.target.value)}
-              placeholder="Mis. Lapangan becek, pindah ke aula"
-            />
-          </label>
-          <button
-            type="button"
-            className="tombol"
-            onClick={tanganiBuatSesi}
-            disabled={sedangMembuat}
-          >
-            {sedangMembuat ? "Menyimpan…" : "Buat sesi"}
-          </button>
-        </div>
+          <div className="formulir" style={{ maxWidth: "100%" }}>
+            <label>
+              Tanggal sesi
+              <input
+                type="date"
+                value={tanggalBaru}
+                onChange={(e) => setTanggalBaru(e.target.value)}
+              />
+            </label>
+            {hariBaru && (
+              <p className="catatan-kaki" style={{ margin: 0 }}>
+                Hari: <strong>{hariBaru.label}</strong>
+                {apakahHariOlahragaRutin(tanggalBaru)
+                  ? " — sesuai jadwal rutin olahraga (Ahad/Kamis pagi)."
+                  : " — di luar jadwal rutin (Ahad/Kamis pagi), tetap boleh dibuat."}
+              </p>
+            )}
+            <label>
+              Kegiatan
+              <input
+                type="text"
+                className="masukan"
+                value={kegiatanBaru}
+                onChange={(e) => setKegiatanBaru(e.target.value)}
+                placeholder="Mis. Senam pagi & lari keliling lapangan"
+              />
+            </label>
+            <label>
+              Catatan (boleh kosong)
+              <input
+                type="text"
+                className="masukan"
+                value={catatanBaru}
+                onChange={(e) => setCatatanBaru(e.target.value)}
+                placeholder="Mis. Lapangan becek, pindah ke aula"
+              />
+            </label>
+            <button
+              type="button"
+              className="tombol"
+              onClick={tanganiBuatSesi}
+              disabled={sedangMembuat}
+            >
+              {sedangMembuat ? "Menyimpan…" : "Buat sesi"}
+            </button>
+          </div>
         )}
         {pesanBuat && (
           <p className="catatan-kaki" role="status" style={{ marginTop: 10 }}>
@@ -425,6 +439,16 @@ function IsiHalamanOlahraga() {
       {/* ------------ Daftar sesi ------------ */}
       <section className="kartu">
         <h2>Sesi olahraga</h2>
+        <FilterPeriode
+          nilai={filterPeriode}
+          onUbah={(v) => {
+            setFilterPeriode(v);
+            setBatasSesi(10);
+          }}
+        />
+        {daftarSesi.length > 0 && sesiTerurut.length === 0 && (
+          <p>Tidak ada sesi pada periode ini.</p>
+        )}
         {galatMuat ? (
           <p>Data sesi belum bisa ditampilkan.</p>
         ) : daftarSesi.length === 0 ? (
@@ -497,14 +521,13 @@ function IsiHalamanOlahraga() {
               className="tombol tombol-sekunder"
               onClick={() => setBatasSesi((b) => b + 10)}
             >
-              Muat lebih banyak ({sesiTerurut.length - batasSesi} sesi
-              lagi)
+              Muat lebih banyak ({sesiTerurut.length - batasSesi} sesi lagi)
             </button>
           </p>
         )}
         <p className="catatan-kaki">
-          Ketuk satu sesi untuk mengisi atau melihat kehadirannya di
-          bawah. Satu tanggal hanya boleh punya satu sesi.
+          Ketuk satu sesi untuk mengisi atau melihat kehadirannya di bawah. Satu
+          tanggal hanya boleh punya satu sesi.
         </p>
       </section>
 
@@ -513,9 +536,9 @@ function IsiHalamanOlahraga() {
         <section className="kartu">
           <h2>Kehadiran — {sesiTerpilih.kegiatan}</h2>
           <p>
-            {formatTanggalPanjang(sesiTerpilih.tanggal)}. Terisi{" "}
-            {jumlahTerisi} dari {semuaSantri.length} santri. Status yang
-            sudah tersimpan untuk sesi ini terisi otomatis.
+            {formatTanggalPanjang(sesiTerpilih.tanggal)}. Terisi {jumlahTerisi}{" "}
+            dari {semuaSantri.length} santri. Status yang sudah tersimpan untuk
+            sesi ini terisi otomatis.
           </p>
           {pesanSesi && (
             <p className="catatan-kaki" role="status">
@@ -621,15 +644,13 @@ function IsiHalamanOlahraga() {
                   borderBottom: "1px solid var(--garis)",
                 }}
               >
-                <div
-                  style={{ display: "flex", alignItems: "center", gap: 12 }}
-                >
+                <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
                   <AvatarInisial nama={s.nama} ukuran="kecil" />
                   <div>
-                    <div style={{ fontWeight: 600, fontSize: 14 }}>{s.nama}</div>
-                    <div
-                      style={{ color: "var(--teks-redup)", fontSize: 12 }}
-                    >
+                    <div style={{ fontWeight: 600, fontSize: 14 }}>
+                      {s.nama}
+                    </div>
+                    <div style={{ color: "var(--teks-redup)", fontSize: 12 }}>
                       {s.kelasNama} · Ayah/Wali: {s.namaAyahWali}
                     </div>
                   </div>
@@ -660,29 +681,29 @@ function IsiHalamanOlahraga() {
                     )}
                   </div>
                 ) : (
-                <div
-                  className="pil-status-grup"
-                  role="group"
-                  aria-label={`Status kehadiran olahraga ${s.nama}`}
-                >
-                  {STATUS_KEHADIRAN.map((st) => {
-                    const aktif = pilihan[s.id] === st;
-                    return (
-                      <button
-                        key={st}
-                        type="button"
-                        className={`pil-status pil-status--${st}`}
-                        aria-pressed={aktif}
-                        title={LABEL_STATUS[st]}
-                        onClick={() =>
-                          setPilihan((lama) => ({ ...lama, [s.id]: st }))
-                        }
-                      >
-                        {SINGKATAN_STATUS[st]}
-                      </button>
-                    );
-                  })}
-                </div>
+                  <div
+                    className="pil-status-grup"
+                    role="group"
+                    aria-label={`Status kehadiran olahraga ${s.nama}`}
+                  >
+                    {STATUS_KEHADIRAN.map((st) => {
+                      const aktif = pilihan[s.id] === st;
+                      return (
+                        <button
+                          key={st}
+                          type="button"
+                          className={`pil-status pil-status--${st}`}
+                          aria-pressed={aktif}
+                          title={LABEL_STATUS[st]}
+                          onClick={() =>
+                            setPilihan((lama) => ({ ...lama, [s.id]: st }))
+                          }
+                        >
+                          {SINGKATAN_STATUS[st]}
+                        </button>
+                      );
+                    })}
+                  </div>
                 )}
               </div>
             ))}
@@ -692,59 +713,59 @@ function IsiHalamanOlahraga() {
           </div>
 
           {!pantauanAdmin && (
-          <>
-          <div className="bilah-aksi">
-            <button
-              type="button"
-              className="tombol tombol-hantu"
-              onClick={() =>
-                setPilihan((lama) =>
-                  isiKosongSebagaiHadir(
-                    lama,
-                    santriTampil.map((s) => s.id),
-                  ),
-                )
-              }
-            >
-              Isi yang kosong sebagai Hadir
-            </button>
-            <button
-              type="button"
-              className="tombol tombol-hantu"
-              onClick={() => {
-                const ids = santriTampil.map((s) => s.id);
-                const tertimpa = hitungTertimpa(pilihan, ids);
-                if (
-                  tertimpa > 0 &&
-                  !window.confirm(
-                    `${tertimpa} status yang sudah dipilih akan tertimpa menjadi Hadir. Lanjutkan?`,
-                  )
-                ) {
-                  return;
-                }
-                setPilihan((lama) => timpaSemuaJadiHadir(lama, ids));
-              }}
-            >
-              Timpa semua jadi Hadir
-            </button>
-            <button
-              type="button"
-              className="tombol"
-              style={{ marginLeft: "auto" }}
-              onClick={tanganiSimpan}
-              disabled={sedangMenyimpan}
-            >
-              {sedangMenyimpan
-                ? "Menyimpan…"
-                : `Simpan kehadiran · ${jumlahTerisi} terisi`}
-            </button>
-          </div>
-          <p className="catatan-kaki" style={{ marginTop: 8 }}>
-            {filterKelas === "semua"
-              ? "Tombol Simpan mengirim semua status yang terisi pada sesi ini."
-              : `Tombol Simpan mengirim semua status yang terisi pada sesi ini (${jumlahTerisi} santri), termasuk santri di luar filter kelas yang sedang tampil — filter hanya membatasi tampilan, bukan cakupan simpan.`}
-          </p>
-          </>
+            <>
+              <div className="bilah-aksi">
+                <button
+                  type="button"
+                  className="tombol tombol-hantu"
+                  onClick={() =>
+                    setPilihan((lama) =>
+                      isiKosongSebagaiHadir(
+                        lama,
+                        santriTampil.map((s) => s.id),
+                      ),
+                    )
+                  }
+                >
+                  Isi yang kosong sebagai Hadir
+                </button>
+                <button
+                  type="button"
+                  className="tombol tombol-hantu"
+                  onClick={() => {
+                    const ids = santriTampil.map((s) => s.id);
+                    const tertimpa = hitungTertimpa(pilihan, ids);
+                    if (
+                      tertimpa > 0 &&
+                      !window.confirm(
+                        `${tertimpa} status yang sudah dipilih akan tertimpa menjadi Hadir. Lanjutkan?`,
+                      )
+                    ) {
+                      return;
+                    }
+                    setPilihan((lama) => timpaSemuaJadiHadir(lama, ids));
+                  }}
+                >
+                  Timpa semua jadi Hadir
+                </button>
+                <button
+                  type="button"
+                  className="tombol"
+                  style={{ marginLeft: "auto" }}
+                  onClick={tanganiSimpan}
+                  disabled={sedangMenyimpan}
+                >
+                  {sedangMenyimpan
+                    ? "Menyimpan…"
+                    : `Simpan kehadiran · ${jumlahTerisi} terisi`}
+                </button>
+              </div>
+              <p className="catatan-kaki" style={{ marginTop: 8 }}>
+                {filterKelas === "semua"
+                  ? "Tombol Simpan mengirim semua status yang terisi pada sesi ini."
+                  : `Tombol Simpan mengirim semua status yang terisi pada sesi ini (${jumlahTerisi} santri), termasuk santri di luar filter kelas yang sedang tampil — filter hanya membatasi tampilan, bukan cakupan simpan.`}
+              </p>
+            </>
           )}
           {pesanSimpan && (
             <p className="catatan-kaki" role="status" style={{ marginTop: 10 }}>
@@ -753,7 +774,6 @@ function IsiHalamanOlahraga() {
           )}
         </section>
       )}
-
     </>
   );
 }

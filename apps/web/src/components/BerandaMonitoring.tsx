@@ -3,6 +3,8 @@
 import { useMemo, useState, type ReactNode } from "react";
 import Link from "next/link";
 import Logo from "@/components/Logo";
+import BannerMotivasi from "@/components/BannerMotivasi";
+import InformasiPondok from "@/components/InformasiPondok";
 import { Ikon, type NamaIkon } from "@/components/Ikon";
 import { cariDiBeranda, modulBeranda } from "@/lib/beranda";
 import type { ProfilLogin } from "@/lib/sesi";
@@ -203,6 +205,7 @@ export default function BerandaMonitoring({
       </section>
 
       <div className="beranda-isi">
+        <BannerMotivasi />
         {modeContoh && (
           <p className="beranda-mode-contoh">
             Mode contoh · Seluruh angka berasal dari data latihan.
@@ -217,7 +220,9 @@ export default function BerandaMonitoring({
         <section aria-labelledby="judul-menu-beranda">
           <div className="beranda-kepala-seksi">
             <h2 id="judul-menu-beranda">Menu Utama</h2>
-            <span>{memuatProfil ? "Memuat…" : `${modul.length} modul`}</span>
+            <Link href="/lainnya">
+              Lainnya <Ikon nama="chevron-kanan" ukuran={14} />
+            </Link>
           </div>
           <div className="beranda-menu" data-jumlah={modul.length}>
             {memuatProfil
@@ -236,81 +241,65 @@ export default function BerandaMonitoring({
                   >
                     {/* Gambar 3D asli dari versi sebelumnya; label menjadi nama aksesibel. */}
                     {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img
-                      className="beranda-menu-gambar"
-                      src={`/images/menu/${m.modul === "laporan" ? "rekap" : m.modul}.webp`}
-                      alt=""
-                      width={72}
-                      height={72}
-                    />
+                    <span className="beranda-menu-lingkaran">
+                      <img
+                        className="beranda-menu-gambar"
+                        src={`/images/menu/${m.modul === "laporan" ? "rekap" : m.modul}.webp`}
+                        alt=""
+                        width={72}
+                        height={72}
+                      />
+                    </span>
                     <span className="beranda-menu-label">{m.label}</span>
                   </Link>
                 ))}
           </div>
         </section>
 
+        {profil && <InformasiPondok ringkas peran={profil.peran} />}
+        {children}
         {profil && (
-          <section aria-labelledby="judul-ringkasan-beranda">
-            <div className="beranda-kepala-seksi">
-              <h2 id="judul-ringkasan-beranda">
-                {wali ? "Ringkasan Anak" : "Ringkasan Hari Ini"}
-              </h2>
-            </div>
-            <div className="beranda-ringkasan">
-              {ringkasan.map((r) => (
-                <div key={r.label} className="beranda-kartu-ringkasan">
-                  <span className="beranda-menu-ikon">
-                    <Ikon nama={r.ikon} ukuran={24} />
-                  </span>
-                  <div>
-                    <strong>{r.nilai === undefined ? "—" : r.nilai}</strong>
-                    <span>{r.label}</span>
-                  </div>
-                </div>
-              ))}
-            </div>
+          <details className="beranda-aktivitas-terakhir">
+            <summary>
+              Lihat rincian aktivitas <Ikon nama="chevron-kanan" ukuran={14} />
+            </summary>
             {memuatData && (
-              <p className="beranda-info" role="status">
-                Memuat ringkasan…
+              <p role="status" className="catatan-kaki">
+                Memuat rincian aktivitas…
               </p>
             )}
             {galat && (
               <div className="beranda-galat" role="status">
-                <span>Ringkasan belum dapat dimuat.</span>
+                <span>Rincian belum dapat dimuat.</span>
                 <button type="button" onClick={onMuatUlang}>
                   Coba lagi
                 </button>
               </div>
             )}
-            {statistik && (
-              <details className="beranda-ringkasan-lain">
-                <summary>
-                  Lihat rincian aktivitas{" "}
-                  <Ikon nama="chevron-kanan" ukuran={14} />
-                </summary>
-                <dl>
-                  <div>
-                    <dt>
-                      {wali ? "Kehadiran tercatat" : "Kehadiran hari ini"}
-                    </dt>
-                    <dd>{statistik.kehadiran}</dd>
-                  </div>
-                  <div>
-                    <dt>{wali ? "Catatan tercatat" : "Catatan hari ini"}</dt>
-                    <dd>{statistik.catatan}</dd>
-                  </div>
-                  {!wali && (
-                    <div>
-                      <dt>Sesi olahraga pekan ini</dt>
-                      <dd>{statistik.olahraga}</dd>
-                    </div>
-                  )}
-                </dl>
-              </details>
-            )}
-          </section>
+            <dl>
+              {ringkasan.map((r) => (
+                <div key={r.label}>
+                  <dt>{r.label}</dt>
+                  <dd>{r.nilai === undefined ? "—" : r.nilai}</dd>
+                </div>
+              ))}
+              <div>
+                <dt>{wali ? "Kehadiran tercatat" : "Kehadiran hari ini"}</dt>
+                <dd>{statistik?.kehadiran ?? "—"}</dd>
+              </div>
+              <div>
+                <dt>{wali ? "Catatan tercatat" : "Catatan hari ini"}</dt>
+                <dd>{statistik?.catatan ?? "—"}</dd>
+              </div>
+              {!wali && (
+                <div>
+                  <dt>Sesi olahraga pekan ini</dt>
+                  <dd>{statistik?.olahraga ?? "—"}</dd>
+                </div>
+              )}
+            </dl>
+          </details>
         )}
-        {children}
       </div>
     </div>
   );
