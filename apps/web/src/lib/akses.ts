@@ -136,15 +136,11 @@ export function bolehAksesModul(
  * kedipan fitur terlarang untuk peran mana pun).
  */
 export function modulUntukSemuaPeran(modul: KunciModul): boolean {
-  return SEMUA_PERAN.every((peran) =>
-    PETA_AKSES_MODUL[modul].includes(peran),
-  );
+  return SEMUA_PERAN.every((peran) => PETA_AKSES_MODUL[modul].includes(peran));
 }
 
 /** Revisi status kehadiran: khusus admin, di semua mode tampilan. */
-export function bolehRevisiKehadiran(
-  peran: Peran | null | undefined,
-): boolean {
+export function bolehRevisiKehadiran(peran: Peran | null | undefined): boolean {
   return peran === PERAN.ADMIN;
 }
 
@@ -218,7 +214,8 @@ export function modulDariPath(pathname: string): KunciModul | null {
   if (pathname === "/admin" || pathname.startsWith("/admin/")) {
     return "admin";
   }
-  if (pathname === "/menu") return "menu";
+  if (pathname === "/menu" || pathname === "/lainnya") return "menu";
+  if (pathname === "/informasi") return "laporan";
   if (pathname === "/akun") return "akun";
   if (pathname === "/grafik") return "grafik";
   if (pathname === "/laporan" || pathname.startsWith("/laporan/")) {

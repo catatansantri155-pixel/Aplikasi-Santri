@@ -6,7 +6,6 @@ import BerandaMonitoring, {
   type StatistikBeranda,
 } from "@/components/BerandaMonitoring";
 import AvatarInisial from "@/components/AvatarInisial";
-import BannerMotivasi from "@/components/BannerMotivasi";
 import { Ikon } from "@/components/Ikon";
 import {
   ambilDaftarSantri,
@@ -272,11 +271,7 @@ export default function HalamanBeranda() {
       )}
 
       {identitas && (
-        <details className="beranda-info-pondok">
-          <summary>
-            Informasi pondok <Ikon nama="chevron-kanan" ukuran={14} />
-          </summary>
-          <BannerMotivasi />
+        <div className="beranda-meta">
           {semester && (
             <div className="beranda-semester">
               <Ikon nama="kalender" ukuran={18} />
@@ -292,7 +287,7 @@ export default function HalamanBeranda() {
             </div>
           )}
           <p>{formatHijriahRingkas()}</p>
-        </details>
+        </div>
       )}
     </BerandaMonitoring>
   );

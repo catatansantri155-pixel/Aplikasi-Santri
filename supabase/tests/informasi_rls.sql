@@ -1,0 +1,72 @@
+begin;
+select set_config('test.admin_id',(select id::text from public.profiles where peran='admin' order by created_at limit 1),true);
+select set_config('test.wali_id',(select id::text from public.profiles where peran='wali' order by created_at limit 1),true);
+select set_config('request.jwt.claim.sub',current_setting('test.admin_id'),true);
+set local role authenticated;
+insert into public.informasi_pondok(judul,isi,status,tanggal) values ('__uji_informasi_draf__','Konten uji sementara yang akan dibatalkan.','draf','2026-11-05'),('__uji_informasi_terbit__','Konten uji sementara yang akan dibatalkan.','terbit','2026-11-05');
+do $$ begin
+ if (select count(*) from public.informasi_pondok where judul like '__uji_informasi_%')<>2 then raise exception 'Admin gagal membaca draf dan terbitan'; end if;
+ update public.informasi_pondok set isi='Draf uji diperbarui lalu dibatalkan setelah verifikasi.' where judul='__uji_informasi_draf__';
+ if not found then raise exception 'Admin gagal mengubah informasi'; end if;
+end $$;
+reset role;
+select set_config('request.jwt.claim.sub',current_setting('test.admin_id'),true);
+update public.profiles set peran='wali' where id=current_setting('test.wali_id')::uuid;
+select set_config('request.jwt.claim.sub',current_setting('test.wali_id'),true);
+set local role authenticated;
+do $$ declare jumlah integer;terubah integer;begin
+ select count(*) into jumlah from public.informasi_pondok where judul like '__uji_informasi_%';
+ if jumlah<>1 then raise exception 'RLS baca gagal untuk wali';end if;
+ begin insert into public.informasi_pondok(judul,isi) values ('__uji_dilarang__','Penulisan ini harus ditolak oleh RLS.');raise exception 'RLS insert gagal untuk wali';exception when insufficient_privilege then null;end;
+ update public.informasi_pondok set isi='Perubahan tidak sah harus ditolak.' where judul='__uji_informasi_terbit__';
+ get diagnostics terubah=row_count;
+ if terubah<>0 then raise exception 'RLS update gagal untuk wali';end if;
+end $$;
+reset role;
+select set_config('request.jwt.claim.sub',current_setting('test.admin_id'),true);
+update public.profiles set peran='musyrif' where id=current_setting('test.wali_id')::uuid;
+select set_config('request.jwt.claim.sub',current_setting('test.wali_id'),true);
+set local role authenticated;
+do $$ declare jumlah integer;terubah integer;begin
+ select count(*) into jumlah from public.informasi_pondok where judul like '__uji_informasi_%';
+ if jumlah<>1 then raise exception 'RLS baca gagal untuk musyrif';end if;
+ begin insert into public.informasi_pondok(judul,isi) values ('__uji_dilarang__','Penulisan ini harus ditolak oleh RLS.');raise exception 'RLS insert gagal untuk musyrif';exception when insufficient_privilege then null;end;
+ update public.informasi_pondok set isi='Perubahan tidak sah harus ditolak.' where judul='__uji_informasi_terbit__';
+ get diagnostics terubah=row_count;
+ if terubah<>0 then raise exception 'RLS update gagal untuk musyrif';end if;
+end $$;
+reset role;
+select set_config('request.jwt.claim.sub',current_setting('test.admin_id'),true);
+update public.profiles set peran='pengajar_hifzh' where id=current_setting('test.wali_id')::uuid;
+select set_config('request.jwt.claim.sub',current_setting('test.wali_id'),true);
+set local role authenticated;
+do $$ declare jumlah integer;terubah integer;begin
+ select count(*) into jumlah from public.informasi_pondok where judul like '__uji_informasi_%';
+ if jumlah<>1 then raise exception 'RLS baca gagal untuk pengajar_hifzh';end if;
+ begin insert into public.informasi_pondok(judul,isi) values ('__uji_dilarang__','Penulisan ini harus ditolak oleh RLS.');raise exception 'RLS insert gagal untuk pengajar_hifzh';exception when insufficient_privilege then null;end;
+ update public.informasi_pondok set isi='Perubahan tidak sah harus ditolak.' where judul='__uji_informasi_terbit__';
+ get diagnostics terubah=row_count;
+ if terubah<>0 then raise exception 'RLS update gagal untuk pengajar_hifzh';end if;
+end $$;
+reset role;
+select set_config('request.jwt.claim.sub',current_setting('test.admin_id'),true);
+update public.profiles set peran='pengajar_diniyyah' where id=current_setting('test.wali_id')::uuid;
+select set_config('request.jwt.claim.sub',current_setting('test.wali_id'),true);
+set local role authenticated;
+do $$ declare jumlah integer;terubah integer;begin
+ select count(*) into jumlah from public.informasi_pondok where judul like '__uji_informasi_%';
+ if jumlah<>1 then raise exception 'RLS baca gagal untuk pengajar_diniyyah';end if;
+ begin insert into public.informasi_pondok(judul,isi) values ('__uji_dilarang__','Penulisan ini harus ditolak oleh RLS.');raise exception 'RLS insert gagal untuk pengajar_diniyyah';exception when insufficient_privilege then null;end;
+ update public.informasi_pondok set isi='Perubahan tidak sah harus ditolak.' where judul='__uji_informasi_terbit__';
+ get diagnostics terubah=row_count;
+ if terubah<>0 then raise exception 'RLS update gagal untuk pengajar_diniyyah';end if;
+end $$;
+reset role;
+select set_config('request.jwt.claim.sub','',true);
+set local role anon;
+do $$ begin
+ begin perform count(*) from public.informasi_pondok;raise exception 'Anon dapat membaca informasi';exception when insufficient_privilege then null;end;
+end $$;
+reset role;
+rollback;
+select json_build_object('uji','Admin tulis/ubah/baca draf; wali, musyrif, kedua pengajar hanya baca terbitan; anon ditolak; seluruh fixture/perubahan peran di-rollback','baris_uji_tersisa',(select count(*) from public.informasi_pondok where judul like '__uji_%')) as hasil;

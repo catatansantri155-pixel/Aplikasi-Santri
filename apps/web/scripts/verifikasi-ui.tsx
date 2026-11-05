@@ -73,7 +73,7 @@ for (const [role, menu] of Object.entries(expected)) {
     !html.includes("beranda-menu-panah"),
     "Tidak ada chevron pada tombol menu",
   );
-  assert.ok(html.includes(">17</strong>") && html.includes(">23</strong>"));
+  assert.ok(html.includes(">17</dd>") && html.includes(">23</dd>"));
   if (peran !== "admin") assert.ok(!html.includes('href="/admin"'));
   for (const m of modulBeranda(peran))
     assert.ok(

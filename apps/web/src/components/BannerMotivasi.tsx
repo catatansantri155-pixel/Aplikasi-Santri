@@ -1,114 +1,117 @@
 "use client";
-
-/**
- * Banner motivasi beranda — SLIDER 5 hadis (arahan user
- * 4 Nov 2026, menggantikan kartu hadis tunggal sebelumnya).
- *
- * - Lima slide hadis: teks Arab (huruf Amiri lewat .teks-arab),
- *   terjemahan Indonesia, dan sumber — isinya tetap, bukan data
- *   database.
- * - Bergeser OTOMATIS tiap ±5 detik; titik penanda di bawah kartu
- *   bisa diketuk untuk melompat ke slide tertentu (ketukan juga
- *   mengulang hitungan jeda dari awal).
- * - Pengguna yang meminta gerakan dikurangi (prefers-reduced-motion
- *   di sistem) tidak digeser otomatis; titik tetap bisa diketuk.
- * - Gaya visual meneruskan kartu hadis lama: bidang tint emas
- *   (.banner-motivasi di globals.css) + pola bintang emas.
- */
 import { useEffect, useState } from "react";
-import Pola from "@/components/Pola";
-
-const SLIDE_MOTIVASI: {
-  arab: string;
-  terjemahan: string;
-  sumber: string;
-}[] = [
-  {
-    arab: "خَيْرُكُمْ مَنْ تَعَلَّمَ الْقُرْآنَ وَعَلَّمَهُ",
-    terjemahan:
-      "Sebaik-baik kalian adalah yang belajar Al-Qur'an dan mengajarkannya.",
-    sumber: "HR. Bukhari",
-  },
-  {
-    arab: "مَنْ سَلَكَ طَرِيقًا يَلْتَمِسُ فِيهِ عِلْمًا سَهَّلَ اللَّهُ لَهُ بِهِ طَرِيقًا إِلَى الْجَنَّةِ",
-    terjemahan:
-      "Siapa menempuh jalan untuk mencari ilmu, Allah mudahkan baginya jalan menuju surga.",
-    sumber: "HR. Muslim",
-  },
-  {
-    arab: "إِنَّمَا بُعِثْتُ لِأُتَمِّمَ مَكَارِمَ الْأَخْلَاقِ",
-    terjemahan:
-      "Sesungguhnya aku diutus untuk menyempurnakan akhlak yang mulia.",
-    sumber: "HR. Ahmad",
-  },
-  {
-    arab: "أَحَبُّ الْأَعْمَالِ إِلَى اللَّهِ أَدْوَمُهَا وَإِنْ قَلَّ",
-    terjemahan:
-      "Amalan yang paling dicintai Allah adalah yang paling kontinu, meski sedikit.",
-    sumber: "HR. Bukhari dan Muslim",
-  },
-  {
-    arab: "طَلَبُ الْعِلْمِ فَرِيضَةٌ عَلَى كُلِّ مُسْلِمٍ",
-    terjemahan: "Menuntut ilmu itu wajib atas setiap muslim.",
-    sumber: "HR. Ibnu Majah",
-  },
+export const BANNER_MOTIVASI = [
+  [
+    "Ilmu Tumbuh dengan Adab",
+    "Belajar dengan sungguh-sungguh, bersikap dengan santun.",
+  ],
+  ["Jaga Hafalan, Setiap Hari", "Sedikit demi sedikit, terus diperbaiki."],
+  [
+    "Disiplin Hadir, Siap Belajar",
+    "Datang tepat waktu, siapkan hati dan pikiran.",
+  ],
+  ["Catatan Kecil, Perubahan Baik", "Kenali kemajuan, perbaiki kebiasaan."],
+  [
+    "Sehat Badan, Semangat Belajar",
+    "Bergerak aktif, istirahat cukup, jaga kebersihan.",
+  ],
+  ["Bersama Mendampingi Santri", "Pondok dan wali saling mendukung."],
+  [
+    "Langkah Baik Dimulai Hari Ini",
+    "Niatkan kebaikan, mulai dari yang sederhana.",
+  ],
 ];
-
-/** Jeda geser otomatis antar-slide, milidetik. */
-const JEDA_SLIDE_MS = 5000;
-
 export default function BannerMotivasi() {
-  const [aktif, setAktif] = useState(0);
-  // Penghitung ulang jeda: berubah setiap ketukan titik agar slide
-  // yang dipilih bertahan satu jeda penuh sebelum bergeser lagi.
-  const [sesi, setSesi] = useState(0);
-
+  const [aktif, setAktif] = useState(0),
+    [jeda, setJeda] = useState(false),
+    [hover, setHover] = useState(false),
+    [fokus, setFokus] = useState(false),
+    [terlihat, setTerlihat] = useState(true),
+    [kurangiGerak, setKurangiGerak] = useState(true);
   useEffect(() => {
-    if (
-      typeof window !== "undefined" &&
-      window.matchMedia("(prefers-reduced-motion: reduce)").matches
-    ) {
-      return;
-    }
-    const id = window.setInterval(() => {
-      setAktif((a) => (a + 1) % SLIDE_MOTIVASI.length);
-    }, JEDA_SLIDE_MS);
+    const media = window.matchMedia("(prefers-reduced-motion: reduce)");
+    const perbarui = () => setKurangiGerak(media.matches);
+    const visibilitas = () => setTerlihat(!document.hidden);
+    perbarui();
+    visibilitas();
+    media.addEventListener("change", perbarui);
+    document.addEventListener("visibilitychange", visibilitas);
+    return () => {
+      media.removeEventListener("change", perbarui);
+      document.removeEventListener("visibilitychange", visibilitas);
+    };
+  }, []);
+  useEffect(() => {
+    if (jeda || hover || fokus || !terlihat || kurangiGerak) return;
+    const id = window.setInterval(() => setAktif((i) => (i + 1) % 7), 7000);
     return () => window.clearInterval(id);
-  }, [sesi]);
-
-  const slide = SLIDE_MOTIVASI[aktif];
-
+  }, [jeda, hover, fokus, terlihat, kurangiGerak, aktif]);
   return (
-    <div
-      className="banner-motivasi"
+    <section
+      className="banner-gambar"
       aria-roledescription="carousel"
-      aria-label="Hadis motivasi"
+      aria-label="Motivasi santri"
+      onMouseEnter={() => setHover(true)}
+      onMouseLeave={() => setHover(false)}
+      onFocusCapture={() => setFokus(true)}
+      onBlurCapture={(e) => {
+        if (!e.currentTarget.contains(e.relatedTarget as Node | null))
+          setFokus(false);
+      }}
     >
-      <Pola className="motivasi-pola" />
-      <div key={aktif} className="motivasi-slide" aria-live="off">
-        <p className="motivasi-arab teks-arab" dir="rtl" lang="ar">
-          {slide.arab}
-        </p>
-        <p className="motivasi-teks">
-          &ldquo;{slide.terjemahan}&rdquo;
-        </p>
-        <p className="motivasi-sumber">{slide.sumber}</p>
+      <div className="banner-gambar-bidang" aria-live="off">
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
+          src={`/images/banner/motivasi-${aktif + 1}.webp`}
+          width={2172}
+          height={724}
+          alt={`${BANNER_MOTIVASI[aktif][0]}. ${BANNER_MOTIVASI[aktif][1]}`}
+          decoding="async"
+        />
       </div>
-      <div className="motivasi-titik" aria-label="Pilih hadis">
-        {SLIDE_MOTIVASI.map((s, i) => (
-          <button
-            key={s.sumber}
-            type="button"
-            className="motivasi-titik-tombol"
-            aria-current={i === aktif}
-            aria-label={`Hadis ${i + 1} dari ${SLIDE_MOTIVASI.length}: ${s.sumber}`}
-            onClick={() => {
-              setAktif(i);
-              setSesi((n) => n + 1);
-            }}
-          />
-        ))}
+      <p className="banner-keterangan" aria-hidden="true">
+        {BANNER_MOTIVASI[aktif][1]}
+      </p>
+      <div className="banner-kontrol">
+        <button
+          type="button"
+          aria-label="Banner sebelumnya"
+          onClick={() => setAktif((i) => (i + 6) % 7)}
+        >
+          ‹
+        </button>
+        <div
+          className="banner-indikator"
+          role="group"
+          aria-label="Pilih banner"
+        >
+          {BANNER_MOTIVASI.map(([judul], i) => (
+            <button
+              type="button"
+              key={judul}
+              aria-label={`Banner ${i + 1}: ${judul}`}
+              aria-current={i === aktif ? "true" : undefined}
+              onClick={() => setAktif(i)}
+            >
+              <span />
+            </button>
+          ))}
+        </div>
+        <button
+          type="button"
+          aria-label="Banner berikutnya"
+          onClick={() => setAktif((i) => (i + 1) % 7)}
+        >
+          ›
+        </button>
+        <button
+          type="button"
+          aria-pressed={jeda}
+          onClick={() => setJeda((v) => !v)}
+        >
+          {jeda ? "Lanjutkan" : "Jeda"}
+        </button>
       </div>
-    </div>
+    </section>
   );
 }
