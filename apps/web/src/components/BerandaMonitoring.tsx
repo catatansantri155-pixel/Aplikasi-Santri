@@ -3,7 +3,6 @@
 import { useMemo, useState, type ReactNode } from "react";
 import Link from "next/link";
 import { Ikon, type NamaIkon } from "@/components/Ikon";
-import AvatarInisial from "@/components/AvatarInisial";
 import { cariDiBeranda, modulBeranda } from "@/lib/beranda";
 import type { ProfilLogin } from "@/lib/sesi";
 import type { Santri } from "@/lib/data/santri";
@@ -70,7 +69,7 @@ export default function BerandaMonitoring({
       nilai: statistik?.santri,
     },
     {
-      ikon: "hifzh",
+      ikon: "diniyyah",
       label: wali ? "Setoran tercatat" : "Setoran hari ini",
       nilai: statistik?.setoran,
     },
@@ -95,17 +94,6 @@ export default function BerandaMonitoring({
             </strong>
             <span>Minhajus Sunnah · Magelang</span>
           </div>
-          <Link
-            href="/akun"
-            className="beranda-avatar"
-            aria-label="Buka akun dan pengaturan"
-          >
-            {profil ? (
-              <AvatarInisial nama={profil.nama} ukuran="sedang" />
-            ) : (
-              <Ikon nama="akun" ukuran={25} />
-            )}
-          </Link>
         </div>
 
         <div className="beranda-cari">
@@ -206,7 +194,7 @@ export default function BerandaMonitoring({
             src="/images/santri-study-hero.webp"
             width={384}
             height={384}
-            alt="Dua santri membaca Al-Qur’an di ruang belajar pondok"
+            alt="Ruang mengaji dengan Al-Qur’an, rehal, dan alas duduk"
             decoding="async"
             fetchPriority="high"
           />
@@ -230,7 +218,7 @@ export default function BerandaMonitoring({
             <h2 id="judul-menu-beranda">Menu Utama</h2>
             <span>{memuatProfil ? "Memuat…" : `${modul.length} modul`}</span>
           </div>
-          <div className="beranda-menu">
+          <div className="beranda-menu" data-jumlah={modul.length}>
             {memuatProfil
               ? Array.from({ length: 6 }, (_, i) => (
                   <div
@@ -245,13 +233,16 @@ export default function BerandaMonitoring({
                     href={m.href}
                     className="beranda-menu-item"
                   >
-                    <span className="beranda-menu-ikon">
-                      <Ikon nama={m.ikon} ukuran={23} />
-                    </span>
+                    {/* Gambar 3D asli dari versi sebelumnya; label menjadi nama aksesibel. */}
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                      className="beranda-menu-gambar"
+                      src={`/images/menu/${m.modul === "laporan" ? "rekap" : m.modul}.webp`}
+                      alt=""
+                      width={72}
+                      height={72}
+                    />
                     <span className="beranda-menu-label">{m.label}</span>
-                    <span className="beranda-menu-panah">
-                      <Ikon nama="chevron-kanan" ukuran={15} />
-                    </span>
                   </Link>
                 ))}
           </div>

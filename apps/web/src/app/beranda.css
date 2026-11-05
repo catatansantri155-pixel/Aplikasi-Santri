@@ -514,3 +514,217 @@
     min-height: 70px;
   }
 }
+
+/* Revisi referensi: menu persegi, 3 kolom di HP dan ruang kerja lebar di PC. */
+.beranda-menu {
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: 10px;
+}
+.beranda-menu-item {
+  grid-column: span 2;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  aspect-ratio: 1;
+  min-height: 0;
+  padding: 8px 4px;
+  gap: 3px;
+  border: 0;
+  border-radius: 15px;
+  text-align: center;
+}
+.beranda-menu-gambar {
+  display: block;
+  width: clamp(48px, 16vw, 72px);
+  height: auto;
+  aspect-ratio: 1;
+  object-fit: contain;
+}
+.beranda-menu-label {
+  font-size: calc(12px * var(--skala-teks));
+  line-height: 1.3;
+  font-weight: 650;
+}
+.beranda-menu[data-jumlah="8"] .beranda-menu-item:nth-last-child(2),
+.beranda-menu[data-jumlah="5"] .beranda-menu-item:nth-last-child(2),
+.beranda-menu[data-jumlah="2"] .beranda-menu-item:first-child {
+  grid-column: 2 / span 2;
+}
+.beranda-menu[data-jumlah="4"] .beranda-menu-item:last-child,
+.beranda-menu[data-jumlah="7"] .beranda-menu-item:last-child {
+  grid-column: 3 / span 2;
+}
+.beranda-menu-skeleton {
+  grid-column: span 2;
+  height: auto;
+  aspect-ratio: 1;
+}
+.beranda-ringkasan {
+  gap: 0;
+  border: 1px solid #add8d0;
+  background: #eaf6f2;
+  border-radius: 15px;
+  padding: 14px 0;
+}
+.beranda-kartu-ringkasan {
+  display: grid;
+  grid-template-columns: auto auto;
+  justify-content: center;
+  gap: 4px 10px;
+  min-height: 0;
+  padding: 0 8px;
+  border: 0;
+  border-radius: 0;
+  text-align: center;
+}
+.beranda-kartu-ringkasan + .beranda-kartu-ringkasan {
+  border-left: 1px solid #b8dbd4;
+}
+.beranda-kartu-ringkasan .beranda-menu-ikon {
+  background: transparent;
+  width: 28px;
+  height: 28px;
+}
+.beranda-kartu-ringkasan > div {
+  display: contents;
+}
+.beranda-kartu-ringkasan strong {
+  font-size: 27px;
+  color: #144c47;
+}
+.beranda-kartu-ringkasan div > span {
+  grid-column: 1 / -1;
+  margin-top: 1px;
+  font-size: 11px;
+  color: #365d57;
+}
+.nav-bawah .nav-slot:not(.nav-slot--aktif) .nav-slot-label {
+  display: none;
+}
+.nav-bawah .nav-slot {
+  transition:
+    background 0.18s,
+    color 0.18s;
+}
+.nav-bawah .nav-slot--aktif {
+  flex: 1.9;
+  padding: 6px 10px;
+  white-space: nowrap;
+}
+.nav-bawah .nav-slot--aktif .nav-slot-label {
+  font-size: clamp(10px, 2.9vw, 12px);
+}
+[data-tema="gelap"] .beranda-ringkasan {
+  background: #173733;
+  border-color: #315c53;
+}
+[data-tema="gelap"] .beranda-kartu-ringkasan strong,
+[data-tema="gelap"] .beranda-kartu-ringkasan div > span {
+  color: #e0f3ee;
+}
+[data-tema="gelap"] .beranda-kartu-ringkasan + .beranda-kartu-ringkasan {
+  border-color: #315c53;
+}
+@media (min-width: 640px) {
+  .beranda-menu {
+    max-width: 630px;
+    margin-inline: auto;
+    gap: 14px;
+  }
+  .beranda-menu-item {
+    padding: 12px;
+    gap: 5px;
+  }
+  .beranda-menu-gambar {
+    width: 84px;
+  }
+  .beranda-menu-label {
+    font-size: calc(14px * var(--skala-teks));
+  }
+}
+@media (min-width: 1024px) {
+  .kerangka[data-halaman="beranda"] .konten {
+    max-width: 1440px;
+    padding: 24px;
+  }
+  .beranda-monitoring {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1.25fr);
+    gap: 24px;
+    align-items: start;
+  }
+  .beranda-hero {
+    border-radius: 24px;
+    padding: 28px;
+    position: sticky;
+    top: 24px;
+  }
+  .beranda-profil {
+    gap: 12px;
+  }
+  .beranda-identitas strong {
+    font-size: 19px;
+  }
+  .beranda-intro {
+    grid-template-columns: 1fr;
+    gap: 8px;
+    margin-top: 28px;
+  }
+  .beranda-intro h1 {
+    font-size: clamp(30px, 3.2vw, 44px);
+  }
+  .beranda-intro p {
+    font-size: 14px;
+  }
+  .beranda-ilustrasi {
+    width: 100%;
+    max-width: 280px;
+    justify-self: center;
+  }
+  .beranda-isi {
+    padding: 4px 0 0;
+    gap: 24px;
+    min-width: 0;
+  }
+  .beranda-menu {
+    max-width: none;
+    gap: 12px;
+  }
+  .beranda-menu-item {
+    padding: 8px 4px;
+  }
+  .beranda-menu-gambar {
+    width: clamp(56px, 6vw, 84px);
+  }
+  .beranda-menu-label {
+    font-size: calc(12px * var(--skala-teks));
+  }
+  .beranda-kepala-seksi h2 {
+    font-size: 19px;
+  }
+  .beranda-ringkasan {
+    padding: 20px 0;
+  }
+}
+@media (min-width: 1440px) {
+  .beranda-monitoring {
+    grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.3fr);
+    gap: 32px;
+  }
+  .beranda-menu {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+  .beranda-menu-item,
+  .beranda-menu[data-jumlah] .beranda-menu-item:nth-child(n) {
+    grid-column: auto;
+  }
+  .beranda-menu-label {
+    font-size: calc(13px * var(--skala-teks));
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .nav-bawah .nav-slot {
+    transition: none;
+  }
+}
