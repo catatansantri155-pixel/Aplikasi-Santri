@@ -4,6 +4,7 @@ import Kerangka from "@/components/Kerangka";
 import "./globals.css";
 import "./ui.css";
 import "./beranda.css";
+import "./analitik.css";
 
 export const metadata: Metadata = {
   title: "Aplikasi Santri",

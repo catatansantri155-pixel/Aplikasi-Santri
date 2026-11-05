@@ -82,14 +82,6 @@ export default function Kerangka({ children }: { children: ReactNode }) {
             <Ikon nama="chevron-kanan" ukuran={14} />
             <strong>{namaHalaman[halaman] ?? "Aplikasi Santri"}</strong>
           </div>
-          <Link
-            href="/akun"
-            className="akses-akun"
-            aria-label="Buka akun dan pengaturan"
-          >
-            <Ikon nama="akun" ukuran={21} />
-            <span>Akun saya</span>
-          </Link>
         </header>
         <main className="konten" id="konten" tabIndex={-1}>
           {children}

@@ -55,7 +55,11 @@ interface SlotNav {
 }
 
 const SLOT_BERANDA: SlotNav = { href: "/", label: "Beranda", ikon: "beranda" };
-const SLOT_SANTRI: SlotNav = { href: "/santri", label: "Santri", ikon: "santri" };
+const SLOT_SANTRI: SlotNav = {
+  href: "/santri",
+  label: "Santri",
+  ikon: "santri",
+};
 const SLOT_AKUN: SlotNav = { href: "/akun", label: "Akun", ikon: "akun" };
 const SLOT_KEHADIRAN: SlotNav = {
   href: "/kehadiran",
@@ -128,11 +132,12 @@ function SlotTautan({
       href={href}
       className={`nav-slot${aktif ? " nav-slot--aktif" : ""}`}
       aria-current={aktif ? "page" : undefined}
+      aria-label={label}
     >
       <span className="nav-ikon" aria-hidden="true">
         <Ikon nama={ikon} ukuran={20} tebal={aktif ? 2.4 : 1.8} />
       </span>
-      <span>{label}</span>
+      <span className="nav-slot-label">{label}</span>
     </Link>
   );
 }
