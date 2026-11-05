@@ -5,9 +5,21 @@ import "./globals.css";
 import "./ui.css";
 import "./beranda.css";
 import "./analitik.css";
+import "./akses.css";
 
 export const metadata: Metadata = {
-  title: "Aplikasi Santri",
+  title: "Monitoring Santri | Minhajus Sunnah",
+  applicationName: "Monitoring Santri",
+  manifest: "/manifest.webmanifest",
+  icons: {
+    icon: [
+      { url: "/brand/logo-32.png", sizes: "32x32", type: "image/png" },
+      { url: "/brand/logo-192.png", sizes: "192x192", type: "image/png" },
+    ],
+    apple: [
+      { url: "/brand/logo-180.png", sizes: "180x180", type: "image/png" },
+    ],
+  },
   description:
     "Aplikasi monitoring santri Marhalah Wustha: hifzh, diniyyah, kehadiran, dan catatan musyrif.",
 };

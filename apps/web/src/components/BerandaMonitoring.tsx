@@ -2,6 +2,7 @@
 
 import { useMemo, useState, type ReactNode } from "react";
 import Link from "next/link";
+import Logo from "@/components/Logo";
 import { Ikon, type NamaIkon } from "@/components/Ikon";
 import { cariDiBeranda, modulBeranda } from "@/lib/beranda";
 import type { ProfilLogin } from "@/lib/sesi";
@@ -83,7 +84,7 @@ export default function BerandaMonitoring({
       >
         <div className="beranda-profil">
           <span className="beranda-tanda" aria-hidden="true">
-            <Ikon nama="diniyyah" ukuran={27} />
+            <Logo ukuran={40} />
           </span>
           <div className="beranda-identitas">
             <p>Assalamu&rsquo;alaikum,</p>

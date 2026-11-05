@@ -85,15 +85,13 @@ export default function HalamanAturSandi() {
   }
 
   return (
-    <RangkaAuth>
+    <RangkaAuth varian="pemulihan">
       <div className="auth-kolom">
         <h1 className="auth-judul">Atur Kata Sandi Baru</h1>
-        <p className="auth-sub">
-          Tetapkan kata sandi baru untuk akun Anda.
-        </p>
+        <p className="auth-sub">Tetapkan kata sandi baru untuk akun Anda.</p>
 
         {!modeSupabase && (
-          <PenandaTahap teks="MODE CONTOH · FITUR ASLI MENUNGGU ENV SUPABASE" />
+          <PenandaTahap teks="Mode contoh · Layanan pemulihan belum diaktifkan." />
         )}
 
         {keadaan === "memeriksa" && (
@@ -103,9 +101,8 @@ export default function HalamanAturSandi() {
         {keadaan === "tanpa-sesi" && (
           <>
             <p className="pesan-galat" role="alert">
-              Tautan atur ulang tidak valid atau sudah kedaluwarsa.
-              Minta tautan baru, lalu buka tautan terbaru dari surel
-              Anda.
+              Tautan atur ulang tidak valid atau sudah kedaluwarsa. Minta tautan
+              baru, lalu buka tautan terbaru dari surel Anda.
             </p>
             <p style={{ marginTop: 12 }}>
               <Link
@@ -152,8 +149,8 @@ export default function HalamanAturSandi() {
         {keadaan === "sukses" && (
           <>
             <p className="pesan-sukses" role="status">
-              Kata sandi baru tersimpan. Gunakan kata sandi ini untuk
-              masuk berikutnya.
+              Kata sandi baru tersimpan. Gunakan kata sandi ini untuk masuk
+              berikutnya.
             </p>
             <p style={{ marginTop: 12 }}>
               <Link href="/" className="tombol tombol-besar tombol-penuh">
