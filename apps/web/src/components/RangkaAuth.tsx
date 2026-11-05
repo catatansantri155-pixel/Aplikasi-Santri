@@ -1,60 +1,68 @@
-/**
- * Kerangka halaman auth — mengikuti prototipe Lovable (AuthShell):
- * desktop = belah dua penuh layar; sisi kiri panel primer berisi
- * merek, visual geometris (dua bingkai persegi berputar + ikon buku
- * emas), judul besar, dan tiga langkah bernomor emas. Sisi kanan =
- * kolom formulir terpusat (maks 384px). Di HP panel disembunyikan;
- * halaman menampilkan logonya sendiri (khusus login, seperti
- * prototipe).
- */
 import type { ReactNode } from "react";
-import Logo from "./Logo";
-import Pola from "./Pola";
-import { Ikon } from "./Ikon";
+import MerekAkses from "@/components/MerekAkses";
+import VisualAkses from "@/components/VisualAkses";
 
 const LANGKAH_BAWAAN = [
-  "Masuk dengan akun dari pondok",
-  "Pilih modul sesuai tugas Anda",
-  "Catat, simpan, dan pantau laporannya",
+  "Masuk menggunakan email akun Anda",
+  "Buka modul sesuai tugas dan akses",
+  "Catat dan pantau perkembangan santri",
 ];
-
 export default function RangkaAuth({
   children,
   langkah = LANGKAH_BAWAAN,
+  varian = "masuk",
 }: {
   children: ReactNode;
   langkah?: string[];
+  varian?: "masuk" | "daftar" | "pemulihan";
 }) {
   return (
-    <div className="auth-split">
-      <aside className="auth-panel" aria-hidden="true">
-        <Pola className="auth-panel-pola" />
-        <div className="auth-panel-merek">
-          <Logo ukuran={40} />
-          <span>Aplikasi Santri</span>
-        </div>
-        <div className="auth-panel-tengah">
-          <div className="auth-visual">
-            <span className="auth-visual-bingkai auth-visual-bingkai--luar" />
-            <span className="auth-visual-bingkai auth-visual-bingkai--dalam" />
-            <span className="auth-visual-ikon">
-              <Ikon nama="hifzh" ukuran={96} />
+    <div className="akses-shell" data-varian={varian}>
+      <header className="akses-header">
+        <MerekAkses />
+        <span className="akses-identitas">MARHALAH WUSTHA</span>
+      </header>
+      <div className="akses-grid">
+        <aside className="akses-panggung">
+          <VisualAkses />
+          <div className="akses-panggung-teks">
+            <span className="akses-kicker">
+              ILMU TERCATAT, PERKEMBANGAN TERPANTAU
             </span>
+            <h2>
+              {varian === "daftar"
+                ? "Lebih dekat dengan perkembangan anak."
+                : varian === "pemulihan"
+                  ? "Kembali terhubung dengan akun Anda."
+                  : "Satu ruang untuk mendampingi santri."}
+            </h2>
+            <p>
+              Hafalan, nilai, kehadiran, dan keseharian dalam satu aplikasi.
+            </p>
+            <ol className="akses-langkah">
+              {langkah.map((teks, i) => (
+                <li key={teks}>
+                  <span>{i + 1}</span>
+                  {teks}
+                </li>
+              ))}
+            </ol>
           </div>
-          <p className="auth-panel-judul">
-            Memantau tumbuhnya ilmu dan adab santri.
-          </p>
-          <ol className="auth-langkah">
-            {langkah.map((teks, i) => (
-              <li key={teks}>
-                <span className="auth-langkah-nomor">{i + 1}</span>
-                <span>{teks}</span>
-              </li>
-            ))}
-          </ol>
-        </div>
-      </aside>
-      <main className="auth-isi">{children}</main>
+        </aside>
+        <main className="akses-form-panel">
+          <span className="akses-kartu-kicker">
+            {varian === "daftar"
+              ? "AKUN ORANG TUA / WALI"
+              : varian === "pemulihan"
+                ? "PEMULIHAN AKUN"
+                : "AHLAN WA SAHLAN"}
+          </span>
+          {children}
+        </main>
+      </div>
+      <footer className="akses-footer">
+        Monitoring Santri · Minhajus Sunnah Magelang
+      </footer>
     </div>
   );
 }

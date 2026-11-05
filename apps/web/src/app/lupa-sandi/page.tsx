@@ -59,7 +59,7 @@ export default function HalamanLupaSandi() {
   }
 
   return (
-    <RangkaAuth>
+    <RangkaAuth varian="pemulihan">
       <div className="auth-kolom">
         <h1 className="auth-judul">Lupa Kata Sandi</h1>
         <p className="auth-sub">
@@ -67,14 +67,14 @@ export default function HalamanLupaSandi() {
         </p>
 
         {!modeSupabase && (
-          <PenandaTahap teks="MODE CONTOH · FITUR ASLI MENUNGGU ENV SUPABASE" />
+          <PenandaTahap teks="Mode contoh · Layanan pemulihan belum diaktifkan." />
         )}
         {terkirim ? (
           <>
             <p className="pesan-sukses" role="status">
-              Bila surel tersebut terdaftar, tautan atur ulang kata
-              sandi sudah kami kirimkan. Periksa kotak masuk (dan folder
-              spam) Anda, lalu ikuti tautannya.
+              Bila surel tersebut terdaftar, tautan atur ulang kata sandi sudah
+              kami kirimkan. Periksa kotak masuk (dan folder spam) Anda, lalu
+              ikuti tautannya.
             </p>
             <p style={{ marginTop: 12 }}>
               <Link href="/login" className="tombol tombol-besar tombol-penuh">

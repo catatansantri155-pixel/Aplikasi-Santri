@@ -120,7 +120,9 @@ export default function HalamanDaftar() {
       }
       setKeadaan({ jenis: "menunggu-konfirmasi" });
     } catch {
-      setGalat("Gagal menghubungi layanan pendaftaran. Coba lagi beberapa saat lagi.");
+      setGalat(
+        "Gagal menghubungi layanan pendaftaran. Coba lagi beberapa saat lagi.",
+      );
     } finally {
       setMengirim(false);
     }
@@ -128,6 +130,7 @@ export default function HalamanDaftar() {
 
   return (
     <RangkaAuth
+      varian="daftar"
       langkah={[
         "Isi data wali dan buat kata sandi",
         "Masuk dengan akun yang baru dibuat",
@@ -135,14 +138,14 @@ export default function HalamanDaftar() {
       ]}
     >
       <div className="auth-kolom">
-        <h1 className="auth-judul">Daftar Wali</h1>
+        <h1 className="auth-judul">Buat akun wali</h1>
         <p className="auth-sub">
-          Khusus orang tua / wali santri. Pengajar dan musyrif
-          menggunakan akun yang dibuatkan admin.
+          Daftar untuk mengikuti perkembangan anak Anda. Akun pengajar dan
+          musyrif disiapkan oleh admin.
         </p>
 
         {!modeSupabase && (
-          <PenandaTahap teks="MODE CONTOH · PENDAFTARAN ASLI MENUNGGU ENV SUPABASE" />
+          <PenandaTahap teks="Mode contoh · Layanan pendaftaran belum diaktifkan." />
         )}
 
         {keadaan.jenis === "sukses-sesi" && (
@@ -151,9 +154,8 @@ export default function HalamanDaftar() {
               Pendaftaran berhasil. Akun Anda sudah aktif sebagai wali.
             </p>
             <p style={{ marginTop: 12 }}>
-              Data anak Anda akan tampil setelah admin menautkan akun
-              ini ke santri. Selama belum ditautkan, Anda belum dapat
-              melihat data apa pun — itu memang pengaman aplikasi ini.
+              Data anak Anda akan tampil setelah admin menautkan akun ini ke
+              santri. Hubungi admin pondok untuk proses penautan.
             </p>
             <Link href="/" className="tombol tombol-besar tombol-penuh">
               Masuk ke beranda
@@ -168,9 +170,9 @@ export default function HalamanDaftar() {
               mengonfirmasi akun.
             </p>
             <p style={{ marginTop: 12 }}>
-              Setelah mengonfirmasi dan masuk pertama kali, profil wali
-              Anda dilengkapi otomatis. Data anak tampil setelah admin
-              menautkan akun Anda ke santri.
+              Setelah mengonfirmasi dan masuk pertama kali, profil wali Anda
+              dilengkapi otomatis. Data anak tampil setelah admin menautkan akun
+              Anda ke santri.
             </p>
             <Link href="/login" className="tombol tombol-besar tombol-penuh">
               Ke halaman masuk
@@ -180,10 +182,9 @@ export default function HalamanDaftar() {
 
         {keadaan.jenis === "formulir" && (
           <>
-            <p style={{ marginTop: 0 }}>
-              Akun dapat langsung dipakai masuk setelah pendaftaran,
-              tetapi data anak baru muncul setelah admin menautkan akun
-              Anda ke santri.
+            <p className="akses-catatan">
+              Ikuti konfirmasi email bila diminta. Data anak akan tampil setelah
+              admin menautkan akun ini ke santri.
             </p>
             <form className="formulir" onSubmit={tanganiKirim}>
               <label>
@@ -195,15 +196,16 @@ export default function HalamanDaftar() {
                   required
                   value={nama}
                   onChange={(e) => setNama(e.target.value)}
-                  placeholder="Nama lengkap ayah / wali santri"
+                  placeholder="Nama lengkap orang tua / wali"
                 />
               </label>
               <label>
-                Alamat surel
+                Email
                 <input
                   type="email"
                   name="email"
                   autoComplete="email"
+                  placeholder="nama@email.com"
                   required
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
@@ -233,7 +235,7 @@ export default function HalamanDaftar() {
                 className="tombol tombol-besar tombol-penuh"
                 disabled={mengirim}
               >
-                {mengirim ? "Memproses…" : "Daftar"}
+                {mengirim ? "Memproses…" : "Buat akun wali"}
               </button>
             </form>
             <p className="catatan-kaki" style={{ textAlign: "center" }}>

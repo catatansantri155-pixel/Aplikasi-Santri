@@ -53,7 +53,7 @@ export default function Kerangka({ children }: { children: ReactNode }) {
         <div className="sidebar-merek">
           <Logo ukuran={36} />
           <span className="sidebar-merek-teks">
-            <span className="sidebar-merek-nama">Aplikasi Santri</span>
+            <span className="sidebar-merek-nama">Monitoring Santri</span>
             <span className="sidebar-merek-sub">Marhalah Wustha</span>
           </span>
         </div>

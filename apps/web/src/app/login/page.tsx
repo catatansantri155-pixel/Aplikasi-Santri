@@ -49,7 +49,6 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import PenandaTahap from "@/components/PenandaTahap";
 import { Ikon } from "@/components/Ikon";
-import Logo from "@/components/Logo";
 import RangkaAuth from "@/components/RangkaAuth";
 import { buatKlienBrowser } from "@/lib/supabase/client";
 import { supabaseTerhubung } from "@/lib/data/santri";
@@ -115,8 +114,7 @@ export default function HalamanLogin() {
       let dariPenanda = false;
       try {
         dariPenanda =
-          sessionStorage.getItem(KUNCI_PENANDA_PROFIL_BELUM_DISIAPKAN) ===
-          "1";
+          sessionStorage.getItem(KUNCI_PENANDA_PROFIL_BELUM_DISIAPKAN) === "1";
         if (dariPenanda) {
           sessionStorage.removeItem(KUNCI_PENANDA_PROFIL_BELUM_DISIAPKAN);
         }
@@ -199,7 +197,9 @@ export default function HalamanLogin() {
       router.replace("/");
       router.refresh();
     } catch {
-      setGalat("Gagal menghubungi layanan masuk. Coba lagi beberapa saat lagi.");
+      setGalat(
+        "Gagal menghubungi layanan masuk. Coba lagi beberapa saat lagi.",
+      );
     } finally {
       setMengirim(false);
     }
@@ -208,15 +208,10 @@ export default function HalamanLogin() {
   return (
     <RangkaAuth>
       <div className="auth-kolom">
-        {/* Logo hanya tampil di HP (prototipe); di PC merek ada di
-            panel kiri rangka. */}
-        <div className="auth-logo-hp">
-          <Logo ukuran={44} />
-        </div>
         <h1 className="auth-judul">Masuk</h1>
-        <p className="auth-sub">Gunakan akun yang diberikan pondok.</p>
+        <p className="auth-sub">Gunakan email dan kata sandi akun Anda.</p>
         {!modeSupabase && (
-          <PenandaTahap teks="MODE CONTOH · LOGIN ASLI MENUNGGU ENV SUPABASE" />
+          <PenandaTahap teks="Mode contoh · Layanan masuk belum diaktifkan." />
         )}
         {profilBelumDisiapkan && (
           <p className="pesan-galat" role="alert" style={{ marginBottom: 14 }}>
@@ -225,12 +220,12 @@ export default function HalamanLogin() {
         )}
         <form className="formulir" onSubmit={tanganiKirim}>
           <label>
-            Nama pengguna atau email
+            Email
             <input
               type="email"
               name="email"
               autoComplete="username"
-              placeholder="Masukkan alamat surel"
+              placeholder="nama@email.com"
               required
               value={email}
               onChange={(e) => setEmail(e.target.value)}
@@ -259,7 +254,10 @@ export default function HalamanLogin() {
                 aria-pressed={sandiTerlihat}
                 onClick={() => setSandiTerlihat((lama) => !lama)}
               >
-                <Ikon nama={sandiTerlihat ? "mata-silang" : "mata"} ukuran={18} />
+                <Ikon
+                  nama={sandiTerlihat ? "mata-silang" : "mata"}
+                  ukuran={18}
+                />
               </button>
             </span>
           </label>
@@ -271,7 +269,11 @@ export default function HalamanLogin() {
               {galat}
             </p>
           )}
-          <button type="submit" className="tombol tombol-penuh" disabled={mengirim}>
+          <button
+            type="submit"
+            className="tombol tombol-penuh"
+            disabled={mengirim}
+          >
             {mengirim ? "Memproses…" : "Masuk"}
           </button>
         </form>
@@ -280,17 +282,14 @@ export default function HalamanLogin() {
           className="catatan-kaki"
           style={{ textAlign: "center", marginTop: 16 }}
         >
-          Pengguna dan kata sandi memakai akun yang diberikan oleh tim
-          kepesantrenan. <Link href="/sambutan">Lihat perkenalan</Link>
+          Akun pengajar dan musyrif disiapkan oleh admin pondok.{" "}
+          <Link href="/sambutan">Lihat perkenalan</Link>
         </p>
         <p
           className="catatan-kaki"
           style={{ textAlign: "center", marginTop: 10 }}
         >
           Belum punya akun wali? <Link href="/daftar">Daftar</Link>
-        </p>
-        <p className="auth-kaki">
-          Ponpes Minhajus Sunnah Magelang · Marhalah Wustha
         </p>
       </div>
     </RangkaAuth>
