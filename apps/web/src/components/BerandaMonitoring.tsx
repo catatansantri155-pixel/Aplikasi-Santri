@@ -205,7 +205,6 @@ export default function BerandaMonitoring({
       </section>
 
       <div className="beranda-isi">
-        <BannerMotivasi />
         {modeContoh && (
           <p className="beranda-mode-contoh">
             Mode contoh · Seluruh angka berasal dari data latihan.
@@ -256,13 +255,18 @@ export default function BerandaMonitoring({
           </div>
         </section>
 
+        <BannerMotivasi />
         {profil && <InformasiPondok ringkas peran={profil.peran} />}
         {children}
         {profil && (
-          <details className="beranda-aktivitas-terakhir">
-            <summary>
-              Lihat rincian aktivitas <Ikon nama="chevron-kanan" ukuran={14} />
-            </summary>
+          <section
+            className="beranda-aktivitas-terakhir"
+            aria-labelledby="judul-rincian-aktivitas"
+          >
+            <h2 id="judul-rincian-aktivitas">Rincian aktivitas</h2>
+            <p className="aktivitas-pengantar">
+              Aktivitas pondok dalam satu pandangan.
+            </p>
             {memuatData && (
               <p role="status" className="catatan-kaki">
                 Memuat rincian aktivitas…
@@ -298,7 +302,7 @@ export default function BerandaMonitoring({
                 </div>
               )}
             </dl>
-          </details>
+          </section>
         )}
       </div>
     </div>

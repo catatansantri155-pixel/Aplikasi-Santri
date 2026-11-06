@@ -274,11 +274,15 @@ export default function HalamanBeranda() {
         <div className="beranda-meta">
           {semester && (
             <div className="beranda-semester">
-              <Ikon nama="kalender" ukuran={18} />
+              <span className="semester-ikon">
+                <Ikon nama="kalender" ukuran={24} />
+              </span>
               <div>
-                <strong>
-                  {semester.nama} · {semester.tahunAjaran}
-                </strong>
+                <small>Semester aktif</small>
+                <strong>{semester.nama}</strong>
+                {!semester.nama.includes(semester.tahunAjaran) && (
+                  <span>Tahun ajaran {semester.tahunAjaran}</span>
+                )}
                 <span>
                   {formatTanggal(semester.tanggalMulai)} –{" "}
                   {formatTanggal(semester.tanggalSelesai)}

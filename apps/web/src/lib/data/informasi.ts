@@ -1,3 +1,5 @@
+import { BUCKET_INFORMASI, POLA_GAMBAR } from "./gambar-informasi";
+import { TEMA_INFORMASI, type TemaInformasi } from "@/lib/template-informasi";
 import { buatKlienBrowser } from "@/lib/supabase/client";
 import { supabaseTerhubung } from "@/lib/data/santri";
 import {
@@ -20,19 +22,35 @@ export interface InformasiPondok {
   tanggal: string;
   created_at: string;
   updated_at: string;
+  tema: TemaInformasi;
+  gambar_path: string | null;
+  gambar_url?: string;
 }
 export type IsianInformasi = Pick<
   InformasiPondok,
   "judul" | "isi" | "kategori" | "status" | "tanggal"
->;
-const KOLOM = "id,judul,isi,kategori,status,tanggal,created_at,updated_at";
+> &
+  Partial<Pick<InformasiPondok, "tema" | "gambar_path">>;
+const KOLOM =
+  "id,judul,isi,kategori,status,tanggal,created_at,updated_at,tema,gambar_path";
 export function validasiInformasi(v: IsianInformasi): IsianInformasi {
   const judul = v.judul.trim(),
     isi = v.isi.trim();
   if (judul.length < 3 || judul.length > 150)
     throw Error("Judul harus 3–150 karakter.");
-  if (isi.length < 10 || isi.length > 12000)
-    throw Error("Isi informasi harus 10–12.000 karakter.");
+  const gambar_path = v.gambar_path || null;
+  if (gambar_path && !POLA_GAMBAR.test(gambar_path))
+    throw Error("Gambar tidak valid. Unggah ulang gambar.");
+  if ((!gambar_path && isi.length < 10) || isi.length > 12000)
+    throw Error(
+      "Isi minimal 10 karakter, atau tambahkan gambar. Maksimal 12.000 karakter.",
+    );
+  if (!TEMA_INFORMASI.includes(v.tema ?? "hijau"))
+    throw Error("Tema tidak valid.");
+  if (v.status === "terbit" && /\[[^\]]+\]/.test(judul + isi))
+    throw Error(
+      "Lengkapi bagian dalam tanda [ ] dari template sebelum diterbitkan.",
+    );
   if (
     !KATEGORI_INFORMASI.includes(
       v.kategori as (typeof KATEGORI_INFORMASI)[number],
@@ -42,7 +60,15 @@ export function validasiInformasi(v: IsianInformasi): IsianInformasi {
   if (!["draf", "terbit"].includes(v.status))
     throw Error("Status tidak valid.");
   batasPeriode({ mode: "tanggal", nilai: v.tanggal });
-  return { ...v, judul, isi };
+  return {
+    judul,
+    isi,
+    kategori: v.kategori,
+    status: v.status,
+    tanggal: v.tanggal,
+    tema: v.tema ?? "hijau",
+    gambar_path,
+  };
 }
 export async function ambilInformasi({
   filter = SEMUA_PERIODE,
@@ -64,7 +90,19 @@ export async function ambilInformasi({
     halaman * batas + batas - 1,
   );
   if (error) throw Error("Informasi pondok belum dapat dimuat. Coba lagi.");
-  return { data: (data ?? []) as InformasiPondok[], jumlah: count ?? 0 };
+  const baris = (data ?? []) as InformasiPondok[];
+  const paths = [
+    ...new Set(baris.flatMap((b) => (b.gambar_path ? [b.gambar_path] : []))),
+  ];
+  if (paths.length) {
+    const { data: urls } = await buatKlienBrowser()
+      .storage.from(BUCKET_INFORMASI)
+      .createSignedUrls(paths, 3600);
+    for (const b of baris)
+      b.gambar_url =
+        urls?.find((u) => u.path === b.gambar_path)?.signedUrl ?? undefined;
+  }
+  return { data: baris, jumlah: count ?? 0 };
 }
 export async function simpanInformasi(v: IsianInformasi, id?: string) {
   const nilai = validasiInformasi(v);

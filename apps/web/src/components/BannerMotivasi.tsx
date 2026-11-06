@@ -1,29 +1,19 @@
 "use client";
 import { useEffect, useState } from "react";
 export const BANNER_MOTIVASI = [
+  ["Ruang belajar", "Buku, tanaman, dan lampu di ruang belajar pondok."],
+  ["Ruang mengaji", "Al-Qur’an, rehal kayu, alas duduk, dan lentera."],
+  ["Persiapan belajar", "Papan kehadiran, jam, dan alat tulis."],
+  ["Catatan belajar", "Buku catatan terbuka dengan pena dan pembatas buku."],
   [
-    "Ilmu Tumbuh dengan Adab",
-    "Belajar dengan sungguh-sungguh, bersikap dengan santun.",
+    "Perlengkapan olahraga",
+    "Bola, botol minum, dan handuk di lingkungan pondok.",
   ],
-  ["Jaga Hafalan, Setiap Hari", "Sedikit demi sedikit, terus diperbaiki."],
-  [
-    "Disiplin Hadir, Siap Belajar",
-    "Datang tepat waktu, siapkan hati dan pikiran.",
-  ],
-  ["Catatan Kecil, Perubahan Baik", "Kenali kemajuan, perbaiki kebiasaan."],
-  [
-    "Sehat Badan, Semangat Belajar",
-    "Bergerak aktif, istirahat cukup, jaga kebersihan.",
-  ],
-  ["Bersama Mendampingi Santri", "Pondok dan wali saling mendukung."],
-  [
-    "Langkah Baik Dimulai Hari Ini",
-    "Niatkan kebaikan, mulai dari yang sederhana.",
-  ],
+  ["Lingkungan pondok", "Bangunan pondok dengan taman dan halaman yang asri."],
+  ["Langkah kebaikan", "Jalan setapak menuju gerbang taman dan tanaman muda."],
 ];
 export default function BannerMotivasi() {
   const [aktif, setAktif] = useState(0),
-    [jeda, setJeda] = useState(false),
     [hover, setHover] = useState(false),
     [fokus, setFokus] = useState(false),
     [terlihat, setTerlihat] = useState(true),
@@ -42,10 +32,10 @@ export default function BannerMotivasi() {
     };
   }, []);
   useEffect(() => {
-    if (jeda || hover || fokus || !terlihat || kurangiGerak) return;
+    if (hover || fokus || !terlihat || kurangiGerak) return;
     const id = window.setInterval(() => setAktif((i) => (i + 1) % 7), 7000);
     return () => window.clearInterval(id);
-  }, [jeda, hover, fokus, terlihat, kurangiGerak, aktif]);
+  }, [hover, fokus, terlihat, kurangiGerak, aktif]);
   return (
     <section
       className="banner-gambar"
@@ -62,24 +52,15 @@ export default function BannerMotivasi() {
       <div className="banner-gambar-bidang" aria-live="off">
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
-          src={`/images/banner/motivasi-${aktif + 1}.webp`}
+          src={`/images/banner/suasana-${aktif + 1}.webp`}
           width={2172}
           height={724}
           alt={`${BANNER_MOTIVASI[aktif][0]}. ${BANNER_MOTIVASI[aktif][1]}`}
           decoding="async"
+          loading="lazy"
         />
       </div>
-      <p className="banner-keterangan" aria-hidden="true">
-        {BANNER_MOTIVASI[aktif][1]}
-      </p>
       <div className="banner-kontrol">
-        <button
-          type="button"
-          aria-label="Banner sebelumnya"
-          onClick={() => setAktif((i) => (i + 6) % 7)}
-        >
-          ‹
-        </button>
         <div
           className="banner-indikator"
           role="group"
@@ -97,20 +78,6 @@ export default function BannerMotivasi() {
             </button>
           ))}
         </div>
-        <button
-          type="button"
-          aria-label="Banner berikutnya"
-          onClick={() => setAktif((i) => (i + 1) % 7)}
-        >
-          ›
-        </button>
-        <button
-          type="button"
-          aria-pressed={jeda}
-          onClick={() => setJeda((v) => !v)}
-        >
-          {jeda ? "Lanjutkan" : "Jeda"}
-        </button>
       </div>
     </section>
   );
