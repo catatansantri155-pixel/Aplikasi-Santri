@@ -1,14 +1,14 @@
 import Link from "next/link";
 import { Ikon } from "@/components/Ikon";
-import type { Notifikasi } from "@/lib/data/notifikasi";
+import { tujuanNotifikasi, type Notifikasi } from "@/lib/data/notifikasi";
 export default function DaftarNotifikasi({ data }: { data: Notifikasi[] }) {
   return (
     <ul className="notifikasi-daftar">
       {data.map((n) => (
-        <li key={n.id}>
+        <li key={`${n.sumber ?? "informasi"}:${n.id}`}>
           <Link
             className={`notifikasi-baris${!n.dibaca_pada ? " notifikasi-baru" : ""}`}
-            href={`/informasi/${n.id}`}
+            href={tujuanNotifikasi(n)}
           >
             <span className="notifikasi-gambar" aria-hidden="true">
               <Ikon nama="lonceng" ukuran={19} />

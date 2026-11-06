@@ -41,7 +41,7 @@ export const RINGKASAN_PERAN: Record<Peran, string> = {
   musyrif:
     "Mengisi catatan keseharian santri (akhlaq, adab, ibadah shalat, dan lainnya); melihat semua santri.",
   wali:
-    "Hanya melihat data dan hasil belajar anaknya sendiri, hanya-lihat. Akses dibatasi di level database (RLS).",
+    "Melihat perkembangan anak yang tertaut dan mengajukan izin santri. Akses dibatasi di level database (RLS).",
 };
 
 /** Peran staf: boleh melihat data semua santri. Orang tua TIDAK termasuk. */
