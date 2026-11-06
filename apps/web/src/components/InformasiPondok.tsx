@@ -1,4 +1,5 @@
 "use client";
+import PenerimaInformasi from "@/components/PenerimaInformasi";
 import { useEffect, useState, type FormEvent } from "react";
 import Link from "next/link";
 import {
@@ -145,7 +146,7 @@ export default function InformasiPondok({
       );
       setSukses(
         isian.status === "terbit"
-          ? "Informasi diterbitkan untuk seluruh akun."
+          ? "Informasi diterbitkan untuk penerima yang dipilih."
           : "Draf tersimpan.",
       );
       setEditor(false);
@@ -198,7 +199,7 @@ export default function InformasiPondok({
       {!ringkas && (
         <>
           <p className="catatan-kaki">
-            Pengumuman resmi dari Admin Utama untuk seluruh akun pondok.
+            Pengumuman resmi pondok sesuai akses dan penerima akun Anda.
           </p>
           <FilterPeriode
             nilai={filter}
@@ -382,6 +383,7 @@ export default function InformasiPondok({
                 onChange={(e) => setIsian({ ...isian, isi: e.target.value })}
               />
             </label>
+            <PenerimaInformasi nilai={isian} onUbah={setIsian} />
             <label>
               Status
               <select
@@ -394,7 +396,9 @@ export default function InformasiPondok({
                 }
               >
                 <option value="draf">Draf — hanya Admin Utama</option>
-                <option value="terbit">Terbit — terlihat seluruh akun</option>
+                <option value="terbit">
+                  Terbit — sesuai penerima terpilih
+                </option>
               </select>
             </label>
             <p className="catatan-kaki">
@@ -468,6 +472,7 @@ export default function InformasiPondok({
             key={b.id}
             data={b}
             ringkas={ringkas}
+            tautanDetail
             onUbah={
               !ringkas && admin && !menyimpan
                 ? () => {
@@ -476,6 +481,12 @@ export default function InformasiPondok({
                     setGambarLama(b.gambar_url);
                     setTemplate("");
                     setIsian({
+                      sasaran: b.sasaran,
+                      sasaran_peran: b.sasaran_peran,
+                      sasaran_id: b.sasaran_id,
+                      disematkan: b.disematkan,
+                      berakhir_pada: b.berakhir_pada,
+                      wajib_konfirmasi: b.wajib_konfirmasi,
                       judul: b.judul,
                       isi: b.isi,
                       kategori: b.kategori,

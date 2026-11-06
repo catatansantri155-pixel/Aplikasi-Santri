@@ -1,3 +1,5 @@
+import { SEMUA_PERAN } from "@/lib/peran";
+import { kabariNotifikasi, type SasaranInformasi } from "./notifikasi";
 import { BUCKET_INFORMASI, POLA_GAMBAR } from "./gambar-informasi";
 import { TEMA_INFORMASI, type TemaInformasi } from "@/lib/template-informasi";
 import { buatKlienBrowser } from "@/lib/supabase/client";
@@ -25,14 +27,33 @@ export interface InformasiPondok {
   tema: TemaInformasi;
   gambar_path: string | null;
   gambar_url?: string;
+  sasaran?: SasaranInformasi;
+  sasaran_peran?: string | null;
+  sasaran_id?: string | null;
+  disematkan?: boolean;
+  berakhir_pada?: string | null;
+  wajib_konfirmasi?: boolean;
+  revisi?: number;
 }
 export type IsianInformasi = Pick<
   InformasiPondok,
   "judul" | "isi" | "kategori" | "status" | "tanggal"
 > &
-  Partial<Pick<InformasiPondok, "tema" | "gambar_path">>;
+  Partial<
+    Pick<
+      InformasiPondok,
+      | "tema"
+      | "gambar_path"
+      | "sasaran"
+      | "sasaran_peran"
+      | "sasaran_id"
+      | "disematkan"
+      | "berakhir_pada"
+      | "wajib_konfirmasi"
+    >
+  >;
 const KOLOM =
-  "id,judul,isi,kategori,status,tanggal,created_at,updated_at,tema,gambar_path";
+  "id,judul,isi,kategori,status,tanggal,created_at,updated_at,tema,gambar_path,sasaran,sasaran_peran,sasaran_id,disematkan,berakhir_pada,wajib_konfirmasi,revisi";
 export function validasiInformasi(v: IsianInformasi): IsianInformasi {
   const judul = v.judul.trim(),
     isi = v.isi.trim();
@@ -60,7 +81,32 @@ export function validasiInformasi(v: IsianInformasi): IsianInformasi {
   if (!["draf", "terbit"].includes(v.status))
     throw Error("Status tidak valid.");
   batasPeriode({ mode: "tanggal", nilai: v.tanggal });
+  const sasaran = v.sasaran ?? "semua";
+  if (!["semua", "peran", "kelas", "santri", "pengguna"].includes(sasaran))
+    throw Error("Sasaran informasi tidak valid.");
+  if (
+    sasaran === "peran" &&
+    !SEMUA_PERAN.includes(v.sasaran_peran as (typeof SEMUA_PERAN)[number])
+  )
+    throw Error("Pilih peran penerima.");
+  if (
+    ["kelas", "santri", "pengguna"].includes(sasaran) &&
+    !/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/.test(
+      v.sasaran_id ?? "",
+    )
+  )
+    throw Error("Pilih tujuan informasi.");
+  if (v.berakhir_pada && !Number.isFinite(Date.parse(v.berakhir_pada)))
+    throw Error("Batas masa tayang tidak valid.");
   return {
+    sasaran,
+    sasaran_peran: sasaran === "peran" ? v.sasaran_peran : null,
+    sasaran_id: ["kelas", "santri", "pengguna"].includes(sasaran)
+      ? v.sasaran_id
+      : null,
+    disematkan: Boolean(v.disematkan),
+    berakhir_pada: v.berakhir_pada || null,
+    wajib_konfirmasi: Boolean(v.wajib_konfirmasi),
     judul,
     isi,
     kategori: v.kategori,
@@ -81,6 +127,7 @@ export async function ambilInformasi({
   let q = buatKlienBrowser()
     .from("informasi_pondok")
     .select(KOLOM, { count: "exact" })
+    .order("disematkan", { ascending: false })
     .order("tanggal", { ascending: false })
     .order("created_at", { ascending: false });
   if (ringkas) q = q.eq("status", "terbit");
@@ -117,5 +164,48 @@ export async function simpanInformasi(v: IsianInformasi, id?: string) {
     throw Error(
       "Informasi belum tersimpan. Pastikan akun Anda Admin Utama dan coba lagi.",
     );
+  kabariNotifikasi();
   return data as InformasiPondok;
+}
+
+export interface DetailInformasi extends InformasiPondok {
+  untuk_saya: boolean;
+  dibaca_pada: string | null;
+  dikonfirmasi_pada: string | null;
+}
+export async function ambilDetailInformasi(
+  id: string,
+): Promise<DetailInformasi | null> {
+  if (!supabaseTerhubung()) return null;
+  const { data, error } = await buatKlienBrowser().rpc("detail_informasi", {
+    p_id: id,
+  });
+  if (error) throw Error("Informasi belum dapat dimuat. Coba lagi.");
+  if (!data) return null;
+  const b = data as DetailInformasi;
+  if (b.gambar_path) {
+    const { data: url } = await buatKlienBrowser()
+      .storage.from(BUCKET_INFORMASI)
+      .createSignedUrl(b.gambar_path, 3600);
+    b.gambar_url = url?.signedUrl;
+  }
+  return b;
+}
+export async function ringkasanBacaan(id: string, revisi: number) {
+  const db = buatKlienBrowser();
+  const [b, k] = await Promise.all([
+    db
+      .from("informasi_bacaan")
+      .select("informasi_id", { count: "exact", head: true })
+      .eq("informasi_id", id)
+      .eq("revisi", revisi),
+    db
+      .from("informasi_bacaan")
+      .select("informasi_id", { count: "exact", head: true })
+      .eq("informasi_id", id)
+      .eq("revisi", revisi)
+      .not("dikonfirmasi_pada", "is", null),
+  ]);
+  if (b.error || k.error) throw Error("Ringkasan baca belum dapat dimuat.");
+  return { dibaca: b.count ?? 0, dikonfirmasi: k.count ?? 0 };
 }
