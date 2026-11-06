@@ -7,6 +7,7 @@ import "./beranda.css";
 import "./analitik.css";
 import "./akses.css";
 import "./pondok.css";
+import "./dashboard-pc.css";
 
 export const metadata: Metadata = {
   title: "Monitoring Santri | Minhajus Sunnah",

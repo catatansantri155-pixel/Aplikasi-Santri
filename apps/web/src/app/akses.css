@@ -617,3 +617,101 @@
     transition: none;
   }
 }
+
+/* Login PC: tinggi panggung mengikuti ruang viewport, bukan tinggi ilustrasi. */
+@media (min-width: 1024px) {
+  .akses-shell[data-varian="masuk"] {
+    padding: 16px 36px 12px;
+    display: grid;
+    grid-template-rows: auto minmax(0, 1fr) auto;
+    gap: 12px;
+  }
+  .akses-shell[data-varian="masuk"] .akses-header {
+    width: 100%;
+    min-height: 52px;
+  }
+  .akses-shell[data-varian="masuk"] .akses-logo {
+    width: 50px;
+    height: 54px;
+  }
+  .akses-shell[data-varian="masuk"] .akses-logo .logo-pondok {
+    max-width: 44px;
+    max-height: 44px;
+  }
+  .akses-shell[data-varian="masuk"] .akses-grid {
+    width: 100%;
+    min-height: 0;
+    margin: 0 auto;
+    gap: clamp(32px, 5vw, 72px);
+    grid-template-columns: minmax(0, 1.15fr) minmax(360px, 0.95fr);
+  }
+  .akses-shell[data-varian="masuk"] .akses-panggung {
+    gap: 4px;
+  }
+  .akses-shell[data-varian="masuk"] .akses-panggung > .akses-visual {
+    width: min(30svh, 260px);
+  }
+  .akses-shell[data-varian="masuk"] .akses-panggung-teks h2 {
+    font-size: clamp(25px, 2.4vw, 32px);
+    margin: 6px 0 10px;
+    max-width: 470px;
+  }
+  .akses-shell[data-varian="masuk"] .akses-panggung-teks > p {
+    font-size: 12px;
+  }
+  .akses-shell[data-varian="masuk"] .akses-langkah {
+    margin-top: 14px;
+    gap: 8px;
+  }
+  .akses-shell[data-varian="masuk"] .akses-form-panel {
+    padding: 24px 28px;
+    border-radius: 24px;
+  }
+  .akses-shell[data-varian="masuk"] .akses-kartu-kicker {
+    display: none;
+  }
+  .akses-shell[data-varian="masuk"] .auth-judul {
+    font-size: calc(28px * var(--skala-teks));
+    margin-bottom: 6px;
+  }
+  .akses-shell[data-varian="masuk"] .auth-sub {
+    font-size: calc(12px * var(--skala-teks));
+    margin-bottom: 14px;
+  }
+  .akses-shell[data-varian="masuk"] .formulir {
+    gap: 10px;
+  }
+  .akses-shell[data-varian="masuk"] input {
+    min-height: 44px;
+    padding-block: 10px;
+    font-size: 14px;
+  }
+  .akses-shell[data-varian="masuk"] .tombol {
+    min-height: 44px;
+    padding-block: 10px;
+  }
+  .akses-shell[data-varian="masuk"] .catatan-kaki {
+    font-size: calc(10px * var(--skala-teks));
+    line-height: 1.5;
+    margin-top: 10px !important;
+  }
+  .akses-shell[data-varian="masuk"] .akses-footer {
+    margin: 0;
+  }
+}
+@media (min-width: 1024px) and (min-height: 640px) {
+  .akses-shell[data-varian="masuk"] {
+    height: 100svh;
+  }
+}
+@media (min-width: 1024px) and (max-height: 700px) {
+  .akses-shell[data-varian="masuk"] .akses-panggung > .akses-visual {
+    width: min(24svh, 180px);
+  }
+  .akses-shell[data-varian="masuk"] .akses-langkah {
+    display: none;
+  }
+  .akses-shell[data-varian="masuk"] .akses-form-panel {
+    padding: 20px 26px;
+  }
+}

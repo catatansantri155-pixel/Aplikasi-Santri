@@ -3,9 +3,10 @@
 import { useMemo, useState, type ReactNode } from "react";
 import Link from "next/link";
 import Logo from "@/components/Logo";
+import RincianAktivitas from "@/components/RincianAktivitas";
 import BannerMotivasi from "@/components/BannerMotivasi";
 import InformasiPondok from "@/components/InformasiPondok";
-import { Ikon, type NamaIkon } from "@/components/Ikon";
+import { Ikon } from "@/components/Ikon";
 import { cariDiBeranda, modulBeranda } from "@/lib/beranda";
 import type { ProfilLogin } from "@/lib/sesi";
 import type { Santri } from "@/lib/data/santri";
@@ -61,25 +62,22 @@ export default function BerandaMonitoring({
   const adaPencarian = pencarian.trim().length > 0;
   const aksi = profil ? AKSI[profil.peran] : null;
   const wali = profil?.peran === "wali";
-  const ringkasan: {
-    ikon: NamaIkon;
-    label: string;
-    nilai: number | undefined;
-  }[] = [
-    {
-      ikon: "santri",
-      label: wali ? "Anak tertaut" : "Santri aktif",
-      nilai: statistik?.santri,
-    },
-    {
-      ikon: "diniyyah",
-      label: wali ? "Setoran tercatat" : "Setoran hari ini",
-      nilai: statistik?.setoran,
-    },
-  ];
 
   return (
     <div className="beranda-monitoring">
+      <div className="beranda-desktop-judul">
+        <div>
+          <span>RUANG KERJA PONDOK</span>
+          <h1>Dashboard pondok</h1>
+          <p>Kelola kegiatan dan pantau perkembangan santri.</p>
+        </div>
+        {aksi && (
+          <Link href={aksi.href} className="tombol">
+            {aksi.label}
+            <Ikon nama="chevron-kanan" ukuran={16} />
+          </Link>
+        )}
+      </div>
       <section
         className="beranda-hero"
         aria-label="Monitoring Santri Minhajus Sunnah"
@@ -216,7 +214,10 @@ export default function BerandaMonitoring({
             Anda.
           </p>
         )}
-        <section aria-labelledby="judul-menu-beranda">
+        <section
+          className="beranda-modul-panel"
+          aria-labelledby="judul-menu-beranda"
+        >
           <div className="beranda-kepala-seksi">
             <h2 id="judul-menu-beranda">Menu Utama</h2>
             <Link href="/lainnya">
@@ -249,7 +250,12 @@ export default function BerandaMonitoring({
                         height={72}
                       />
                     </span>
-                    <span className="beranda-menu-label">{m.label}</span>
+                    <span className="beranda-menu-label">
+                      {m.label}
+                      <small className="beranda-menu-keterangan">
+                        {m.keterangan}
+                      </small>
+                    </span>
                   </Link>
                 ))}
           </div>
@@ -257,52 +263,15 @@ export default function BerandaMonitoring({
 
         <BannerMotivasi />
         {profil && <InformasiPondok ringkas peran={profil.peran} />}
-        {children}
+        <div className="beranda-pelengkap">{children}</div>
         {profil && (
-          <section
-            className="beranda-aktivitas-terakhir"
-            aria-labelledby="judul-rincian-aktivitas"
-          >
-            <h2 id="judul-rincian-aktivitas">Rincian aktivitas</h2>
-            <p className="aktivitas-pengantar">
-              Aktivitas pondok dalam satu pandangan.
-            </p>
-            {memuatData && (
-              <p role="status" className="catatan-kaki">
-                Memuat rincian aktivitas…
-              </p>
-            )}
-            {galat && (
-              <div className="beranda-galat" role="status">
-                <span>Rincian belum dapat dimuat.</span>
-                <button type="button" onClick={onMuatUlang}>
-                  Coba lagi
-                </button>
-              </div>
-            )}
-            <dl>
-              {ringkasan.map((r) => (
-                <div key={r.label}>
-                  <dt>{r.label}</dt>
-                  <dd>{r.nilai === undefined ? "—" : r.nilai}</dd>
-                </div>
-              ))}
-              <div>
-                <dt>{wali ? "Kehadiran tercatat" : "Kehadiran hari ini"}</dt>
-                <dd>{statistik?.kehadiran ?? "—"}</dd>
-              </div>
-              <div>
-                <dt>{wali ? "Catatan tercatat" : "Catatan hari ini"}</dt>
-                <dd>{statistik?.catatan ?? "—"}</dd>
-              </div>
-              {!wali && (
-                <div>
-                  <dt>Sesi olahraga pekan ini</dt>
-                  <dd>{statistik?.olahraga ?? "—"}</dd>
-                </div>
-              )}
-            </dl>
-          </section>
+          <RincianAktivitas
+            statistik={statistik}
+            wali={wali}
+            memuat={memuatData}
+            galat={galat}
+            onMuatUlang={onMuatUlang}
+          />
         )}
       </div>
     </div>
