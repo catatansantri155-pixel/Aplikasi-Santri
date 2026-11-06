@@ -52,13 +52,13 @@ assert.throws(() => validasiInformasi({ ...isi, isi: "singkat" }));
 assert.throws(() => validasiInformasi({ ...isi, tanggal: "2026-02-30" }));
 assert.equal(BANNER_MOTIVASI.length, 7);
 for (let i = 1; i <= 7; i++)
-  assert.ok(existsSync(`public/images/banner/motivasi-${i}.webp`));
+  assert.ok(existsSync(`public/images/banner/suasana-${i}.webp`));
 const banner = render(<BannerMotivasi />);
 assert.equal((banner.match(/aria-label="Banner \d:/g) ?? []).length, 7);
 assert.ok(
-  banner.includes("Jeda") &&
-    banner.includes("Banner berikutnya") &&
-    banner.includes("Banner sebelumnya"),
+  !banner.includes("Jeda") &&
+    !banner.includes("Lanjutkan") &&
+    !banner.includes("banner-keterangan"),
 );
 assert.ok(render(<InformasiPondok peran="admin" />).includes("Buat informasi"));
 for (const peran of [
@@ -92,13 +92,81 @@ assert.ok(
   !home.includes("Ringkasan Hari Ini") && !home.includes("beranda-info-pondok"),
 );
 assert.ok(
-  home.indexOf("banner-gambar") < home.indexOf('id="judul-menu-beranda"'),
+  home.indexOf("banner-gambar") > home.indexOf('id="judul-menu-beranda"'),
 );
 assert.ok(
   home.indexOf("ANAK-SEBELUM-RINCIAN") <
     home.indexOf("beranda-aktivitas-terakhir"),
 );
 assert.ok(home.includes("beranda-menu-lingkaran"));
+assert.ok(!home.includes("<details") && home.includes("Rincian aktivitas"));
 console.log(
   "Lulus: periode/tahun kabisat, validasi informasi, 7 aset dan kontrol banner, form admin, urutan beranda dan rincian terbawah.",
+);
+
+const gambar =
+  "11111111-1111-1111-1111-111111111111/22222222-2222-2222-2222-222222222222.webp";
+assert.equal(
+  validasiInformasi({ ...isi, isi: "", gambar_path: gambar }).isi,
+  "",
+);
+assert.throws(() =>
+  validasiInformasi({
+    ...isi,
+    isi: "",
+    gambar_path: "https://example.com/a.png",
+  }),
+);
+assert.throws(() =>
+  validasiInformasi({ ...isi, isi: "x".repeat(12001), gambar_path: gambar }),
+);
+assert.throws(() =>
+  validasiInformasi({
+    ...isi,
+    isi: "Silakan isi [tanggal] kegiatan",
+    status: "terbit",
+  }),
+);
+assert.equal(validasiInformasi({ ...isi, tema: "emas" }).tema, "emas");
+import { validasiBerkasGambar } from "../src/lib/data/gambar-informasi";
+assert.throws(() => validasiBerkasGambar({ type: "image/svg+xml", size: 50 }));
+assert.throws(() => validasiBerkasGambar({ type: "image/png", size: 5242881 }));
+assert.throws(() => validasiBerkasGambar({ type: "image/png", size: 0 }));
+validasiBerkasGambar({ type: "image/jpeg", size: 5242880 });
+import KartuInformasi from "../src/components/KartuInformasi";
+const kartu = render(
+  <KartuInformasi
+    data={{
+      ...isi,
+      id: "uji",
+      tema: "biru",
+      gambar_path: gambar,
+      gambar_url: "https://example.com/poster.png",
+      created_at: "",
+      updated_at: "",
+    }}
+  />,
+);
+assert.ok(
+  kartu.includes("informasi-sampul-judul") &&
+    kartu.includes("informasi-tema-biru") &&
+    kartu.includes("Lihat gambar utuh"),
+);
+const teks = render(
+  <KartuInformasi
+    data={{
+      ...isi,
+      id: "uji",
+      tema: "emas",
+      gambar_path: null,
+      created_at: "",
+      updated_at: "",
+    }}
+  />,
+);
+assert.ok(
+  !teks.includes("informasi-sampul") && teks.includes("informasi-tema-emas"),
+);
+console.log(
+  "Lulus: poster opsional, batas berkas, validasi template sebelum terbit, kartu gambar dan teks.",
 );

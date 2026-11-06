@@ -135,7 +135,7 @@ function SlotTautan({
       aria-label={label}
     >
       <span className="nav-ikon" aria-hidden="true">
-        <Ikon nama={ikon} ukuran={20} tebal={aktif ? 2.4 : 1.8} />
+        <Ikon nama={ikon} ukuran={22} tebal={aktif ? 2.6 : 2.1} />
       </span>
       <span className="nav-slot-label">{label}</span>
     </Link>

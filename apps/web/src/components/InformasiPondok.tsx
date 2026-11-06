@@ -1,6 +1,17 @@
 "use client";
 import { useEffect, useState, type FormEvent } from "react";
 import Link from "next/link";
+import {
+  TEMPLATE_INFORMASI,
+  TEMA_INFORMASI,
+  type TemaInformasi,
+} from "@/lib/template-informasi";
+import {
+  unggahGambarInformasi,
+  hapusUnggahanBelumTerpakai,
+  validasiBerkasGambar,
+} from "@/lib/data/gambar-informasi";
+import KartuInformasi from "@/components/KartuInformasi";
 import { ambilProfilLogin } from "@/lib/sesi";
 import type { Peran } from "@/lib/peran";
 import { supabaseTerhubung } from "@/lib/data/santri";
@@ -19,6 +30,8 @@ import {
 import { tanggalIsoHariIni } from "@/lib/tanggal";
 function kosong(): IsianInformasi {
   return {
+    tema: "hijau",
+    gambar_path: null,
     judul: "",
     isi: "",
     kategori: "Pengumuman",
@@ -46,6 +59,19 @@ export default function InformasiPondok({
   const [id, setId] = useState<string>();
   const [isian, setIsian] = useState<IsianInformasi>(kosong);
   const [menyimpan, setMenyimpan] = useState(false);
+  const [berkas, setBerkas] = useState<File | null>(null);
+  const [gambarLama, setGambarLama] = useState<string>();
+  const [pratinjau, setPratinjau] = useState<string>();
+  const [template, setTemplate] = useState("");
+  useEffect(() => {
+    if (!berkas) {
+      setPratinjau(undefined);
+      return;
+    }
+    const url = URL.createObjectURL(berkas);
+    setPratinjau(url);
+    return () => URL.revokeObjectURL(url);
+  }, [berkas]);
   useEffect(() => {
     let aktif = true;
     if (peranAwal !== undefined) {
@@ -97,6 +123,12 @@ export default function InformasiPondok({
       ?.querySelector<HTMLInputElement>("input")
       ?.focus({ preventScroll: true });
   }, [editor, id]);
+  useEffect(() => {
+    if (ringkas || memuat || !baris.length) return;
+    const target = window.location.hash.slice(1);
+    if (target.startsWith("info-"))
+      document.getElementById(target)?.scrollIntoView({ block: "start" });
+  }, [baris, memuat, ringkas]);
   const admin = peran === "admin";
   async function simpan(e: FormEvent) {
     e.preventDefault();
@@ -104,19 +136,28 @@ export default function InformasiPondok({
     setMenyimpan(true);
     setGalat("");
     setSukses("");
+    let unggahanBaru: string | undefined;
     try {
-      await simpanInformasi(isian, id);
+      if (berkas) unggahanBaru = await unggahGambarInformasi(berkas);
+      await simpanInformasi(
+        { ...isian, gambar_path: unggahanBaru ?? isian.gambar_path },
+        id,
+      );
       setSukses(
         isian.status === "terbit"
           ? "Informasi diterbitkan untuk seluruh akun."
           : "Draf tersimpan.",
       );
       setEditor(false);
+      setBerkas(null);
+      setGambarLama(undefined);
       setId(undefined);
       setIsian(kosong());
       setHalaman(0);
       setUlangan((n) => n + 1);
     } catch (e) {
+      if (unggahanBaru)
+        await hapusUnggahanBelumTerpakai(unggahanBaru).catch(() => {});
       setGalat(e instanceof Error ? e.message : "Gagal menyimpan informasi.");
     } finally {
       setMenyimpan(false);
@@ -124,7 +165,7 @@ export default function InformasiPondok({
   }
   return (
     <section
-      className="informasi-pondok"
+      className={`informasi-pondok${ringkas ? " informasi-ringkas" : ""}`}
       aria-label="Informasi terbaru dari pondok"
     >
       <div className="beranda-kepala-seksi">
@@ -139,8 +180,12 @@ export default function InformasiPondok({
           <button
             type="button"
             className="tombol tombol-kecil"
+            disabled={menyimpan}
             onClick={() => {
               setId(undefined);
+              setBerkas(null);
+              setGambarLama(undefined);
+              setTemplate("");
               setIsian(kosong());
               setEditor(true);
               setGalat("");
@@ -170,90 +215,225 @@ export default function InformasiPondok({
           className="formulir informasi-editor"
           onSubmit={simpan}
         >
-          <h3>{id ? "Ubah informasi" : "Informasi baru"}</h3>
-          <label>
-            Judul
-            <input
-              value={isian.judul}
-              minLength={3}
-              maxLength={150}
-              required
-              onChange={(e) => setIsian({ ...isian, judul: e.target.value })}
-            />
-          </label>
-          <div className="informasi-form-baris">
+          <fieldset className="informasi-editor-bidang" disabled={menyimpan}>
+            <h3>{id ? "Ubah informasi" : "Informasi baru"}</h3>
+            <fieldset className="informasi-template" disabled={menyimpan}>
+              <legend>Mulai dari template</legend>
+              <p>
+                Pilih contoh, lalu sesuaikan judul dan isi di bawah. Pilihan ini
+                belum mengubah tulisan Anda.
+              </p>
+              <div className="informasi-form-baris">
+                <label>
+                  Template teks
+                  <select
+                    value={template}
+                    onChange={(e) => setTemplate(e.target.value)}
+                  >
+                    <option value="">Pilih template…</option>
+                    {TEMPLATE_INFORMASI.map((t) => (
+                      <option key={t.id} value={t.id}>
+                        {t.nama}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+                <button
+                  type="button"
+                  className="tombol tombol-sekunder"
+                  disabled={!template}
+                  onClick={() => {
+                    const t = TEMPLATE_INFORMASI.find((t) => t.id === template);
+                    if (
+                      t &&
+                      (!(isian.judul || isian.isi) ||
+                        window.confirm(
+                          "Ganti judul dan isi dengan template? Tulisan saat ini akan diganti.",
+                        ))
+                    )
+                      setIsian({
+                        ...isian,
+                        judul: t.judul,
+                        isi: t.isi,
+                        kategori: t.kategori,
+                        tema: t.tema,
+                      });
+                  }}
+                >
+                  Gunakan template
+                </button>
+              </div>
+              <label>
+                Latar kartu
+                <select
+                  value={isian.tema ?? "hijau"}
+                  onChange={(e) =>
+                    setIsian({
+                      ...isian,
+                      tema: e.target.value as TemaInformasi,
+                    })
+                  }
+                >
+                  {TEMA_INFORMASI.map((t) => (
+                    <option key={t} value={t}>
+                      {t === "hijau"
+                        ? "Hijau · Pengumuman"
+                        : t === "emas"
+                          ? "Emas · Kegiatan"
+                          : "Biru · Jadwal"}
+                    </option>
+                  ))}
+                </select>
+              </label>
+            </fieldset>
             <label>
-              Kategori
-              <select
-                value={isian.kategori}
-                onChange={(e) =>
-                  setIsian({ ...isian, kategori: e.target.value })
-                }
-              >
-                {KATEGORI_INFORMASI.map((k) => (
-                  <option key={k}>{k}</option>
-                ))}
-              </select>
-            </label>
-            <label>
-              Tanggal informasi
+              Judul
               <input
-                type="date"
-                value={isian.tanggal}
+                value={isian.judul}
+                minLength={3}
+                maxLength={150}
                 required
-                onChange={(e) =>
-                  setIsian({ ...isian, tanggal: e.target.value })
-                }
+                onChange={(e) => setIsian({ ...isian, judul: e.target.value })}
               />
             </label>
-          </div>
-          <label>
-            Isi
-            <textarea
-              value={isian.isi}
-              rows={6}
-              minLength={10}
-              maxLength={12000}
-              required
-              onChange={(e) => setIsian({ ...isian, isi: e.target.value })}
-            />
-          </label>
-          <label>
-            Status
-            <select
-              value={isian.status}
-              onChange={(e) =>
-                setIsian({
+            <div className="informasi-form-baris">
+              <label>
+                Kategori
+                <select
+                  value={isian.kategori}
+                  onChange={(e) =>
+                    setIsian({ ...isian, kategori: e.target.value })
+                  }
+                >
+                  {KATEGORI_INFORMASI.map((k) => (
+                    <option key={k}>{k}</option>
+                  ))}
+                </select>
+              </label>
+              <label>
+                Tanggal informasi
+                <input
+                  type="date"
+                  value={isian.tanggal}
+                  required
+                  onChange={(e) =>
+                    setIsian({ ...isian, tanggal: e.target.value })
+                  }
+                />
+              </label>
+            </div>
+            <div className="informasi-unggah">
+              <label>
+                Gambar / poster (opsional)
+                <input
+                  type="file"
+                  accept="image/jpeg,image/png,image/webp"
+                  disabled={menyimpan}
+                  onChange={(e) => {
+                    const file = e.target.files?.[0];
+                    if (!file) return;
+                    try {
+                      validasiBerkasGambar(file);
+                      setBerkas(file);
+                      setGalat("");
+                    } catch (err) {
+                      setGalat(
+                        err instanceof Error
+                          ? err.message
+                          : "Gambar tidak valid.",
+                      );
+                      e.target.value = "";
+                    }
+                  }}
+                />
+              </label>
+              <p className="catatan-kaki">
+                JPG, PNG, atau WebP · maksimal 5 MB. Poster boleh sudah berisi
+                tulisan. Isi teks di bawah boleh dikosongkan jika memakai
+                gambar.
+              </p>
+              {(pratinjau || gambarLama) && (
+                <button
+                  type="button"
+                  className="tombol tombol-kecil tombol-sekunder"
+                  disabled={menyimpan}
+                  onClick={() => {
+                    setBerkas(null);
+                    setGambarLama(undefined);
+                    setIsian({ ...isian, gambar_path: null });
+                    const input = document.querySelector<HTMLInputElement>(
+                      '#editor-informasi input[type="file"]',
+                    );
+                    if (input) input.value = "";
+                  }}
+                >
+                  Hapus gambar dari informasi
+                </button>
+              )}
+            </div>
+            <label>
+              Isi
+              <textarea
+                value={isian.isi}
+                rows={6}
+                minLength={berkas || isian.gambar_path ? undefined : 10}
+                maxLength={12000}
+                required={!berkas && !isian.gambar_path}
+                onChange={(e) => setIsian({ ...isian, isi: e.target.value })}
+              />
+            </label>
+            <label>
+              Status
+              <select
+                value={isian.status}
+                onChange={(e) =>
+                  setIsian({
+                    ...isian,
+                    status: e.target.value as "draf" | "terbit",
+                  })
+                }
+              >
+                <option value="draf">Draf — hanya Admin Utama</option>
+                <option value="terbit">Terbit — terlihat seluruh akun</option>
+              </select>
+            </label>
+            <p className="catatan-kaki">
+              Mengubah status menjadi draf menarik informasi dari tampilan akun
+              lain.
+            </p>
+            <div className="informasi-preview">
+              <small>Pratinjau kartu</small>
+              <KartuInformasi
+                data={{
                   ...isian,
-                  status: e.target.value as "draf" | "terbit",
-                })
-              }
-            >
-              <option value="draf">Draf — hanya Admin Utama</option>
-              <option value="terbit">Terbit — terlihat seluruh akun</option>
-            </select>
-          </label>
-          <p className="catatan-kaki">
-            Mengubah status menjadi draf menarik informasi dari tampilan akun
-            lain.
-          </p>
-          <div className="informasi-aksi">
-            <button
-              type="submit"
-              className="tombol"
-              disabled={menyimpan || !supabaseTerhubung()}
-            >
-              {menyimpan ? "Menyimpan…" : "Simpan informasi"}
-            </button>
-            <button
-              type="button"
-              className="tombol tombol-sekunder"
-              disabled={menyimpan}
-              onClick={() => setEditor(false)}
-            >
-              Batal
-            </button>
-          </div>
+                  id: "pratinjau",
+                  judul: isian.judul || "Judul informasi",
+                  tema: isian.tema ?? "hijau",
+                  gambar_path: isian.gambar_path ?? null,
+                  gambar_url: pratinjau ?? gambarLama,
+                  created_at: "",
+                  updated_at: "",
+                }}
+              />
+            </div>
+            <div className="informasi-aksi">
+              <button
+                type="submit"
+                className="tombol"
+                disabled={menyimpan || !supabaseTerhubung()}
+              >
+                {menyimpan ? "Menyimpan…" : "Simpan informasi"}
+              </button>
+              <button
+                type="button"
+                className="tombol tombol-sekunder"
+                disabled={menyimpan}
+                onClick={() => setEditor(false)}
+              >
+                Batal
+              </button>
+            </div>
+          </fieldset>
         </form>
       )}
       {sukses && (
@@ -284,57 +464,32 @@ export default function InformasiPondok({
       ) : null}
       <div className="informasi-daftar">
         {baris.map((b) => (
-          <article className="informasi-kartu" key={b.id}>
-            <div className="informasi-meta">
-              <span>{b.kategori}</span>
-              <time dateTime={b.tanggal}>
-                {new Date(`${b.tanggal}T00:00:00`).toLocaleDateString("id-ID", {
-                  day: "numeric",
-                  month: "long",
-                  year: "numeric",
-                })}
-              </time>
-              {b.status === "draf" && <span className="lencana">Draf</span>}
-            </div>
-            <h3>{b.judul}</h3>
-            {ringkas ? (
-              <>
-                <p className="informasi-cuplik">
-                  {b.isi.length > 180 ? `${b.isi.slice(0, 180)}…` : b.isi}
-                </p>
-                <details className="informasi-baca">
-                  <summary>Baca selengkapnya</summary>
-                  <p className="informasi-isi">{b.isi}</p>
-                </details>
-              </>
-            ) : (
-              <>
-                <p id={`info-${b.id}`} className="informasi-isi">
-                  {b.isi}
-                </p>
-                {admin && (
-                  <button
-                    type="button"
-                    className="tombol tombol-kecil tombol-sekunder"
-                    onClick={() => {
-                      setId(b.id);
-                      setIsian({
-                        judul: b.judul,
-                        isi: b.isi,
-                        kategori: b.kategori,
-                        status: b.status,
-                        tanggal: b.tanggal,
-                      });
-                      setEditor(true);
-                      setSukses("");
-                    }}
-                  >
-                    Ubah informasi
-                  </button>
-                )}
-              </>
-            )}
-          </article>
+          <KartuInformasi
+            key={b.id}
+            data={b}
+            ringkas={ringkas}
+            onUbah={
+              !ringkas && admin && !menyimpan
+                ? () => {
+                    setId(b.id);
+                    setBerkas(null);
+                    setGambarLama(b.gambar_url);
+                    setTemplate("");
+                    setIsian({
+                      judul: b.judul,
+                      isi: b.isi,
+                      kategori: b.kategori,
+                      status: b.status,
+                      tanggal: b.tanggal,
+                      tema: b.tema,
+                      gambar_path: b.gambar_path,
+                    });
+                    setEditor(true);
+                    setSukses("");
+                  }
+                : undefined
+            }
+          />
         ))}
       </div>
       {!ringkas && !memuat && !galat && jumlah > 20 && (
