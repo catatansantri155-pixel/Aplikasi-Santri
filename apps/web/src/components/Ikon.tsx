@@ -37,6 +37,8 @@ export type NamaIkon =
   | "lapisan"
   | "centang"
   | "jam"
+  | "hapus"
+  | "tutup"
   | "pena"
   | "mata"
   | "mata-silang"
@@ -45,6 +47,12 @@ export type NamaIkon =
   | "pengaturan";
 
 const JALUR: Record<NamaIkon, ReactNode> = {
+  hapus: (
+    <>
+      <path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13M10 10v7M14 10v7" />
+    </>
+  ),
+  tutup: <path d="m6 6 12 12M18 6 6 18" />,
   beranda: (
     <>
       <path d="M4 11.2 12 4l8 7.2" />
@@ -194,9 +202,7 @@ const JALUR: Record<NamaIkon, ReactNode> = {
   bintang: (
     <path d="m12 3.5 2.5 5.2 5.7.7-4.2 3.9 1.1 5.6L12 16.2l-5.1 2.7 1.1-5.6L3.8 9.4l5.7-.7z" />
   ),
-  bulan: (
-    <path d="M20.5 13.2A8.5 8.5 0 1 1 10.8 3.5a7 7 0 0 0 9.7 9.7z" />
-  ),
+  bulan: <path d="M20.5 13.2A8.5 8.5 0 1 1 10.8 3.5a7 7 0 0 0 9.7 9.7z" />,
   hati: (
     <path d="M12 20.3S4 15.3 4 9.6A4.6 4.6 0 0 1 12 7a4.6 4.6 0 0 1 8 2.6c0 5.7-8 10.7-8 10.7z" />
   ),

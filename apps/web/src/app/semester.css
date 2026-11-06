@@ -1,0 +1,82 @@
+/* Kartu semester: identitas tetap terbaca; aksi kompak di footer HP. */
+.semester-baris {
+  display: grid;
+  grid-template-columns: 36px minmax(0, 1fr);
+  align-items: start;
+  gap: 10px 12px;
+  padding: 14px;
+}
+.semester-baris > .ikon-lingkaran {
+  width: 36px;
+  height: 36px;
+}
+.semester-baris .baris-judul,
+.semester-baris .baris-ket {
+  white-space: normal;
+  overflow: visible;
+  overflow-wrap: anywhere;
+  line-height: 1.6;
+}
+.semester-footer {
+  grid-column: 1 / -1;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 8px 12px;
+  padding-top: 10px;
+  border-top: 1px solid var(--garis);
+}
+.semester-footer .lencana {
+  max-width: 100%;
+  white-space: normal;
+}
+.semester-aksi {
+  display: inline-flex;
+  gap: 6px;
+  flex: none;
+  margin-left: auto;
+}
+.semester-tombol {
+  display: inline-grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  min-width: 44px;
+  padding: 0;
+  border: 1px solid var(--garis);
+  border-radius: 11px;
+  color: var(--hijau-kop);
+  background: var(--latar);
+  cursor: pointer;
+}
+.semester-tombol:hover {
+  background: var(--hijau-muda);
+  border-color: currentColor;
+}
+.semester-tombol--hapus {
+  color: var(--status-alpa);
+  background: transparent;
+}
+.semester-tombol--hapus:hover {
+  background: color-mix(in srgb, var(--status-alpa) 8%, var(--permukaan));
+}
+.semester-tombol:focus-visible {
+  outline: 2px solid currentColor;
+  outline-offset: 3px;
+}
+[data-tema="gelap"] .semester-tombol--hapus {
+  color: #f18f98;
+}
+@media (min-width: 640px) {
+  .semester-baris {
+    grid-template-columns: 36px minmax(0, 1fr) auto;
+    align-items: center;
+  }
+  .semester-footer {
+    grid-column: auto;
+    padding-top: 0;
+    border: 0;
+    flex-wrap: nowrap;
+  }
+}
