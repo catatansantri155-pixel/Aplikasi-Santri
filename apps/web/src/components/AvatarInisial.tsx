@@ -1,9 +1,4 @@
-/**
- * Avatar berupa lingkaran inisial nama — pengganti foto pengguna.
- * Aplikasi ini tidak memakai foto manusia; identitas visual pengguna
- * & santri ditampilkan sebagai inisial di dalam lingkaran gradien
- * hijau kop (lihat Panduan Desain, aturan gambar).
- */
+/** Inisial nama sebagai avatar cadangan; foto akun dikelola AvatarProfil. */
 
 /** Ambil inisial: huruf pertama dari dua kata pertama nama. */
 export function inisialDari(nama: string): string {

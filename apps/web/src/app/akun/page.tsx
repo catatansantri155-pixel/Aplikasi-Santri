@@ -22,6 +22,8 @@ import { useRouter } from "next/navigation";
 import PenandaTahap from "@/components/PenandaTahap";
 import PenjagaModul from "@/components/PenjagaModul";
 import AvatarInisial from "@/components/AvatarInisial";
+import AvatarProfil from "@/components/AvatarProfil";
+import FotoProfil from "@/components/FotoProfil";
 import KolomSandi from "@/components/KolomSandi";
 import { Ikon } from "@/components/Ikon";
 import { buatKlienBrowser } from "@/lib/supabase/client";
@@ -32,11 +34,7 @@ import {
 } from "@/lib/tampilan";
 import { LABEL_PERAN, RINGKASAN_PERAN } from "@/lib/peran";
 import { supabaseTerhubung } from "@/lib/data/santri";
-import {
-  ambilProfilLogin,
-  keluarDariSesi,
-  type ProfilLogin,
-} from "@/lib/sesi";
+import { ambilProfilLogin, keluarDariSesi, type ProfilLogin } from "@/lib/sesi";
 
 export default function HalamanAkun() {
   return (
@@ -142,9 +140,8 @@ function BagianLainnya() {
           </span>
         </Link>
         <p className="catatan-kaki" style={{ marginTop: 8 }}>
-          Aplikasi Santri — pemantauan hifzh, diniyyah, kehadiran,
-          olahraga, dan catatan musyrif. Ponpes Minhajus Sunnah Magelang
-          · Marhalah Wustha.
+          Aplikasi Santri — pemantauan hifzh, diniyyah, kehadiran, olahraga, dan
+          catatan musyrif. Ponpes Minhajus Sunnah Magelang · Marhalah Wustha.
         </p>
       </section>
     </>
@@ -219,9 +216,7 @@ function IsiAkun() {
         "Kata sandi berhasil diubah. Gunakan kata sandi baru untuk masuk berikutnya.",
       );
     } catch {
-      setPesanSandi(
-        "Gagal menghubungi layanan. Coba lagi beberapa saat lagi.",
-      );
+      setPesanSandi("Gagal menghubungi layanan. Coba lagi beberapa saat lagi.");
     } finally {
       setProsesSandi(false);
     }
@@ -237,10 +232,10 @@ function IsiAkun() {
           <AvatarInisial nama="Pengguna Contoh" ukuran="besar" />
           <h2>Mode contoh</h2>
           <p>
-            Aplikasi sedang berjalan tanpa login asli (env Supabase
-            belum terisi), jadi belum ada profil yang bisa ditampilkan.
-            Pada pemakaian asli, halaman ini berisi nama, peran, dan
-            surel akun yang masuk beserta tombol keluar.
+            Aplikasi sedang berjalan tanpa login asli (env Supabase belum
+            terisi), jadi belum ada profil yang bisa ditampilkan. Pada pemakaian
+            asli, halaman ini berisi nama, peran, dan surel akun yang masuk
+            beserta tombol keluar.
           </p>
           <Link href="/login" className="tombol">
             Ke halaman masuk
@@ -259,8 +254,8 @@ function IsiAkun() {
 
       {!memuat && !profil && (
         <p className="pesan-galat" role="alert">
-          Profil pengguna belum ditemukan di tabel profiles. Hubungi
-          admin agar akun Anda didaftarkan profil dan perannya.
+          Profil pengguna belum ditemukan di tabel profiles. Hubungi admin agar
+          akun Anda didaftarkan profil dan perannya.
         </p>
       )}
 
@@ -269,7 +264,7 @@ function IsiAkun() {
           {/* Kartu profil prototipe: baris avatar 48px + nama tebal
               + peran redup (+ surel kecil). */}
           <section className="kartu kartu-profil">
-            <AvatarInisial nama={profil.nama} ukuran="sedang" />
+            <AvatarProfil id={profil.id} nama={profil.nama} ukuran="sedang" />
             <div style={{ minWidth: 0 }}>
               <p
                 style={{
@@ -305,13 +300,15 @@ function IsiAkun() {
             </div>
           </section>
 
+          <FotoProfil id={profil.id} nama={profil.nama} />
+
           <section className="kartu">
             <h2>Hak akses Anda</h2>
             <p>{RINGKASAN_PERAN[profil.peran]}</p>
             <p className="catatan-kaki">
-              Menu dan tombol yang tampil di aplikasi mengikuti hak
-              akses ini; data yang bukan hak Anda tidak ditampilkan dan
-              ditolak langsung oleh database.
+              Menu dan tombol yang tampil di aplikasi mengikuti hak akses ini;
+              data yang bukan hak Anda tidak ditampilkan dan ditolak langsung
+              oleh database.
             </p>
           </section>
 
@@ -320,8 +317,8 @@ function IsiAkun() {
           <section className="kartu">
             <h2>Ubah kata sandi</h2>
             <p>
-              Ganti kata sandi akun Anda. Kata sandi baru berlaku untuk
-              masuk berikutnya di semua perangkat.
+              Ganti kata sandi akun Anda. Kata sandi baru berlaku untuk masuk
+              berikutnya di semua perangkat.
             </p>
             <form className="formulir" onSubmit={tanganiUbahSandi}>
               <KolomSandi
@@ -346,11 +343,7 @@ function IsiAkun() {
                   {pesanSandi}
                 </p>
               )}
-              <button
-                type="submit"
-                className="tombol"
-                disabled={prosesSandi}
-              >
+              <button type="submit" className="tombol" disabled={prosesSandi}>
                 {prosesSandi ? "Menyimpan…" : "Simpan kata sandi baru"}
               </button>
             </form>
