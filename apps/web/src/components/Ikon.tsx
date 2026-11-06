@@ -12,6 +12,7 @@
 import type { ReactNode } from "react";
 
 export type NamaIkon =
+  | "lonceng"
   | "beranda"
   | "menu"
   | "grafik"
@@ -47,6 +48,11 @@ export type NamaIkon =
   | "pengaturan";
 
 const JALUR: Record<NamaIkon, ReactNode> = {
+  lonceng: (
+    <>
+      <path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9M10 21h4" />
+    </>
+  ),
   hapus: (
     <>
       <path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13M10 10v7M14 10v7" />

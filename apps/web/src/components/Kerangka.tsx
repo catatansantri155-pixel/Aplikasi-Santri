@@ -12,6 +12,7 @@ import { usePathname } from "next/navigation";
 import InfoPengguna from "@/components/InfoPengguna";
 import Logo from "@/components/Logo";
 import NavTautan from "@/components/NavTautan";
+import LoncengNotifikasi from "@/components/LoncengNotifikasi";
 import NavBawah from "@/components/NavBawah";
 
 /** Pathname halaman polos tanpa kerangka (pra-sesi / alur akun). */
@@ -44,6 +45,7 @@ export default function Kerangka({ children }: { children: ReactNode }) {
     akun: "Akun",
     lainnya: "Lainnya",
     informasi: "Informasi pondok",
+    notifikasi: "Notifikasi",
   };
 
   return (
@@ -84,6 +86,7 @@ export default function Kerangka({ children }: { children: ReactNode }) {
             <Ikon nama="chevron-kanan" ukuran={14} />
             <strong>{namaHalaman[halaman] ?? "Aplikasi Santri"}</strong>
           </div>
+          <LoncengNotifikasi />
         </header>
         <main className="konten" id="konten" tabIndex={-1}>
           {children}

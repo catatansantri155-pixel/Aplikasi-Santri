@@ -5,10 +5,12 @@ import type { InformasiPondok } from "@/lib/data/informasi";
 export default function KartuInformasi({
   data: b,
   ringkas = false,
+  tautanDetail = false,
   onUbah,
 }: {
   data: InformasiPondok;
   ringkas?: boolean;
+  tautanDetail?: boolean;
   onUbah?: () => void;
 }) {
   const [gambarGagal, setGambarGagal] = useState(false);
@@ -35,6 +37,7 @@ export default function KartuInformasi({
       <div className="informasi-konten">
         <div className="informasi-meta">
           <span>{b.kategori}</span>
+          {b.disematkan && <span className="lencana">Disematkan</span>}
           <time dateTime={b.tanggal}>
             {new Date(`${b.tanggal}T00:00:00`).toLocaleDateString("id-ID", {
               day: "numeric",
@@ -44,6 +47,18 @@ export default function KartuInformasi({
           </time>
           {b.status === "draf" && <span className="lencana">Draf</span>}
         </div>
+        {b.berakhir_pada && (
+          <p className="informasi-batas">
+            Tayang sampai{" "}
+            {new Date(b.berakhir_pada).toLocaleString("id-ID", {
+              day: "numeric",
+              month: "short",
+              year: "numeric",
+              hour: "2-digit",
+              minute: "2-digit",
+            })}
+          </p>
+        )}
         {!bergambar && <h3>{b.judul}</h3>}
         {b.gambar_path && !bergambar && (
           <p className="catatan-kaki">
@@ -56,8 +71,16 @@ export default function KartuInformasi({
           </p>
         )}
         <div className="informasi-aksi">
-          {ringkas && (
-            <Link href={`/informasi#info-${b.id}`}>Baca selengkapnya</Link>
+          {(ringkas || tautanDetail) && (
+            <Link href={`/informasi/${b.id}`}>
+              {ringkas
+                ? "Baca selengkapnya"
+                : onUbah
+                  ? "Rincian & pembacaan"
+                  : b.wajib_konfirmasi
+                    ? "Baca & konfirmasi"
+                    : "Buka informasi"}
+            </Link>
           )}
           {bergambar && (
             <a href={b.gambar_url} target="_blank" rel="noopener noreferrer">

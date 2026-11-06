@@ -215,7 +215,12 @@ export function modulDariPath(pathname: string): KunciModul | null {
     return "admin";
   }
   if (pathname === "/menu" || pathname === "/lainnya") return "menu";
-  if (pathname === "/informasi") return "laporan";
+  if (
+    pathname === "/informasi" ||
+    pathname.startsWith("/informasi/") ||
+    pathname === "/notifikasi"
+  )
+    return "laporan";
   if (pathname === "/akun") return "akun";
   if (pathname === "/grafik") return "grafik";
   if (pathname === "/laporan" || pathname.startsWith("/laporan/")) {

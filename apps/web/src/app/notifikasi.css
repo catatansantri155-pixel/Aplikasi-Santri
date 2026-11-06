@@ -1,0 +1,304 @@
+.lonceng-wadah {
+  position: relative;
+  margin-left: auto;
+  flex: none;
+}
+.lonceng-tombol {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  border: 1px solid var(--garis);
+  border-radius: 13px;
+  background: var(--permukaan);
+  color: var(--teks);
+  cursor: pointer;
+}
+.lonceng-tombol:focus-visible {
+  outline: 3px solid var(--hijau-kop);
+  outline-offset: 3px;
+}
+.lonceng-jumlah {
+  position: absolute;
+  top: -4px;
+  right: -4px;
+  display: grid;
+  place-items: center;
+  min-width: 20px;
+  height: 20px;
+  padding: 0 4px;
+  border: 2px solid var(--permukaan);
+  border-radius: 99px;
+  color: #fff;
+  background: #b63947;
+  font-size: 10px;
+  font-weight: 750;
+}
+.kerangka[data-halaman="beranda"] .kolom-utama {
+  position: relative;
+}
+@media (max-width: 1023px) {
+  .kerangka[data-halaman="beranda"] .bilah-aplikasi {
+    display: flex;
+    position: absolute;
+    top: 16px;
+    right: 16px;
+    width: 44px;
+    min-height: 44px;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    box-shadow: none;
+    z-index: 30;
+  }
+  .kerangka[data-halaman="beranda"] .bilah-aplikasi > .merek-mobile,
+  .kerangka[data-halaman="beranda"] .bilah-aplikasi > .jejak-halaman {
+    display: none;
+  }
+  .kerangka[data-halaman="beranda"] .beranda-profil {
+    padding-right: 58px;
+  }
+  .kerangka[data-halaman="beranda"] .lonceng-tombol {
+    background: #ffffff18;
+    color: white;
+    border-color: #ffffff60;
+  }
+}
+.notifikasi-popup {
+  position: absolute;
+  right: 0;
+  top: calc(100% + 12px);
+  width: min(390px, calc(100vw - 32px));
+  max-height: min(600px, 80svh);
+  overflow-y: auto;
+  border: 1px solid var(--garis);
+  border-radius: 18px;
+  background: var(--permukaan);
+  color: var(--teks);
+  box-shadow: 0 18px 55px #0b302426;
+  z-index: 60;
+}
+.notifikasi-popup > p {
+  padding: 18px;
+  font-size: 12px;
+  line-height: 1.7;
+}
+.notifikasi-popup-kepala {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--garis);
+}
+.notifikasi-popup-kepala h2 {
+  margin: 0;
+  font-size: 15px;
+}
+.notifikasi-popup-kepala button {
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  color: inherit;
+  border: 0;
+  border-radius: 10px;
+  background: transparent;
+  cursor: pointer;
+}
+.notifikasi-lihat-semua {
+  display: block;
+  padding: 16px;
+  text-align: center;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--hijau-kop);
+  border-top: 1px solid var(--garis);
+}
+.pusat-notifikasi {
+  max-width: 1000px;
+}
+.notifikasi-kepala {
+  display: flex;
+  justify-content: space-between;
+  align-items: start;
+  gap: 14px;
+  flex-wrap: wrap;
+}
+.notifikasi-kepala .tombol {
+  font-size: 12px;
+}
+.notifikasi-filter {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 8px 0 18px;
+}
+.notifikasi-filter button {
+  min-height: 44px;
+  padding: 9px 14px;
+  border: 1px solid var(--garis);
+  border-radius: 99px;
+  background: var(--permukaan);
+  color: var(--teks-redup);
+  cursor: pointer;
+  font-size: 12px;
+}
+.notifikasi-filter [aria-pressed="true"] {
+  color: white;
+  background: #155c5b;
+  border-color: #155c5b;
+}
+.notifikasi-daftar {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  border: 1px solid var(--garis);
+  border-radius: 16px;
+  background: var(--permukaan);
+  overflow: hidden;
+}
+.notifikasi-daftar li + li {
+  border-top: 1px solid var(--garis);
+}
+.notifikasi-baris {
+  display: flex;
+  align-items: start;
+  gap: 12px;
+  padding: 18px;
+  color: inherit;
+  text-decoration: none;
+}
+.notifikasi-baris:hover {
+  background: var(--latar);
+}
+.notifikasi-baris:focus-visible {
+  outline: 2px solid var(--hijau-kop);
+  outline-offset: -3px;
+}
+.notifikasi-baru {
+  background: color-mix(in srgb, #218a7b 5%, var(--permukaan));
+}
+.notifikasi-gambar {
+  width: 38px;
+  height: 38px;
+  flex: none;
+  display: grid;
+  place-items: center;
+  border-radius: 12px;
+  background: var(--latar);
+  color: #348477;
+}
+.notifikasi-isi {
+  min-width: 0;
+  flex: 1;
+  display: grid;
+  gap: 5px;
+}
+.notifikasi-isi strong {
+  font-size: 13px;
+  line-height: 1.6;
+  overflow-wrap: anywhere;
+  font-weight: 650;
+}
+.notifikasi-meta,
+.notifikasi-isi time {
+  font-size: 10px;
+  color: var(--teks-redup);
+}
+.notifikasi-isi small {
+  font-size: 10px;
+  color: #946725;
+  line-height: 1.6;
+}
+.notifikasi-titik {
+  flex: none;
+  margin-top: 8px;
+  width: 7px;
+  height: 7px;
+  background: #218a7b;
+  border-radius: 50%;
+}
+.notifikasi-popup .notifikasi-daftar {
+  border: 0;
+  border-radius: 0;
+}
+.notifikasi-popup .notifikasi-baris {
+  padding: 14px 16px;
+}
+.detail-informasi {
+  max-width: 850px;
+}
+.detail-kembali {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  margin-bottom: 12px;
+  font-size: 12px;
+  color: var(--hijau-kop);
+}
+.informasi-konfirmasi {
+  border: 1px solid var(--garis);
+  background: var(--permukaan);
+  border-radius: 16px;
+  padding: 18px;
+  margin-top: 16px;
+}
+.informasi-konfirmasi h2 {
+  font-size: 15px;
+  margin: 0;
+}
+.informasi-konfirmasi p {
+  font-size: 12px;
+  line-height: 1.8;
+}
+.informasi-konfirmasi .tombol {
+  white-space: normal;
+  text-align: center;
+}
+.informasi-batas {
+  font-size: 10px;
+  line-height: 1.6;
+  color: var(--teks-redup);
+  margin: 10px 0 0;
+}
+.informasi-pilihan-centang {
+  display: flex !important;
+  flex-direction: row !important;
+  align-items: center;
+  gap: 10px !important;
+}
+.informasi-pilihan-centang input[type="checkbox"] {
+  width: 18px;
+  height: 18px;
+  min-height: 18px;
+  flex: none;
+}
+[data-tema="gelap"] .notifikasi-isi small {
+  color: #e3bd76;
+}
+[data-tema="gelap"] .notifikasi-gambar {
+  color: #a3d7c9;
+}
+@media (min-width: 1024px) {
+  .bilah-aplikasi {
+    overflow: visible;
+  }
+  .kerangka[data-halaman="beranda"] .bilah-aplikasi {
+    z-index: 40;
+  }
+}
+
+.informasi-pilihan-centang {
+  min-height: 44px;
+  cursor: pointer;
+}
+.informasi-pilihan-centang input[type="checkbox"] {
+  padding: 0;
+  margin: 0;
+}
+@media (max-width: 1023px) {
+  .notifikasi-popup {
+    display: none;
+  }
+}
