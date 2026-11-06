@@ -37,7 +37,7 @@ import Link from "next/link";
 import PenandaTahap from "@/components/PenandaTahap";
 import KartuGalat from "@/components/KartuGalat";
 import AvatarInisial from "@/components/AvatarInisial";
-import { LingkaranIkon } from "@/components/Ikon";
+import { Ikon, LingkaranIkon } from "@/components/Ikon";
 import { LABEL_PERAN } from "@/lib/peran";
 import { buatKlienBrowser } from "@/lib/supabase/client";
 import { supabaseTerhubung } from "@/lib/data/santri";
@@ -849,7 +849,7 @@ export default function IsiHalamanAdmin({ tab }: { tab: TabAdmin }) {
         {daftarSemester.length === 0 ? (
           <p>
             Belum ada semester. Buat semester pertama lewat formulir di
-            bawah — selama belum ada, nilai ujian belum bisa diisi.
+            atas — selama belum ada, nilai ujian belum bisa diisi.
           </p>
         ) : (
           <div className="daftar-tumpuk">
@@ -857,7 +857,7 @@ export default function IsiHalamanAdmin({ tab }: { tab: TabAdmin }) {
               const status = statusSemester(sem);
               return (
                 <div key={sem.id}>
-                  <div className="baris-daftar">
+                  <div className="baris-daftar semester-baris">
                     <LingkaranIkon nama="kalender" warna="biru" />
                     <span className="baris-teks">
                       <span className="baris-judul">{sem.nama}</span>
@@ -870,39 +870,48 @@ export default function IsiHalamanAdmin({ tab }: { tab: TabAdmin }) {
                         {formatTanggalSingkat(sem.tanggalSelesai)}
                       </span>
                     </span>
-                    <span
-                      className={`lencana ${
-                        status === "berjalan"
-                          ? "lencana--hadir"
-                          : "lencana--netral"
-                      }`}
-                    >
-                      {LABEL_STATUS_SEMESTER[status]}
-                    </span>
-                    <span style={{ display: "flex", gap: 6 }}>
-                      <button
-                        type="button"
-                        className="tombol tombol-kecil tombol-sekunder"
-                        onClick={() =>
-                          editSemesterId === sem.id
-                            ? setEditSemesterId(null)
-                            : mulaiUbahSemester(sem)
-                        }
+                    <div className="semester-footer">
+                      <span
+                        className={`lencana ${
+                          status === "berjalan"
+                            ? "lencana--hadir"
+                            : "lencana--netral"
+                        }`}
                       >
-                        {editSemesterId === sem.id ? "Tutup" : "Ubah"}
-                      </button>
-                      <button
-                        type="button"
-                        className="tombol tombol-kecil tombol-sekunder"
-                        onClick={() => void tanganiHapusSemester(sem)}
-                      >
-                        Hapus
-                      </button>
-                    </span>
+                        {LABEL_STATUS_SEMESTER[status]}
+                      </span>
+                      <span className="semester-aksi">
+                        <button
+                          type="button"
+                          className="semester-tombol"
+                          aria-label={`${editSemesterId === sem.id ? "Tutup formulir" : "Ubah"} semester ${sem.nama}`}
+                          title={editSemesterId === sem.id ? "Tutup formulir" : "Ubah semester"}
+                          aria-expanded={editSemesterId === sem.id}
+                          aria-controls={editSemesterId === sem.id ? `form-semester-${sem.id}` : undefined}
+                          onClick={() =>
+                            editSemesterId === sem.id
+                              ? setEditSemesterId(null)
+                              : mulaiUbahSemester(sem)
+                          }
+                        >
+                          <Ikon nama={editSemesterId === sem.id ? "tutup" : "pena"} ukuran={18} />
+                        </button>
+                        <button
+                          type="button"
+                          className="semester-tombol semester-tombol--hapus"
+                          aria-label={`Hapus semester ${sem.nama}`}
+                          title="Hapus semester"
+                          onClick={() => void tanganiHapusSemester(sem)}
+                        >
+                          <Ikon nama="hapus" ukuran={18} />
+                        </button>
+                      </span>
+                    </div>
                   </div>
 
                   {editSemesterId === sem.id && (
                     <div
+                      id={`form-semester-${sem.id}`}
                       className="formulir"
                       style={{ maxWidth: "100%", marginTop: 10 }}
                     >
@@ -984,10 +993,7 @@ export default function IsiHalamanAdmin({ tab }: { tab: TabAdmin }) {
           </div>
         )}
         <p className="catatan-kaki">
-          Catatan: tabel semester tidak memiliki kolom penanda aktif.
-          Lencana di atas diturunkan dari rentang tanggal semester —
-          semester yang &ldquo;sedang berjalan&rdquo; adalah yang
-          rentangnya memuat tanggal hari ini.
+          Status semester mengikuti tanggal mulai dan selesai.
         </p>
 
       </section>
