@@ -1,0 +1,143 @@
+/* Scrollbar tipis, transparan, dan mengikuti tema pada seluruh area gulir. */
+:root {
+  --scroll-thumb: #667d7055;
+  --scroll-thumb-hover: #667d7090;
+}
+[data-tema="gelap"] {
+  --scroll-thumb: #b9c9c755;
+  --scroll-thumb-hover: #c8d8d599;
+}
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--scroll-thumb) transparent;
+}
+@supports selector(::-webkit-scrollbar) {
+  * {
+    scrollbar-width: auto;
+    scrollbar-color: auto;
+  }
+  *::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+    background: transparent;
+  }
+  *::-webkit-scrollbar-track,
+  *::-webkit-scrollbar-corner {
+    background: transparent;
+  }
+  *::-webkit-scrollbar-thumb {
+    background: var(--scroll-thumb);
+    border-radius: 99px;
+  }
+  *::-webkit-scrollbar-thumb:hover {
+    background: var(--scroll-thumb-hover);
+  }
+  *::-webkit-scrollbar-button {
+    display: none;
+    width: 0;
+    height: 0;
+  }
+}
+.avatar-foto {
+  overflow: hidden;
+}
+.avatar-foto img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: inherit;
+}
+.foto-profil-editor h2 {
+  margin: 0 0 6px;
+}
+.foto-profil-editor > div > .catatan-kaki {
+  max-width: 540px;
+  line-height: 1.7;
+  margin: 0;
+}
+.foto-profil-baris {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  margin-top: 20px;
+}
+.foto-profil-preview {
+  width: 88px;
+  height: 88px;
+  flex: none;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  overflow: hidden;
+  border: 3px solid var(--permukaan);
+  box-shadow: 0 0 0 1px var(--garis);
+  background: var(--latar);
+}
+.foto-profil-preview > img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.foto-profil-kontrol {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+}
+.foto-profil-pilih {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  overflow: hidden;
+  margin: 0;
+}
+.foto-profil-pilih input {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  width: 100%;
+  height: 100%;
+  cursor: pointer;
+}
+.foto-profil-pilih:focus-within {
+  outline: 2px solid var(--hijau-kop);
+  outline-offset: 3px;
+}
+.foto-profil-sibuk {
+  opacity: 0.6;
+  cursor: wait;
+}
+.foto-profil-ukuran {
+  width: 100%;
+  color: var(--teks-redup);
+  font-size: 11px;
+}
+.foto-profil-hapus {
+  min-height: 44px;
+  padding: 8px 10px;
+  border: 0;
+  background: transparent;
+  color: var(--teks-redup);
+  font-size: 12px;
+  cursor: pointer;
+  text-decoration: underline;
+  text-underline-offset: 4px;
+}
+@media (max-width: 380px) {
+  .foto-profil-baris {
+    gap: 14px;
+    align-items: flex-start;
+  }
+  .foto-profil-preview {
+    width: 64px;
+    height: 64px;
+  }
+}
+@media (forced-colors: active) {
+  * {
+    scrollbar-color: auto;
+  }
+}

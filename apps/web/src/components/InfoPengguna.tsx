@@ -31,7 +31,7 @@ import {
   type ProfilLogin,
 } from "@/lib/sesi";
 import { Ikon } from "@/components/Ikon";
-import AvatarInisial from "@/components/AvatarInisial";
+import AvatarProfil from "@/components/AvatarProfil";
 
 function TautanMasuk({ varian }: { varian: "samping" | "kepala" }) {
   if (varian === "kepala") {
@@ -110,7 +110,7 @@ export default function InfoPengguna({
         className="info-pengguna-kepala"
         aria-current={pathname === "/akun" ? "page" : undefined}
       >
-        <AvatarInisial nama={profil.nama} ukuran="kecil" />
+        <AvatarProfil id={profil.id} nama={profil.nama} ukuran="kecil" />
         <span className="info-pengguna-teks">
           <span className="info-pengguna-nama">{profil.nama}</span>
           <span className="info-pengguna-peran">
@@ -129,7 +129,7 @@ export default function InfoPengguna({
       className="info-pengguna-samping"
       aria-current={pathname === "/akun" ? "page" : undefined}
     >
-      <AvatarInisial nama={profil.nama} ukuran="kecil" />
+      <AvatarProfil id={profil.id} nama={profil.nama} ukuran="kecil" />
       <span className="profil-sidebar-teks">
         <span className="info-pengguna-nama">{profil.nama}</span>
         <span className="info-pengguna-peran">{LABEL_PERAN[profil.peran]}</span>
