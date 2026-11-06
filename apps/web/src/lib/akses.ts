@@ -31,6 +31,7 @@ import { PERAN, SEMUA_PERAN, type Peran } from "@/lib/peran";
 
 /** Kunci modul yang dipakai navigasi, kartu beranda, dan penjaga. */
 export type KunciModul =
+  | "perizinan"
   | "beranda"
   | "santri"
   | "kehadiran"
@@ -67,6 +68,8 @@ export type KunciModul =
  *   hanya lolos untuk admin (kebijakan *_tulis_admin di 0003_rls.sql).
  */
 export const PETA_AKSES_MODUL: Record<KunciModul, Peran[]> = {
+  // Pengajuan oleh wali; keputusan dan keluar/kembali oleh admin/musyrif. RLS tetap wajib.
+  perizinan: [PERAN.ADMIN, PERAN.MUSYRIF, PERAN.WALI],
   beranda: [...SEMUA_PERAN],
   santri: [...SEMUA_PERAN],
   kehadiran: [PERAN.ADMIN, PERAN.PENGAJAR_HIFZH, PERAN.PENGAJAR_DINIYYAH],
@@ -201,6 +204,8 @@ export const PESAN_TIDAK_ADA_AKSES =
 
 /** Petakan pathname (App Router) ke kunci modulnya; null bila bukan modul. */
 export function modulDariPath(pathname: string): KunciModul | null {
+  if (pathname === "/perizinan" || pathname.startsWith("/perizinan/"))
+    return "perizinan";
   if (pathname === "/") return "beranda";
   if (pathname === "/santri" || pathname.startsWith("/santri/")) {
     return "santri";
