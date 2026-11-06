@@ -32,9 +32,11 @@ Daftar menyediakan filter status, tanggal/bulan/tahun berdasarkan rencana keluar
 
 ## Aktivasi
 
-Kode **belum diterapkan ke live**. Migrasi `supabase/migrations/20261106062030_perizinan_santri.sql` siap ditinjau; tidak dijalankan pada proyek hosted. Pemeriksaan persetujuan otomatis menolak penerapan live karena permintaan fitur belum merupakan persetujuan deployment database yang mengubah skema, Storage, RLS, trigger, dan tiga RPC notifikasi.
+Database berhasil diaktifkan pada **6 November 2026**, setelah pengguna memberi instruksi eksplisit untuk mengaktifkan server. Migrasi hosted tercatat sebagai `20261106075006_perizinan_santri.sql`; nama berkas lokal telah dicocokkan dengan riwayat server. Tidak perlu menerapkan ulang migrasi yang sudah tercatat.
 
-Setelah persetujuan pemilik, terapkan migration pada lingkungan uji Supabase dahulu, jalankan pemeriksaan dengan Auth/Storage asli, lalu terapkan database sebelum deploy frontend hasil PR. Jika diterapkan melalui tool hosted yang menghasilkan timestamp, cocokkan versi lokal dengan riwayat migrasi server. Jangan menjalankan ulang migration yang sudah tercatat. Ketika RPC belum terpasang, UI memberikan pesan fitur belum diaktifkan.
+Uji transaksi rollback pada hosted lulus: pengajuan wali, batas anak tertaut, bentrok jadwal, revisi, persetujuan/perbaikan, hak musyrif, keluar/kembali, audit dan notifikasi. Fixture santri/tautan/lampiran metadata serta simulasi peran dibatalkan; tidak meninggalkan pengajuan palsu. Penghapusan objek Storage melalui SQL tidak dipakai pada hosted karena layanan melindunginya; pengujian API unggah berkas melalui akun browser tetap terpisah.
+
+Perbaikan tampilan bersama terdapat pada `layanan.css` dan `KopLayanan.tsx`; publikasi frontend mengikuti build Cloudflare dari cabang main.
 
 ## Pengujian yang tersedia
 

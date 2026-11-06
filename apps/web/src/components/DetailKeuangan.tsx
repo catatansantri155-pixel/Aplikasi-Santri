@@ -35,7 +35,7 @@ function Bukti({ path }: { path: string }) {
   }
   return (
     <div>
-      <button className="tombol-sekunder" onClick={buka}>
+      <button className="tombol tombol-sekunder" onClick={buka}>
         Buka / perbarui bukti
       </button>
       {pesan && <p role="alert">{pesan}</p>}
@@ -204,7 +204,7 @@ export default function DetailKeuangan({ id }: { id: string }) {
             <div className="izin-tindakan">
               {d.status === "aktif" && d.sisa > d.menunggu && (
                 <button
-                  className="tombol-utama"
+                  className="tombol tombol-utama"
                   disabled={muat || sibuk}
                   onClick={() => {
                     setForm(!form);
@@ -219,7 +219,7 @@ export default function DetailKeuangan({ id }: { id: string }) {
                 </button>
               )}
               <button
-                className="tombol-sekunder"
+                className="tombol tombol-sekunder"
                 disabled={muat || sibuk || form}
                 onClick={refresh}
               >
@@ -280,7 +280,7 @@ export default function DetailKeuangan({ id }: { id: string }) {
               </label>
               <div className="izin-tindakan">
                 <button
-                  className="tombol-utama"
+                  className="tombol tombol-utama"
                   disabled={muat || sibuk}
                   onClick={proses}
                 >
@@ -343,7 +343,7 @@ export default function DetailKeuangan({ id }: { id: string }) {
                           <>
                             <button
                               disabled={sibuk || muat}
-                              className="tombol-utama"
+                              className="tombol tombol-utama"
                               onClick={() =>
                                 pilihAksi("terima", b.id, b.nominal)
                               }

@@ -208,7 +208,7 @@ export default function FormTagihan({
           )}
           <div className="izin-tindakan izin-lebar">
             <button
-              className="tombol-utama"
+              className="tombol tombol-utama"
               disabled={!siap || ids.length < 1 || ids.length > 500}
               type="submit"
             >

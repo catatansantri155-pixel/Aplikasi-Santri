@@ -282,7 +282,7 @@ export default function FormPerizinan({
           <div className="izin-tindakan izin-lebar">
             <button
               type="submit"
-              className="tombol-utama"
+              className="tombol tombol-utama"
               disabled={kompres || !!fileGalat || !anak.length}
             >
               {sibuk
@@ -291,7 +291,7 @@ export default function FormPerizinan({
                   ? "Kirim perbaikan"
                   : "Kirim pengajuan"}
             </button>
-            <button type="button" className="tombol-sekunder" onClick={onTutup}>
+            <button type="button" className="tombol tombol-sekunder" onClick={onTutup}>
               Batal
             </button>
           </div>

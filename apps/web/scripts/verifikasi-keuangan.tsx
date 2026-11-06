@@ -16,6 +16,7 @@ import { modulDariPath, bolehAksesModul } from "../src/lib/akses";
 import { SEMUA_PERAN } from "../src/lib/peran";
 import { tujuanNotifikasi, type Notifikasi } from "../src/lib/data/notifikasi";
 import Lainnya from "../src/app/lainnya/page";
+import KopLayanan from "../src/components/KopLayanan";
 import Progres from "../src/components/ProgresKeuangan";
 import Daftar from "../src/components/DaftarNotifikasi";
 assert.equal(angkaRupiah("500000"), 500000);
@@ -129,3 +130,20 @@ assert.ok(
 console.log(
   "Keuangan: validasi rupiah/tanggal/cicilan, akses lima peran, penempatan menu, progres akurat, CSV aman dan rute notifikasi lulus.",
 );
+
+const kop = render(
+  <KopLayanan
+    judul="Keuangan Santri"
+    kategori="SPP & pembayaran"
+    keterangan="Tagihan <aman>"
+    gambar="/images/fitur/keuangan.webp"
+    aksi={<button className="tombol tombol-utama">Terbitkan tagihan</button>}
+  />,
+);
+assert.equal((kop.match(/<h1/g) || []).length, 1);
+assert.ok(
+  kop.includes('href="/lainnya"') &&
+    kop.includes("Terbitkan tagihan") &&
+    kop.includes("Tagihan &lt;aman&gt;"),
+);
+assert.ok(!kop.includes("Tagihan <aman>"));
