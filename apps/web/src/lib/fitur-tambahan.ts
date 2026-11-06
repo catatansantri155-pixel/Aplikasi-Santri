@@ -8,6 +8,12 @@ const FITUR: {
   akses: KunciModul;
 }[] = [
   {
+    href: "/keuangan",
+    label: "Keuangan / SPP",
+    gambar: "keuangan",
+    akses: "keuangan",
+  },
+  {
     href: "/perizinan",
     label: "Perizinan Santri",
     gambar: "perizinan",

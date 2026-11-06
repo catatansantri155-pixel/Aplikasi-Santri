@@ -13,7 +13,7 @@ export const LABEL_SASARAN: Record<SasaranInformasi, string> = {
   pengguna: "Satu akun",
 };
 export interface Notifikasi {
-  sumber?: "informasi" | "perizinan";
+  sumber?: "informasi" | "perizinan" | "keuangan";
   tujuan_id?: string;
   id: string;
   judul: string;
@@ -117,6 +117,7 @@ export async function pilihanSasaran(
 }
 
 export function tujuanNotifikasi(n: Notifikasi) {
+  if (n.sumber === "keuangan") return `/keuangan/${n.tujuan_id}`;
   return n.sumber === "perizinan"
     ? `/perizinan/${n.tujuan_id}`
     : `/informasi/${n.id}`;

@@ -81,7 +81,7 @@ export default function PusatNotifikasi() {
         <div>
           <h1 className="judul-halaman">Notifikasi</h1>
           <p className="subjudul">
-            Informasi pondok dan perkembangan pengajuan izin untuk akun Anda.
+            Informasi pondok, perizinan, dan tagihan yang ditujukan untuk akun Anda.
           </p>
         </div>
         <button

@@ -45,6 +45,7 @@ export default function Kerangka({ children }: { children: ReactNode }) {
     akun: "Akun",
     lainnya: "Lainnya",
     perizinan: "Perizinan Santri",
+    keuangan: "Keuangan Santri / SPP",
     informasi: "Informasi pondok",
     notifikasi: "Notifikasi",
   };
