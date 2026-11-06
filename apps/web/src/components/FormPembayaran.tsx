@@ -211,7 +211,7 @@ export default function FormPembayaran({
           <div className="izin-tindakan izin-lebar">
             <button
               type="submit"
-              className="tombol-utama"
+              className="tombol tombol-utama"
               disabled={kompres || !!fileGalat || tersedia < 1}
             >
               {sibuk

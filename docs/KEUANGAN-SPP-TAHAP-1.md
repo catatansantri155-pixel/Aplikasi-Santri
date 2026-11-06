@@ -31,9 +31,15 @@ Akses hanya Admin Utama dan wali santri yang saat ini tertaut. Musyrif dan kedua
 
 ## Aktivasi
 
-**Kode disiapkan sebagai PR; belum deploy frontend dan belum menerapkan migration ke database live.** Persetujuan deployment database dari tahap Perizinan belum diberikan; tahap ini juga tidak menjalankan perubahan live. Pemeriksaan metadata read-only pada 6 November 2026 memastikan tabel Perizinan, tabel tagihan, dan helper baca semua izin belum terpasang pada proyek hosted.
+Database berhasil diaktifkan pada **6 November 2026** sesuai instruksi eksplisit pengguna untuk mengaktifkan server. Migrasi hosted tercatat berurutan:
 
-Migration: `supabase/migrations/20261106065133_keuangan_santri_spp.sql`. Membutuhkan migrasi informasi/notifikasi dan Perizinan sebelumnya (termasuk `20261106062030_perizinan_santri.sql`), karena memperluas tiga RPC notifikasi gabungan. Urutan aktivasi setelah persetujuan: terapkan dependensi pada lingkungan Supabase uji, terapkan migration keuangan, uji Auth/Storage asli, lalu database produksi dan frontend. Cocokkan timestamp riwayat bila memakai tool hosted. UI memberi pesan fitur belum diaktifkan jika RPC belum terpasang.
+- `20261106075006_perizinan_santri.sql`
+- `20261106075024_keuangan_santri_spp.sql`
+- `20261106075907_spp_batch_tolak_akses_langsung.sql`
+
+Nama berkas lokal dicocokkan dengan riwayat server agar deploy berikutnya tidak menerapkan migration yang sama dua kali. Migration terakhir membuat kebijakan penolakan eksplisit pada tabel batch private, mempertahankan akses hanya melalui fungsi pemilik tervalidasi.
+
+Uji hosted dengan transaksi rollback lulus untuk penerbitan/idempotensi, cicilan, bukti menunggu, verifikasi, koreksi saldo, pembatalan, riwayat, notifikasi, batas akses wali dan penolakan musyrif/anon. Tidak ada tagihan, pembayaran, fixture santri, atau simulasi peran yang tersisa. Frontend diperbaiki melalui `layanan.css` dan `KopLayanan.tsx`; publikasi mengikuti build Cloudflare main.
 
 ## Validasi
 

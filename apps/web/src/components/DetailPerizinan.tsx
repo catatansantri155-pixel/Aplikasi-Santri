@@ -132,7 +132,7 @@ export default function DetailPerizinan({ id }: { id: string }) {
               </p>
             </div>
             <button
-              className="tombol-sekunder"
+              className="tombol tombol-sekunder"
               disabled={muat || sibuk || edit}
               onClick={refresh}
             >
@@ -217,7 +217,7 @@ export default function DetailPerizinan({ id }: { id: string }) {
                 </p>
                 {bolehEdit && (
                   <button
-                    className="tombol-sekunder"
+                    className="tombol tombol-sekunder"
                     disabled={muat || sibuk}
                     onClick={() => {
                       setAksi(null);
@@ -272,7 +272,7 @@ export default function DetailPerizinan({ id }: { id: string }) {
                     </label>
                     <div className="izin-tindakan">
                       <button
-                        className="tombol-utama"
+                        className="tombol tombol-utama"
                         disabled={sibuk || muat}
                         onClick={proses}
                       >

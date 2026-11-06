@@ -2,6 +2,8 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
+import KopLayanan from "@/components/KopLayanan";
+import { Ikon } from "@/components/Ikon";
 import FilterPeriode from "@/components/FilterPeriode";
 import FormTagihan from "@/components/FormTagihan";
 import ProgresKeuangan from "@/components/ProgresKeuangan";
@@ -114,29 +116,23 @@ export default function PusatKeuangan() {
   }
   return (
     <div className="izin-halaman spp-halaman">
-      <Link className="izin-kembali" href="/lainnya">
-        ← Lainnya
-      </Link>
-      <header className="izin-kop">
-        <div>
-          <p className="izin-eyebrow">Administrasi pondok</p>
-          <h1 className="judul-halaman">Keuangan Santri / SPP</h1>
-          <p className="subjudul">
-            Tagihan jelas. Pembayaran tercatat. Riwayat mudah ditelusuri.
-          </p>
-        </div>
-        <Image
-          src="/images/fitur/keuangan.webp"
-          alt=""
-          width={110}
-          height={110}
-        />
-      </header>
-      {profil?.peran === "admin" && (
-        <button className="tombol-utama" onClick={() => setForm(!form)}>
-          {form ? "Tutup formulir" : "+ Terbitkan tagihan"}
-        </button>
-      )}
+      <KopLayanan
+        judul="Keuangan Santri"
+        kategori="SPP & pembayaran"
+        keterangan="Kelola tagihan, konfirmasi pembayaran, dan pantau pelunasan."
+        gambar="/images/fitur/keuangan.webp"
+        aksi={
+          profil?.peran === "admin" ? (
+            <button
+              className="tombol tombol-utama"
+              onClick={() => setForm(!form)}
+            >
+              <Ikon nama={form ? "tutup" : "catatan"} ukuran={18} />
+              {form ? "Tutup formulir" : "Terbitkan tagihan"}
+            </button>
+          ) : undefined
+        }
+      />
       {form && (
         <FormTagihan
           onTutup={() => setForm(false)}
@@ -193,8 +189,21 @@ export default function PusatKeuangan() {
             </>
           )}
           <section className="izin-panel">
+            <div className="layanan-bilah">
+              <h2>Daftar tagihan</h2>
+              <button
+                className="layanan-refresh"
+                type="button"
+                aria-label="Muat ulang tagihan"
+                title="Muat ulang tagihan"
+                disabled={muat}
+                onClick={() => setUlang((v) => v + 1)}
+              >
+                <Ikon nama="muat-ulang" ukuran={19} />
+              </button>
+            </div>
             <div className="izin-filter">
-              <label>
+              <label className="layanan-pencarian">
                 Cari santri / tagihan
                 <input
                   type="search"
@@ -230,13 +239,6 @@ export default function PusatKeuangan() {
                   setHal(0);
                 }}
               />
-              <button
-                disabled={muat}
-                className="tombol-sekunder"
-                onClick={() => setUlang((v) => v + 1)}
-              >
-                Muat ulang
-              </button>
             </div>
             <p className="izin-petunjuk">
               Filter tanggal / bulan / tahun berdasarkan jatuh tempo tagihan ·
@@ -253,7 +255,7 @@ export default function PusatKeuangan() {
                 <div className="spp-hasil">
                   <span>{d.jumlah} tagihan ditemukan</span>
                   {profil?.peran === "admin" && d.data.length > 0 && (
-                    <button className="tombol-sekunder" onClick={unduh}>
+                    <button className="tombol tombol-sekunder" onClick={unduh}>
                       CSV halaman ini
                     </button>
                   )}

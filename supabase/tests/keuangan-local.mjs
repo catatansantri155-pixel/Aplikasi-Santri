@@ -23,7 +23,7 @@ grant all on storage.objects to authenticated;
 await db.exec(
   fs.readFileSync(
     new URL(
-      "../migrations/20261106062030_perizinan_santri.sql",
+      "../migrations/20261106075006_perizinan_santri.sql",
       import.meta.url,
     ),
     "utf8",
@@ -32,7 +32,16 @@ await db.exec(
 await db.exec(
   fs.readFileSync(
     new URL(
-      "../migrations/20261106065133_keuangan_santri_spp.sql",
+      "../migrations/20261106075024_keuangan_santri_spp.sql",
+      import.meta.url,
+    ),
+    "utf8",
+  ),
+);
+await db.exec(
+  fs.readFileSync(
+    new URL(
+      "../migrations/20261106075907_spp_batch_tolak_akses_langsung.sql",
       import.meta.url,
     ),
     "utf8",

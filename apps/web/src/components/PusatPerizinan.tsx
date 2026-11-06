@@ -2,6 +2,8 @@
 import { useEffect, useState, useCallback } from "react";
 import Link from "next/link";
 import Image from "next/image";
+import KopLayanan from "@/components/KopLayanan";
+import { Ikon } from "@/components/Ikon";
 import FilterPeriode from "@/components/FilterPeriode";
 import FormPerizinan from "@/components/FormPerizinan";
 import { ambilProfilLogin, type ProfilLogin } from "@/lib/sesi";
@@ -59,29 +61,23 @@ export default function PusatPerizinan() {
   }, [status, periode, halaman, ulang]);
   return (
     <div className="izin-halaman">
-      <Link className="izin-kembali" href="/lainnya">
-        ← Lainnya
-      </Link>
-      <header className="izin-kop">
-        <div>
-          <p className="izin-eyebrow">Layanan pondok</p>
-          <h1 className="judul-halaman">Perizinan Santri</h1>
-          <p className="subjudul">
-            Pengajuan, keberangkatan, dan kepulangan tercatat dengan jelas.
-          </p>
-        </div>
-        <Image
-          src="/images/fitur/perizinan.webp"
-          width={110}
-          height={110}
-          alt=""
-        />
-      </header>
-      {profil?.peran === "wali" && (
-        <button className="tombol-utama" onClick={() => setForm(!form)}>
-          {form ? "Tutup formulir" : "+ Ajukan izin"}
-        </button>
-      )}
+      <KopLayanan
+        judul="Perizinan Santri"
+        kategori="Layanan pondok"
+        keterangan="Ajukan izin dan pantau keberangkatan hingga kepulangan santri."
+        gambar="/images/fitur/perizinan.webp"
+        aksi={
+          profil?.peran === "wali" ? (
+            <button
+              className="tombol tombol-utama"
+              onClick={() => setForm(!form)}
+            >
+              <Ikon nama={form ? "tutup" : "pena"} ukuran={18} />
+              {form ? "Tutup formulir" : "Ajukan izin"}
+            </button>
+          ) : undefined
+        }
+      />
       {form && (
         <FormPerizinan
           onTutup={() => setForm(false)}
@@ -119,6 +115,19 @@ export default function PusatPerizinan() {
             </div>
           )}
           <section className="izin-panel">
+            <div className="layanan-bilah">
+              <h2>Daftar pengajuan</h2>
+              <button
+                className="layanan-refresh"
+                type="button"
+                aria-label="Muat ulang pengajuan"
+                title="Muat ulang pengajuan"
+                disabled={muat}
+                onClick={refresh}
+              >
+                <Ikon nama="muat-ulang" ukuran={19} />
+              </button>
+            </div>
             <div className="izin-filter">
               <label>
                 Status
@@ -145,13 +154,6 @@ export default function PusatPerizinan() {
                   setHalaman(0);
                 }}
               />
-              <button
-                className="tombol-sekunder"
-                onClick={refresh}
-                disabled={muat}
-              >
-                Muat ulang
-              </button>
             </div>
             <p className="izin-petunjuk">
               Filter berdasarkan rencana keluar · Waktu Indonesia Barat

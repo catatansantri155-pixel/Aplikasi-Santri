@@ -23,7 +23,7 @@ grant all on storage.objects to authenticated;
 await db.exec(
   fs.readFileSync(
     new URL(
-      "../migrations/20261106062030_perizinan_santri.sql",
+      "../migrations/20261106075006_perizinan_santri.sql",
       import.meta.url,
     ),
     "utf8",
