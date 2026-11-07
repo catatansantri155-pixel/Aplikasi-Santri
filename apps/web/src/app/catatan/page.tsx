@@ -1,4 +1,5 @@
 "use client";
+import { Putaran } from "@/components/Muat";
 
 /**
  * Halaman Catatan Musyrif — Jalur E, Tahap 2.
@@ -432,7 +433,14 @@ function IsiHalamanCatatan() {
             </p>
             <p className="catatan-kaki" style={{ margin: 0 }}>
               Pelapor:{" "}
-              <strong>{profil ? profil.nama : "Memuat profil…"}</strong> —
+              {profil ? (
+                <strong>{profil.nama}</strong>
+              ) : (
+                <>
+                  <Putaran ukuran={13} /> Memuat profil…
+                </>
+              )}{" "}
+              —
               tercatat otomatis dari akun yang masuk dan tidak dapat diganti di
               formulir ini.
             </p>
@@ -442,7 +450,7 @@ function IsiHalamanCatatan() {
               onClick={tanganiSimpan}
               disabled={sedangMenyimpan || !formulirSiap}
             >
-              {sedangMenyimpan ? "Menyimpan…" : "Simpan catatan"}
+              {sedangMenyimpan && <Putaran />} {sedangMenyimpan ? "Menyimpan…" : "Simpan catatan"}
             </button>
           </div>
         )}
@@ -634,7 +642,7 @@ function IsiHalamanCatatan() {
                             onClick={() => void tanganiSimpanUbahCatatan(c)}
                             disabled={sibukAksi}
                           >
-                            {sibukAksi ? "Menyimpan…" : "Simpan perubahan"}
+                            {sibukAksi && <Putaran />} {sibukAksi ? "Menyimpan…" : "Simpan perubahan"}
                           </button>
                           <button
                             type="button"

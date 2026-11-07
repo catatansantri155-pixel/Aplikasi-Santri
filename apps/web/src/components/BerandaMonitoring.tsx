@@ -1,4 +1,5 @@
 "use client";
+import { Putaran } from "@/components/Muat";
 import PanduanAplikasi from "@/components/PanduanAplikasi";
 
 import { useMemo, useState, type ReactNode } from "react";
@@ -90,9 +91,13 @@ export default function BerandaMonitoring({
           <div className="beranda-identitas">
             <p>Assalamu&rsquo;alaikum,</p>
             <strong>
-              {memuatProfil
-                ? "Memuat akun…"
-                : (profil?.nama ?? "Selamat datang")}
+              {memuatProfil ? (
+                <>
+                  <Putaran ukuran={14} /> Memuat akun…
+                </>
+              ) : (
+                (profil?.nama ?? "Selamat datang")
+              )}
             </strong>
             <span>Minhajus Sunnah · Magelang</span>
           </div>
@@ -125,7 +130,14 @@ export default function BerandaMonitoring({
             </div>
             <p className="hasil-cari-status" role="status">
               {hasil.modul.length} modul · {hasil.santri.length} santri
-              {memuatData ? " · Memuat data santri…" : ""}
+              {memuatData ? (
+                <>
+                  {" · "}
+                  <Putaran ukuran={12} /> Memuat data santri…
+                </>
+              ) : (
+                ""
+              )}
             </p>
             {hasil.modul.length > 0 && (
               <div className="hasil-cari-kelompok">

@@ -1,4 +1,5 @@
 "use client";
+import { PenandaMuat, Putaran } from "@/components/Muat";
 
 /**
  * Tes Semester Hifzhul Qur'an — tabel PER JUZ (ABU_SABIQ_2.pdf).
@@ -200,7 +201,7 @@ export default function BagianUjian({
           semesternya.
         </p>
       ) : memuat ? (
-        <p style={gayaPetunjuk}>Memuat tabel juz…</p>
+        <PenandaMuat teks="Memuat tabel juz…" />
       ) : baris.length === 0 ? (
         <p style={gayaPetunjuk}>
           Belum ada baris juz untuk santri ini. Tambahkan lewat formulir di
@@ -383,7 +384,7 @@ export default function BagianUjian({
           className="tombol"
           disabled={mengirim || !santriTerpilih}
         >
-          {mengirim
+          {mengirim && <Putaran />} {mengirim
             ? "Menyimpan…"
             : barisJuzIni
               ? `Perbarui Juz ${barisJuzIni.juz}`

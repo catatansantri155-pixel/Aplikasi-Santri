@@ -1,4 +1,5 @@
 "use client";
+import { PenandaMuat, Putaran } from "@/components/Muat";
 import { useEffect, useRef, useState, type FormEvent } from "react";
 import KopLayanan from "@/components/KopLayanan";
 import FilterPeriode from "@/components/FilterPeriode";
@@ -290,7 +291,7 @@ export default function KesehatanSantri() {
               )}
               <div className="izin-tindakan izin-lebar">
                 <button type="submit" className="tombol tombol-utama">
-                  {sibuk ? "Menyimpan…" : "Simpan catatan"}
+                  {sibuk && <Putaran />} {sibuk ? "Menyimpan…" : "Simpan catatan"}
                 </button>
                 <button type="button" onClick={() => setEditor(undefined)}>
                   Batal
@@ -366,7 +367,7 @@ export default function KesehatanSantri() {
           Wali hanya melihat catatan anak yang tertaut. Filter berdasarkan
           tanggal pencatatan.
         </p>
-        {muat && <p role="status">Memuat catatan…</p>}
+        {muat && <PenandaMuat teks="Memuat catatan…" />}
         {galat && (
           <p role="alert" className="pesan-galat">
             {galat}

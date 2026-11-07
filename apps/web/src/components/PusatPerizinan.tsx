@@ -1,4 +1,5 @@
 "use client";
+import { PenandaMuat } from "@/components/Muat";
 import { useEffect, useState, useCallback } from "react";
 import Link from "next/link";
 import Image from "next/image";
@@ -158,7 +159,7 @@ export default function PusatPerizinan() {
             <p className="izin-petunjuk">
               Filter berdasarkan rencana keluar · Waktu Indonesia Barat
             </p>
-            {muat && <p role="status">Memuat pengajuan…</p>}
+            {muat && <PenandaMuat teks="Memuat pengajuan…" />}
             {galat && (
               <p className="pesan-galat" role="alert">
                 {galat}

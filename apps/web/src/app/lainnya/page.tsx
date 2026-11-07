@@ -1,4 +1,5 @@
 "use client";
+import { PenandaMuat } from "@/components/Muat";
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
@@ -55,7 +56,12 @@ export default function Lainnya() {
     <PenjagaModul modul="menu">
       <h1 className="judul-halaman">Lainnya</h1>
       <p className="subjudul">Semua kebutuhan pondok, dalam satu tempat.</p>
-      {!peran && <p role="status">{galat || "Memuat akses akun…"}</p>}
+      {!peran &&
+        (galat ? (
+          <p role="status">{galat}</p>
+        ) : (
+          <PenandaMuat teks="Memuat akses akun…" />
+        ))}
       {kelompok.map((k) => (
         <section className="fitur-kelompok" key={k.judul}>
           <h2>{k.judul}</h2>

@@ -1,4 +1,5 @@
 "use client";
+import { PenandaMuat } from "@/components/Muat";
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
@@ -148,7 +149,7 @@ export default function LoncengNotifikasi() {
             </button>
           </div>
           {memuat ? (
-            <p role="status">Memuat notifikasi…</p>
+            <PenandaMuat teks="Memuat notifikasi…" />
           ) : galat ? (
             <p role="alert">
               {galat}{" "}

@@ -1,4 +1,5 @@
 "use client";
+import { Putaran } from "@/components/Muat";
 
 /**
  * Halaman Kehadiran — Jalur C, Tahap 2.
@@ -575,7 +576,7 @@ function IsiHalamanKehadiran() {
               onClick={tanganiSimpan}
               disabled={sedangMenyimpan || jumlahAkanDisimpan === 0}
             >
-              {sedangMenyimpan
+              {sedangMenyimpan && <Putaran />} {sedangMenyimpan
                 ? "Menyimpan…"
                 : `Simpan ${jumlahAkanDisimpan} kehadiran · Kelas ${tingkat}`}
             </button>
@@ -649,7 +650,7 @@ function IsiHalamanKehadiran() {
               onClick={tanganiRevisi}
               disabled={sedangRevisi || !revisiId || !revisiAlasan.trim()}
             >
-              {sedangRevisi ? "Mengajukan…" : "Ajukan revisi"}
+              {sedangRevisi && <Putaran />} {sedangRevisi ? "Mengajukan…" : "Ajukan revisi"}
             </button>
           </div>
           {pesanRevisi && (

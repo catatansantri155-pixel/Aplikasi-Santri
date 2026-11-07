@@ -1,4 +1,5 @@
 "use client";
+import { PenandaMuat, Putaran } from "@/components/Muat";
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import KartuInformasi from "@/components/KartuInformasi";
@@ -95,7 +96,7 @@ export default function DetailInformasi({ id }: { id: string }) {
       </Link>
       <h1 className="judul-halaman">Informasi pondok</h1>
       {memuat ? (
-        <p role="status">Memuat informasi…</p>
+        <PenandaMuat teks="Memuat informasi…" />
       ) : galat ? (
         <p className="pesan-galat" role="alert">
           {galat}{" "}
@@ -139,7 +140,7 @@ export default function DetailInformasi({ id }: { id: string }) {
                       disabled={menyimpan}
                       onClick={() => void konfirmasi()}
                     >
-                      {menyimpan
+                      {menyimpan && <Putaran />} {menyimpan
                         ? "Menyimpan…"
                         : "Saya sudah membaca dan memahami"}
                     </button>

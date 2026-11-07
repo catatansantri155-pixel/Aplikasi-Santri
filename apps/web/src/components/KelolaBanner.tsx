@@ -1,4 +1,5 @@
 "use client";
+import { PenandaMuat, Putaran } from "@/components/Muat";
 import { useEffect, useRef, useState, type FormEvent } from "react";
 import KopLayanan from "@/components/KopLayanan";
 import { Ikon } from "@/components/Ikon";
@@ -264,7 +265,7 @@ export default function KelolaBanner() {
                   className="tombol tombol-utama"
                   disabled={kompres || !!fileGalat}
                 >
-                  {sibuk ? "Menyimpan…" : "Simpan banner"}
+                  {sibuk && <Putaran />} {sibuk ? "Menyimpan…" : "Simpan banner"}
                 </button>
                 <button type="button" onClick={() => setEditor(undefined)}>
                   Batal
@@ -305,7 +306,7 @@ export default function KelolaBanner() {
           daftar kelola menampilkan 20 banner per halaman.
           Banner diputar otomatis dan hanya menampilkan gambar.
         </p>
-        {muat && <p role="status">Memuat banner…</p>}
+        {muat && <PenandaMuat teks="Memuat banner…" />}
         {editor === undefined && galat && (
           <p role="alert" className="pesan-galat">
             {galat}

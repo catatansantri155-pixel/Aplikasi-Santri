@@ -1,4 +1,5 @@
 "use client";
+import { Putaran } from "@/components/Muat";
 
 /**
  * Halaman Daftar — SIGN UP KHUSUS WALI (keputusan user 4 Nov 2026).
@@ -235,7 +236,7 @@ export default function HalamanDaftar() {
                 className="tombol tombol-besar tombol-penuh"
                 disabled={mengirim}
               >
-                {mengirim ? "Memproses…" : "Buat akun wali"}
+                {mengirim && <Putaran />} {mengirim ? "Memproses…" : "Buat akun wali"}
               </button>
             </form>
             <p className="catatan-kaki" style={{ textAlign: "center" }}>

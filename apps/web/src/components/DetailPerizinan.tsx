@@ -1,4 +1,5 @@
 "use client";
+import { PenandaMuat, Putaran } from "@/components/Muat";
 import { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import FormPerizinan from "@/components/FormPerizinan";
@@ -112,7 +113,7 @@ export default function DetailPerizinan({ id }: { id: string }) {
         ← Semua pengajuan
       </Link>
       <h1 className="judul-halaman">Detail Perizinan</h1>
-      {muat && <p role="status">Memuat pengajuan…</p>}
+      {muat && <PenandaMuat teks="Memuat pengajuan…" />}
       {galat && (
         <p className="pesan-galat" role="alert">
           {galat}
@@ -276,7 +277,7 @@ export default function DetailPerizinan({ id }: { id: string }) {
                         disabled={sibuk || muat}
                         onClick={proses}
                       >
-                        {sibuk ? "Menyimpan…" : "Ya, lanjutkan"}
+                        {sibuk && <Putaran />} {sibuk ? "Menyimpan…" : "Ya, lanjutkan"}
                       </button>
                       <button disabled={sibuk} onClick={() => setAksi(null)}>
                         Batal

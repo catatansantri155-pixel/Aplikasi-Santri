@@ -1,4 +1,5 @@
 "use client";
+import { RangkaKartu, RangkaGrafik } from "@/components/Muat";
 
 /**
  * KontenRekap — tampilan "Rincian tabel" halaman /laporan
@@ -421,7 +422,10 @@ export default function KontenRekap() {
 
   if (memuat) {
     return (
-      <p className="catatan-kaki">Memuat rekap kehadiran & grafik hifzh…</p>
+      <div role="status" aria-label="Memuat rekap">
+        <RangkaKartu />
+        <RangkaGrafik />
+      </div>
     );
   }
 

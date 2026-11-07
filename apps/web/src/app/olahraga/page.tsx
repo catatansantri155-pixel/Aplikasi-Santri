@@ -1,4 +1,5 @@
 "use client";
+import { Putaran } from "@/components/Muat";
 
 /**
  * Halaman Olahraga.
@@ -425,7 +426,7 @@ function IsiHalamanOlahraga() {
               onClick={tanganiBuatSesi}
               disabled={sedangMembuat}
             >
-              {sedangMembuat ? "Menyimpan…" : "Buat sesi"}
+              {sedangMembuat && <Putaran />} {sedangMembuat ? "Menyimpan…" : "Buat sesi"}
             </button>
           </div>
         )}
@@ -604,7 +605,7 @@ function IsiHalamanOlahraga() {
                   onClick={() => void tanganiSimpanUbahSesi()}
                   disabled={sibukSesi}
                 >
-                  {sibukSesi ? "Menyimpan…" : "Simpan perubahan"}
+                  {sibukSesi && <Putaran />} {sibukSesi ? "Menyimpan…" : "Simpan perubahan"}
                 </button>
                 <button
                   type="button"
@@ -755,7 +756,7 @@ function IsiHalamanOlahraga() {
                   onClick={tanganiSimpan}
                   disabled={sedangMenyimpan}
                 >
-                  {sedangMenyimpan
+                  {sedangMenyimpan && <Putaran />} {sedangMenyimpan
                     ? "Menyimpan…"
                     : `Simpan kehadiran · ${jumlahTerisi} terisi`}
                 </button>
