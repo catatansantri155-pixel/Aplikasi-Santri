@@ -23,7 +23,7 @@ export function petunjukPemasangan(ua: string, sentuh: number) {
       platform: "Android",
       langkah: [
         "Buka tautan ini di Chrome atau Samsung Internet.",
-        "Ketuk Pasang aplikasi di bawah, atau menu browser → Instal aplikasi / Tambahkan ke layar utama.",
+        "Pilih menu browser → Instal aplikasi / Tambahkan ke layar utama. Tombol Pasang juga dapat muncul di halaman ini jika tersedia.",
         "Selesaikan pemasangan, lalu buka Monitoring Santri dari ikon aplikasi.",
       ],
     };
@@ -40,7 +40,7 @@ export function petunjukPemasangan(ua: string, sentuh: number) {
     platform: "Komputer",
     langkah: [
       "Buka tautan ini di Chrome atau Microsoft Edge yang mendukung pemasangan aplikasi.",
-      "Klik Pasang aplikasi di bawah atau ikon pemasangan di bilah alamat browser.",
+      "Pilih ikon pemasangan di bilah alamat atau menu browser → Instal aplikasi. Tombol Pasang juga dapat muncul di halaman ini jika tersedia.",
       "Selesaikan pemasangan, lalu buka Monitoring Santri dari menu aplikasi komputer.",
     ],
   };
