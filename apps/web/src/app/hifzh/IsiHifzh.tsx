@@ -1,4 +1,5 @@
 "use client";
+import { PenandaMuat, Putaran } from "@/components/Muat";
 
 /**
  * Isi Halaman Hifzh (komponen klien) — Tahap 2 Jalur D, dipecah
@@ -348,7 +349,7 @@ export default function IsiHalamanHifzh({ tab }: { tab: TabHifzh }) {
           <section className="kartu kartu-form-setoran">
             <h2>Setoran baru</h2>
             {memuat ? (
-              <p style={gayaPetunjuk}>Memuat daftar santri…</p>
+              <PenandaMuat teks="Memuat daftar santri…" />
             ) : pantauanAdmin ? (
               <>
                 <p className="catatan-pantauan" role="note">
@@ -398,7 +399,7 @@ export default function IsiHalamanHifzh({ tab }: { tab: TabHifzh }) {
               </p>
             )}
             {memuat ? (
-              <p style={gayaPetunjuk}>Memuat setoran…</p>
+              <PenandaMuat teks="Memuat setoran…" />
             ) : setoranTampil.length === 0 ? (
               <div className="kartu-kosong">
                 <Ikon nama="hifzh" ukuran={28} />
@@ -637,7 +638,7 @@ export default function IsiHalamanHifzh({ tab }: { tab: TabHifzh }) {
                               onClick={() => void tanganiSimpanUbahSetoran(s)}
                               disabled={sibukAksi}
                             >
-                              {sibukAksi ? "Menyimpan…" : "Simpan perubahan"}
+                              {sibukAksi && <Putaran />} {sibukAksi ? "Menyimpan…" : "Simpan perubahan"}
                             </button>
                             <button
                               type="button"
@@ -665,7 +666,7 @@ export default function IsiHalamanHifzh({ tab }: { tab: TabHifzh }) {
               RG/KK/KB.
             </p>
             {memuat ? (
-              <p style={gayaPetunjuk}>Memuat daftar santri…</p>
+              <PenandaMuat teks="Memuat daftar santri…" />
             ) : pantauanAdmin ? (
               <p className="catatan-pantauan" role="note">
                 {pesanModePantauan("pengajar hifzh")}

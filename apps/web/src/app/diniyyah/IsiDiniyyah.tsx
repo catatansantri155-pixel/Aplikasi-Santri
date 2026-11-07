@@ -1,4 +1,5 @@
 "use client";
+import { Putaran } from "@/components/Muat";
 
 /**
  * Isi Halaman Diniyyah (komponen klien) — Jalur E, Tahap 2; dipecah
@@ -663,7 +664,7 @@ export default function IsiHalamanDiniyyah({ tab }: { tab: TabDiniyyah }) {
                   onClick={tanganiSimpanHarian}
                   disabled={simpanHarianBerjalan || !santriId}
                 >
-                  {simpanHarianBerjalan
+                  {simpanHarianBerjalan && <Putaran />} {simpanHarianBerjalan
                     ? "Menyimpan…"
                     : nilaiHarianAda
                       ? "Perbarui nilai"
@@ -771,7 +772,7 @@ export default function IsiHalamanDiniyyah({ tab }: { tab: TabDiniyyah }) {
                     simpanUjianBerjalan || !santriId || !semesterUjianId
                   }
                 >
-                  {simpanUjianBerjalan
+                  {simpanUjianBerjalan && <Putaran />} {simpanUjianBerjalan
                     ? "Menyimpan…"
                     : nilaiUjianAda
                       ? "Perbarui nilai"

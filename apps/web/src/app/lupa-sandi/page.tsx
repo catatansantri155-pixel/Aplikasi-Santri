@@ -1,4 +1,5 @@
 "use client";
+import { Putaran } from "@/components/Muat";
 
 /**
  * Halaman Lupa Kata Sandi — minta tautan atur ulang lewat surel
@@ -106,7 +107,7 @@ export default function HalamanLupaSandi() {
                 className="tombol tombol-besar tombol-penuh"
                 disabled={mengirim}
               >
-                {mengirim ? "Memproses…" : "Kirim tautan atur ulang"}
+                {mengirim && <Putaran />} {mengirim ? "Memproses…" : "Kirim tautan atur ulang"}
               </button>
             </form>
             <p className="catatan-kaki" style={{ textAlign: "center" }}>

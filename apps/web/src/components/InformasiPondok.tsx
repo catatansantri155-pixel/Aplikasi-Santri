@@ -1,4 +1,5 @@
 "use client";
+import { PenandaMuat, Putaran } from "@/components/Muat";
 import { Ikon } from "@/components/Ikon";
 import { arsipPondok } from "@/lib/data/pondok-layanan";
 import PenerimaInformasi from "@/components/PenerimaInformasi";
@@ -500,7 +501,7 @@ export default function InformasiPondok({
                 className="tombol"
                 disabled={menyimpan || !supabaseTerhubung()}
               >
-                {menyimpan ? "Menyimpan…" : "Simpan informasi"}
+                {menyimpan && <Putaran />} {menyimpan ? "Menyimpan…" : "Simpan informasi"}
               </button>
               <button
                 type="button"
@@ -528,9 +529,7 @@ export default function InformasiPondok({
         </div>
       )}
       {memuat ? (
-        <p role="status" className="catatan-kaki">
-          Memuat informasi pondok…
-        </p>
+        <PenandaMuat teks="Memuat informasi pondok…" />
       ) : !galat && !baris.length ? (
         <div className="informasi-kosong">
           <strong>

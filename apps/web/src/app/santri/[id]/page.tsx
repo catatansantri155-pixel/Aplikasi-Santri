@@ -1,4 +1,5 @@
 "use client";
+import { RangkaKartu, RangkaDaftar } from "@/components/Muat";
 
 /**
  * Halaman Detail Santri — Jalur C (kerangka + Kehadiran), Jalur F
@@ -297,7 +298,12 @@ export default function HalamanDetailSantri({
   }, [logRevisi]);
 
   if (memuat) {
-    return <p className="catatan-kaki">Memuat detail santri…</p>;
+    return (
+      <div role="status" aria-label="Memuat detail santri">
+        <RangkaKartu />
+        <RangkaDaftar jumlah={4} />
+      </div>
+    );
   }
 
   if (galat) {

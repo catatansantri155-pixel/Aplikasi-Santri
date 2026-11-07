@@ -1,4 +1,5 @@
 "use client";
+import { Putaran } from "@/components/Muat";
 import { useEffect, useRef, useState, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import { ambilDaftarSantri, type Santri } from "@/lib/data/santri";
@@ -285,7 +286,7 @@ export default function FormPerizinan({
               className="tombol tombol-utama"
               disabled={kompres || !!fileGalat || !anak.length}
             >
-              {sibuk
+              {sibuk && <Putaran />} {sibuk
                 ? "Menyimpan…"
                 : izin
                   ? "Kirim perbaikan"

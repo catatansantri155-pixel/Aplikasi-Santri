@@ -1,4 +1,5 @@
 "use client";
+import { RangkaDaftar } from "@/components/Muat";
 
 /**
  * Halaman Daftar Santri — Jalur C, Tahap 2.
@@ -141,7 +142,7 @@ export default function HalamanSantri() {
         ))}
       </div>
 
-      {memuat && <p className="catatan-kaki">Memuat daftar santri…</p>}
+      {memuat && <RangkaDaftar jumlah={6} />}
       {galat && <KartuGalat pesan={galat} onCobaLagi={() => void muat()} />}
       {!memuat && !galat && totalTampil === 0 && adaPenyaring && (
         <section className="kartu">

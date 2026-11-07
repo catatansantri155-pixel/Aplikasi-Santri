@@ -1,4 +1,5 @@
 "use client";
+import { PenandaMuat } from "@/components/Muat";
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
@@ -244,7 +245,7 @@ export default function PusatKeuangan() {
               Filter tanggal / bulan / tahun berdasarkan jatuh tempo tagihan ·
               WIB
             </p>
-            {muat && <p role="status">Memuat tagihan…</p>}
+            {muat && <PenandaMuat teks="Memuat tagihan…" />}
             {galat && (
               <p role="alert" className="pesan-galat">
                 {galat}

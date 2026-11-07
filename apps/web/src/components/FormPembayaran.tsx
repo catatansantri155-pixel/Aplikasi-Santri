@@ -1,4 +1,5 @@
 "use client";
+import { Putaran } from "@/components/Muat";
 import { useEffect, useRef, useState, type FormEvent } from "react";
 import {
   angkaRupiah,
@@ -214,7 +215,7 @@ export default function FormPembayaran({
               className="tombol tombol-utama"
               disabled={kompres || !!fileGalat || tersedia < 1}
             >
-              {sibuk
+              {sibuk && <Putaran />} {sibuk
                 ? "Menyimpan…"
                 : wali
                   ? "Kirim bukti pembayaran"

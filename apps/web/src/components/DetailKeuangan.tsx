@@ -1,4 +1,5 @@
 "use client";
+import { PenandaMuat, Putaran } from "@/components/Muat";
 import { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import FormPembayaran from "@/components/FormPembayaran";
@@ -137,7 +138,7 @@ export default function DetailKeuangan({ id }: { id: string }) {
         ← Semua tagihan
       </Link>
       <h1 className="judul-halaman">Detail Tagihan</h1>
-      {muat && <p role="status">Memuat tagihan…</p>}
+      {muat && <PenandaMuat teks="Memuat tagihan…" />}
       {galat && (
         <p className="pesan-galat" role="alert">
           {galat}
@@ -284,7 +285,7 @@ export default function DetailKeuangan({ id }: { id: string }) {
                   disabled={muat || sibuk}
                   onClick={proses}
                 >
-                  {sibuk ? "Menyimpan…" : "Ya, lanjutkan"}
+                  {sibuk && <Putaran />} {sibuk ? "Menyimpan…" : "Ya, lanjutkan"}
                 </button>
                 <button disabled={sibuk} onClick={() => setPilih(null)}>
                   Batal

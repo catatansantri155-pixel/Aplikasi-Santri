@@ -1,4 +1,5 @@
 "use client";
+import { PenandaMuat, Putaran } from "@/components/Muat";
 import { useEffect, useRef, useState, type FormEvent } from "react";
 import KopLayanan from "@/components/KopLayanan";
 import { Ikon } from "@/components/Ikon";
@@ -248,7 +249,7 @@ export default function KalenderPondok() {
               )}
               <div className="izin-tindakan izin-lebar">
                 <button type="submit" className="tombol tombol-utama">
-                  {sibuk ? "Menyimpan…" : "Simpan agenda"}
+                  {sibuk && <Putaran />} {sibuk ? "Menyimpan…" : "Simpan agenda"}
                 </button>
                 <button type="button" onClick={() => setEditor(undefined)}>
                   Batal
@@ -364,7 +365,7 @@ export default function KalenderPondok() {
           </h2>
           {hari && <button onClick={() => setHari("")}>Semua tanggal</button>}
         </div>
-        {muat && <p role="status">Memuat agenda…</p>}
+        {muat && <PenandaMuat teks="Memuat agenda…" />}
         {galat && (
           <p className="pesan-galat" role="alert">
             {galat}

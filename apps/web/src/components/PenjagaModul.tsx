@@ -1,4 +1,5 @@
 "use client";
+import { PenandaMuat } from "@/components/Muat";
 
 /**
  * PENJAGA PER HALAMAN MODUL — gerbang tampilan berdasarkan peran,
@@ -57,7 +58,7 @@ export default function PenjagaModul({
 
   if (modeContoh) return <>{children}</>;
   if (!cekSelesai) {
-    return <p className="catatan-kaki">Memeriksa akses…</p>;
+    return <PenandaMuat teks="Memeriksa akses…" />;
   }
   if (!profil) {
     // Tanpa sesi/profil: InfoPengguna mengarahkan ke /login; jangan

@@ -1,4 +1,5 @@
 "use client";
+import { Putaran } from "@/components/Muat";
 
 /**
  * Halaman Atur Kata Sandi Baru — tujuan akhir alur lupa sandi
@@ -141,7 +142,7 @@ export default function HalamanAturSandi() {
               className="tombol tombol-besar tombol-penuh"
               disabled={mengirim}
             >
-              {mengirim ? "Memproses…" : "Simpan kata sandi baru"}
+              {mengirim && <Putaran />} {mengirim ? "Memproses…" : "Simpan kata sandi baru"}
             </button>
           </form>
         )}

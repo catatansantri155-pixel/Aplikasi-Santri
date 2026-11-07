@@ -1,0 +1,293 @@
+/* ============================================================
+   GAYA KACA & PEMUATAN MODERN (perintah user 7 Nov 2026)
+   Lapisan presentasi TERAKHIR: dimuat sesudah panduan-pwa.css
+   di layout.tsx agar menang atas lapisan globals/ui/beranda/
+   pondok pada kekhususan yang setara.
+
+   Meniru perlakuan kaca Aplikasi Pustaka Ilmu (di sana: header
+   bg-white/80 backdrop-blur-md border-white/60 dan pil navigasi
+   melayang bg-white/85 + shadow-pill) — glassmorphism ala
+   iPhone: permukaan tembus cahaya + backdrop blur + tepi
+   terang + bayangan pil lembut.
+
+   Disesuaikan dengan desain produksi SEKARANG (GitHub main):
+   - Palet efektif lapisan ui.css (primer #245bce, latar
+     #f5f7fb, tinta #18263d) TIDAK diubah; yang ditiru hanya
+     perlakuan kacanya.
+   - Slot aktif navigasi bawah dipertahankan persis
+     desain sekarang (pil lebar teal #155c5b dari beranda.css,
+     label hanya pada slot aktif); yang berubah hanya WADAHNYA:
+     dari bilah menempel penuh menjadi kapsul kaca melayang.
+   - Permukaan berwarna identitas (mis. .banner-motivasi emas
+     muda, kartu informasi berwarna di pondok.css) TIDAK
+     dikacakan agar identitas warnanya utuh.
+   Murni presentasi: nol perubahan logika, peran, RLS, data.
+   ============================================================ */
+
+:root {
+  --kaca: rgba(255, 255, 255, 0.78);
+  --kaca-tepi: rgba(255, 255, 255, 0.65);
+  --kaca-buram: blur(14px) saturate(1.5);
+  --kaca-sorot: rgba(255, 255, 255, 0.55);
+  /* Meniru shadow-pill Pustaka Ilmu, tinta disesuaikan ke
+     tinta teks aplikasi ini (#18263d). */
+  --bayang-pil:
+    0 12px 32px -12px rgba(24, 38, 61, 0.28),
+    0 2px 8px rgba(24, 38, 61, 0.08);
+}
+
+html[data-tema="gelap"] {
+  /* Kaca mode gelap: permukaan gelap tembus cahaya mengikuti
+     token gelap ui.css (--permukaan #172333), tepi terang
+     sangat tipis, sorot atas nyaris tak terlihat. */
+  --kaca: rgba(23, 35, 51, 0.72);
+  --kaca-tepi: rgba(255, 255, 255, 0.09);
+  --kaca-sorot: rgba(255, 255, 255, 0.06);
+  --bayang-pil:
+    0 12px 32px -12px rgba(0, 0, 0, 0.6),
+    0 2px 8px rgba(0, 0, 0, 0.4);
+}
+
+/* Cahaya ambient sangat lembut di latar halaman (tint primer
+   kiri atas, tint emas kanan atas, menempel/fixed) agar
+   permukaan kaca punya sesuatu untuk dibiaskan — warna dasar
+   tetap --latar dari lapisan ui.css. */
+body {
+  background-image:
+    radial-gradient(
+      560px 340px at 12% -60px,
+      rgba(36, 91, 206, 0.1),
+      transparent 70%
+    ),
+    radial-gradient(
+      520px 320px at 95% -40px,
+      rgba(215, 160, 61, 0.08),
+      transparent 70%
+    );
+  background-attachment: fixed;
+}
+
+html[data-tema="gelap"] body {
+  background-image:
+    radial-gradient(
+      560px 340px at 12% -60px,
+      rgba(139, 181, 255, 0.07),
+      transparent 70%
+    ),
+    radial-gradient(
+      520px 320px at 95% -40px,
+      rgba(215, 160, 61, 0.05),
+      transparent 70%
+    );
+}
+
+/* ---------- Permukaan utama menjadi kaca ---------- */
+/* Kartu, panel, lembar, sidebar, kepala halaman, bilah atas
+   aplikasi (sticky), dan bilah aksi/simpan yang melayang.
+   Garis tepi & radius dari lapisan sebelumnya dipertahankan
+   sebagai definisi bentuk; kaca menambah translusensi, blur
+   latar, sorot tepi atas, dan bayangan lembut. */
+.kartu,
+.kartu-stat,
+.kartu-semester,
+.kartu-samping,
+.daftar-kartu,
+.daftar-ringkas,
+.kartu-penilaian,
+.baris-daftar,
+.rincian,
+.lembar,
+.login-lembar,
+.kepala,
+.sidebar,
+.bilah-aplikasi,
+.bilah-aksi,
+.bilah-simpan,
+.aksi-beranda,
+.filter-baris,
+.hasil-setoran,
+.kisi-menu--keterangan .item-menu {
+  background: var(--kaca);
+  -webkit-backdrop-filter: var(--kaca-buram);
+  backdrop-filter: var(--kaca-buram);
+  box-shadow:
+    inset 0 1px 0 var(--kaca-sorot),
+    var(--bayang);
+}
+
+/* Baris di dalam daftar menyatu mengikuti kaca wadahnya. */
+.daftar-kartu .baris-daftar,
+.daftar-ringkas .baris-ringkas {
+  background: transparent;
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+  box-shadow: none;
+}
+
+/* Bilah aksi/simpan melayang di atas kapsul navigasi: bayangan
+   apung agar terbaca sebagai lapisan terpisah. */
+.bilah-aksi,
+.bilah-simpan {
+  box-shadow:
+    inset 0 1px 0 var(--kaca-sorot),
+    var(--bayang-apung);
+}
+
+/* ---------- Navigasi bawah: kapsul kaca melayang ---------- */
+/* Menggantikan bilah menempel penuh (globals) + bayangan atas
+   (ui.css) + bantalan (beranda.css): kapsul terpusat selebar
+   min(28rem, layar − 24px), berjarak max(12px, safe-area) dari
+   dasar layar, sudut penuh, kaca + bayangan pil — meniru pil
+   navigasi melayang Aplikasi Pustaka Ilmu. Isi slot (pil aktif
+   teal lebar, ikon slot lain) tetap aturan beranda.css/ui.css. */
+.nav-bawah {
+  left: 50%;
+  right: auto;
+  transform: translateX(-50%);
+  bottom: max(12px, env(safe-area-inset-bottom));
+  width: min(28rem, calc(100vw - 24px));
+  z-index: 40;
+  padding: 6px;
+  background: var(--kaca);
+  -webkit-backdrop-filter: var(--kaca-buram);
+  backdrop-filter: var(--kaca-buram);
+  border: 1px solid var(--kaca-tepi);
+  border-radius: 999px;
+  box-shadow: var(--bayang-pil);
+}
+
+/* Isi kapsul: deretan slot merata selebar kapsul. */
+.nav-bawah-dalam {
+  max-width: none;
+  min-height: 60px;
+  padding: 0;
+}
+
+/* Sudut slot mengikuti lengkung kapsul. */
+.nav-bawah .nav-slot {
+  border-radius: 999px;
+}
+
+/* Bilah simpan/aksi digeser ke atas kapsul (tinggi kapsul
+   ±74px + jarak dasar 12px) agar tidak tertutup; hanya di
+   bawah 1024px — di desktop kapsul sembunyi dan bilah kembali
+   menempel dasar mengikuti aturan ui.css. */
+@media (max-width: 1023px) {
+  .bilah-simpan {
+    bottom: calc(94px + env(safe-area-inset-bottom));
+  }
+  .bilah-aksi {
+    bottom: calc(94px + env(safe-area-inset-bottom));
+  }
+}
+
+/* ---------- Pemuatan modern: putaran & rangka ---------- */
+/* Dipakai komponen bersama components/Muat.tsx. */
+
+/* Putaran modern: cincin berputar mengikuti warna teks elemen
+   induknya (di tombol primer = teks di-primer; berdiri sendiri
+   lewat .penanda-muat = primer). */
+.putaran {
+  display: inline-block;
+  vertical-align: -3px;
+  border-radius: 50%;
+  border: 2.5px solid
+    color-mix(in srgb, currentColor 22%, transparent);
+  border-top-color: currentColor;
+  animation: putaran-putar 0.7s linear infinite;
+  flex-shrink: 0;
+}
+
+@keyframes putaran-putar {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Penanda muat terpusat: putaran + teks, pengganti teks polos
+   "Memuat …" yang berdiri sendiri. */
+.penanda-muat {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 28px 16px;
+  color: var(--teks-redup);
+  font-size: 13.5px;
+  font-weight: 600;
+}
+
+.penanda-muat .putaran {
+  color: var(--hijau-kop);
+}
+
+/* Blok rangka (skeleton): bidang redup dengan kilau menyapu,
+   dibentuk komponen Muat menjadi tiruan kartu/daftar selama
+   data dimuat — tidak ada lagi layar kosong atau teks muat
+   polos. */
+.rangka {
+  position: relative;
+  overflow: hidden;
+  background: var(--redup);
+  border-radius: 10px;
+  flex-shrink: 0;
+}
+
+.rangka::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  transform: translateX(-100%);
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.55),
+    transparent
+  );
+  animation: rangka-kilau 1.4s ease-in-out infinite;
+}
+
+html[data-tema="gelap"] .rangka::after {
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.08),
+    transparent
+  );
+}
+
+@keyframes rangka-kilau {
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+/* Deretan baris rangka di dalam satu kartu daftar. */
+.rangka-baris {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+}
+
+.rangka-baris + .rangka-baris {
+  border-top: 1px solid var(--garis);
+}
+
+.rangka-teks {
+  flex: 1;
+  min-width: 0;
+  display: grid;
+  gap: 6px;
+}
+
+/* Hormati pengurangan gerak: kilau rangka dimatikan, putaran
+   diperlambat. */
+@media (prefers-reduced-motion: reduce) {
+  .putaran {
+    animation-duration: 1.6s;
+  }
+  .rangka::after {
+    animation: none;
+  }
+}

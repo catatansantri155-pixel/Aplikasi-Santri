@@ -1,3 +1,4 @@
+import { Putaran } from "@/components/Muat";
 import type { ReactNode } from "react";
 import { Ikon, type NamaIkon } from "@/components/Ikon";
 import {
@@ -98,7 +99,14 @@ function Keadaan({
     <div className="analitik-keadaan" role="status">
       <Ikon nama={kosong ? "rekap" : "kalender"} ukuran={24} />
       <p>
-        {teks ?? (kosong ? "Belum ada data pada cakupan ini." : "Memuat data…")}
+        {teks ??
+          (kosong ? (
+            "Belum ada data pada cakupan ini."
+          ) : (
+            <>
+              <Putaran ukuran={14} /> Memuat data…
+            </>
+          ))}
       </p>
     </div>
   );

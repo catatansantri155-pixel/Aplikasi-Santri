@@ -1,4 +1,5 @@
 "use client";
+import { Putaran } from "@/components/Muat";
 
 /**
  * Halaman masuk — LOGIN ASLI Supabase Auth (Tahap 3).
@@ -274,7 +275,7 @@ export default function HalamanLogin() {
             className="tombol tombol-penuh"
             disabled={mengirim}
           >
-            {mengirim ? "Memproses…" : "Masuk"}
+            {mengirim && <Putaran />} {mengirim ? "Memproses…" : "Masuk"}
           </button>
         </form>
 

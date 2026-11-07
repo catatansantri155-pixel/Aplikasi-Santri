@@ -1,4 +1,5 @@
 "use client";
+import { Putaran } from "@/components/Muat";
 
 /**
  * Form Setoran Buku Hafalan — 8 kolom resmi (ABU_SABIQ_1.pdf):
@@ -607,7 +608,7 @@ export default function FormSetoran({
             disabled={mengirim || !santriTerpilih}
           >
             <Ikon nama={mengirim ? "jam" : "centang"} ukuran={17} />
-            {mengirim ? "Menyimpan…" : "Simpan setoran"}
+            {mengirim && <Putaran />} {mengirim ? "Menyimpan…" : "Simpan setoran"}
           </button>
         </div>
       </div>

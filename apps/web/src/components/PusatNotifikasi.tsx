@@ -1,4 +1,5 @@
 "use client";
+import { PenandaMuat, Putaran } from "@/components/Muat";
 import { useEffect, useState } from "react";
 import {
   ambilNotifikasi,
@@ -90,7 +91,7 @@ export default function PusatNotifikasi() {
           onClick={() => void semua()}
           disabled={menyimpan || memuat || !belumJumlah || !supabaseTerhubung()}
         >
-          {menyimpan ? "Menyimpan…" : "Tandai semua dibaca"}
+          {menyimpan && <Putaran />} {menyimpan ? "Menyimpan…" : "Tandai semua dibaca"}
         </button>
       </div>
       {!supabaseTerhubung() && (
@@ -141,7 +142,7 @@ export default function PusatNotifikasi() {
         </p>
       )}
       {memuat ? (
-        <p role="status">Memuat notifikasi…</p>
+        <PenandaMuat teks="Memuat notifikasi…" />
       ) : (
         !galat &&
         (data.length ? (

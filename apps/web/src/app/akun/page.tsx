@@ -1,4 +1,5 @@
 "use client";
+import { RangkaKartu, Putaran } from "@/components/Muat";
 
 /**
  * Halaman Akun — profil pengguna yang login: avatar inisial besar,
@@ -256,7 +257,7 @@ function IsiAkun() {
     <div style={{ maxWidth: 576 }}>
       <h1 className="judul-halaman">Akun</h1>
 
-      {memuat && <p className="catatan-kaki">Memuat profil…</p>}
+      {memuat && <RangkaKartu />}
 
       {!memuat && !profil && (
         <p className="pesan-galat" role="alert">
@@ -350,7 +351,7 @@ function IsiAkun() {
                 </p>
               )}
               <button type="submit" className="tombol" disabled={prosesSandi}>
-                {prosesSandi ? "Menyimpan…" : "Simpan kata sandi baru"}
+                {prosesSandi && <Putaran />} {prosesSandi ? "Menyimpan…" : "Simpan kata sandi baru"}
               </button>
             </form>
           </section>
@@ -363,7 +364,7 @@ function IsiAkun() {
             onClick={tanganiKeluar}
             disabled={prosesKeluar}
           >
-            {prosesKeluar ? "Memproses…" : "Keluar"}
+            {prosesKeluar && <Putaran />} {prosesKeluar ? "Memproses…" : "Keluar"}
           </button>
         </>
       )}

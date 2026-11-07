@@ -1,4 +1,5 @@
 "use client";
+import { Putaran } from "@/components/Muat";
 
 /**
  * Isi Panel Admin (komponen klien) — kelola data induk, KHUSUS
@@ -623,7 +624,7 @@ export default function IsiHalamanAdmin({ tab }: { tab: TabAdmin }) {
             onClick={tanganiTambahSantri}
             disabled={sedangSimpanSantri}
           >
-            {sedangSimpanSantri ? "Menyimpan…" : "Tambah santri"}
+            {sedangSimpanSantri && <Putaran />} {sedangSimpanSantri ? "Menyimpan…" : "Tambah santri"}
           </button>
         </div>
         {pesanSantri && (
@@ -742,7 +743,7 @@ export default function IsiHalamanAdmin({ tab }: { tab: TabAdmin }) {
                             onClick={tanganiSimpanUbah}
                             disabled={sedangSimpanSantri}
                           >
-                            {sedangSimpanSantri
+                            {sedangSimpanSantri && <Putaran />} {sedangSimpanSantri
                               ? "Menyimpan…"
                               : "Simpan perubahan"}
                           </button>
@@ -833,7 +834,7 @@ export default function IsiHalamanAdmin({ tab }: { tab: TabAdmin }) {
             onClick={tanganiTambahSemester}
             disabled={sedangSimpanSemester}
           >
-            {sedangSimpanSemester ? "Menyimpan…" : "Buat semester"}
+            {sedangSimpanSemester && <Putaran />} {sedangSimpanSemester ? "Menyimpan…" : "Buat semester"}
           </button>
         </div>
         {pesanSemester && (
@@ -973,7 +974,7 @@ export default function IsiHalamanAdmin({ tab }: { tab: TabAdmin }) {
                           onClick={tanganiSimpanUbahSemester}
                           disabled={sedangSimpanSemester}
                         >
-                          {sedangSimpanSemester
+                          {sedangSimpanSemester && <Putaran />} {sedangSimpanSemester
                             ? "Menyimpan…"
                             : "Simpan perubahan"}
                         </button>
@@ -1144,7 +1145,7 @@ export default function IsiHalamanAdmin({ tab }: { tab: TabAdmin }) {
               !santriPilih
             }
           >
-            {sedangSimpanTautan ? "Menyimpan…" : "Tautkan"}
+            {sedangSimpanTautan && <Putaran />} {sedangSimpanTautan ? "Menyimpan…" : "Tautkan"}
           </button>
         </div>
         {pesanTautan && (
