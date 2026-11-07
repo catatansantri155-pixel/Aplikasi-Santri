@@ -1,4 +1,5 @@
 "use client";
+import PanduanAplikasi from "@/components/PanduanAplikasi";
 
 import { useMemo, useState, type ReactNode } from "react";
 import Link from "next/link";
@@ -20,7 +21,7 @@ export interface StatistikBeranda {
 }
 
 interface Props {
-  profil: Pick<ProfilLogin, "nama" | "peran"> | null;
+  profil: (Pick<ProfilLogin, "nama" | "peran"> & { id?: string }) | null;
   memuatProfil: boolean;
   memuatData: boolean;
   modeContoh: boolean;
@@ -203,6 +204,12 @@ export default function BerandaMonitoring({
       </section>
 
       <div className="beranda-isi">
+        {!modeContoh && (
+          <PanduanAplikasi
+            profil={profil}
+            siap={!memuatProfil && !memuatData}
+          />
+        )}
         {modeContoh && (
           <p className="beranda-mode-contoh">
             Mode contoh · Seluruh angka berasal dari data latihan.
@@ -220,8 +227,13 @@ export default function BerandaMonitoring({
         >
           <div className="beranda-kepala-seksi">
             <h2 id="judul-menu-beranda">Menu Utama</h2>
-            <Link href="/lainnya">
-              Lainnya <Ikon nama="chevron-kanan" ukuran={14} />
+            <Link
+              href="/lainnya"
+              className="aksi-ringkas"
+              data-panduan="lainnya"
+            >
+              <Ikon nama="menu" ukuran={16} /> Lainnya{" "}
+              <Ikon nama="chevron-kanan" ukuran={14} />
             </Link>
           </div>
           <div className="beranda-menu" data-jumlah={modul.length}>
@@ -238,6 +250,7 @@ export default function BerandaMonitoring({
                     key={m.href}
                     href={m.href}
                     className="beranda-menu-item"
+                    data-panduan={`menu:${m.href}`}
                   >
                     {/* Gambar 3D asli dari versi sebelumnya; label menjadi nama aksesibel. */}
                     {/* eslint-disable-next-line @next/next/no-img-element */}

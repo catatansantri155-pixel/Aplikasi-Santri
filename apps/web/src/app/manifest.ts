@@ -4,10 +4,12 @@ export default function manifest(): MetadataRoute.Manifest {
     name: "Monitoring Santri Minhajus Sunnah",
     short_name: "Monitoring Santri",
     description: "Monitoring santri Minhajus Sunnah Magelang",
+    id: "/",
+    scope: "/",
     start_url: "/",
     display: "standalone",
-    background_color: "#f3f7f1",
-    theme_color: "#165d4e",
+    background_color: "#f5f8fa",
+    theme_color: "#155c5b",
     lang: "id",
     icons: [
       {

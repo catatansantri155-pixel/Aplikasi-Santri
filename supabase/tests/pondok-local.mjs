@@ -27,6 +27,7 @@ grant select on public.profiles,public.kelas,public.santri,public.wali_santri to
     "20261106075024_keuangan_santri_spp.sql",
     "20261106075907_spp_batch_tolak_akses_langsung.sql",
     "20261107014028_kalender_kesehatan_banner.sql",
+    "20261107030604_panduan_pengguna.sql",
   ])
     await db.exec(
       fs.readFileSync(
@@ -42,8 +43,9 @@ insert into wali_santri values('22222222-2222-4222-8222-222222222222','77777777-
   await db.exec(
     fs.readFileSync(new URL("./pondok_rls.sql", import.meta.url), "utf8"),
   );
+  await db.exec(fs.readFileSync(new URL("./panduan_rls.sql", import.meta.url), "utf8"));
   console.log(
-    "Kalender, kesehatan, banner dan arsip informasi: migration, RLS, revisi, riwayat, penyimpanan dan pemulihan lulus (rollback).",
+    "Kalender, kesehatan, banner dan arsip informasi: migration, RLS, revisi, riwayat, penyimpanan dan pemulihan serta panduan per akun lulus (rollback).",
   );
 } catch (e) {
   console.error({
