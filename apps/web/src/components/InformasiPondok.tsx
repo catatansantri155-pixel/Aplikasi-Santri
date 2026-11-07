@@ -1,4 +1,5 @@
 "use client";
+import { arsipPondok } from "@/lib/data/pondok-layanan";
 import PenerimaInformasi from "@/components/PenerimaInformasi";
 import { useEffect, useState, type FormEvent } from "react";
 import Link from "next/link";
@@ -64,6 +65,7 @@ export default function InformasiPondok({
   const [gambarLama, setGambarLama] = useState<string>();
   const [pratinjau, setPratinjau] = useState<string>();
   const [template, setTemplate] = useState("");
+  const [arsip, setArsip] = useState(false);
   useEffect(() => {
     if (!berkas) {
       setPratinjau(undefined);
@@ -96,7 +98,7 @@ export default function InformasiPondok({
     setBaris([]);
     setJumlah(0);
     setGalat("");
-    ambilInformasi({ filter, halaman, ringkas })
+    ambilInformasi({ filter, halaman, ringkas, arsip })
       .then((r) => {
         if (aktif) {
           setBaris(r.data);
@@ -115,7 +117,7 @@ export default function InformasiPondok({
     return () => {
       aktif = false;
     };
-  }, [filter, halaman, ringkas, peran, ulangan]);
+  }, [filter, halaman, ringkas, peran, ulangan, arsip]);
   useEffect(() => {
     if (!editor) return;
     const form = document.getElementById("editor-informasi");
@@ -150,6 +152,7 @@ export default function InformasiPondok({
           : "Draf tersimpan.",
       );
       setEditor(false);
+      setArsip(false);
       setBerkas(null);
       setGambarLama(undefined);
       setId(undefined);
@@ -160,6 +163,40 @@ export default function InformasiPondok({
       if (unggahanBaru)
         await hapusUnggahanBelumTerpakai(unggahanBaru).catch(() => {});
       setGalat(e instanceof Error ? e.message : "Gagal menyimpan informasi.");
+    } finally {
+      setMenyimpan(false);
+    }
+  }
+  async function hapusInfo(b: Baris, pulihkan = false) {
+    if (typeof b.revisi !== "number") {
+      setGalat("Muat ulang informasi sebelum menghapus.");
+      return;
+    }
+    if (
+      menyimpan ||
+      !window.confirm(
+        pulihkan
+          ? "Pulihkan informasi sebagai draf? Periksa kembali sebelum menerbitkan."
+          : "Hapus informasi ini dari tampilan? Informasi dapat dipulihkan melalui Arsip.",
+      )
+    )
+      return;
+    setMenyimpan(true);
+    setGalat("");
+    try {
+      await arsipPondok("informasi", b.id, b.revisi, pulihkan);
+      setHalaman(0);
+      setUlangan((n) => n + 1);
+      setSukses(
+        pulihkan
+          ? "Informasi dipulihkan sebagai draf."
+          : "Informasi dipindahkan ke arsip.",
+      );
+      setEditor(false);
+    } catch (e) {
+      setGalat(
+        e instanceof Error ? e.message : "Informasi belum dapat diubah.",
+      );
     } finally {
       setMenyimpan(false);
     }
@@ -196,6 +233,36 @@ export default function InformasiPondok({
           </button>
         ) : null}
       </div>
+      {!ringkas && admin && (
+        <div className="info-tab" role="group" aria-label="Tampilan informasi">
+          <button
+            type="button"
+            className="tombol tombol-sekunder"
+            aria-pressed={!arsip}
+            disabled={menyimpan}
+            onClick={() => {
+              setArsip(false);
+              setHalaman(0);
+              setEditor(false);
+            }}
+          >
+            Aktif
+          </button>
+          <button
+            type="button"
+            className="tombol tombol-sekunder"
+            aria-pressed={arsip}
+            disabled={menyimpan}
+            onClick={() => {
+              setArsip(true);
+              setHalaman(0);
+              setEditor(false);
+            }}
+          >
+            Arsip
+          </button>
+        </div>
+      )}
       {!ringkas && (
         <>
           <p className="catatan-kaki">
@@ -473,8 +540,13 @@ export default function InformasiPondok({
             data={b}
             ringkas={ringkas}
             tautanDetail
+            sibuk={menyimpan}
+            onHapus={admin && !arsip ? () => void hapusInfo(b) : undefined}
+            onPulihkan={
+              admin && arsip ? () => void hapusInfo(b, true) : undefined
+            }
             onUbah={
-              !ringkas && admin && !menyimpan
+              !ringkas && admin && !arsip && !menyimpan
                 ? () => {
                     setId(b.id);
                     setBerkas(null);

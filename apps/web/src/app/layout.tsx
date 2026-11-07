@@ -14,6 +14,7 @@ import "./notifikasi.css";
 import "./perizinan.css";
 import "./keuangan.css";
 import "./layanan.css";
+import "./pondok-layanan.css";
 
 export const metadata: Metadata = {
   title: "Monitoring Santri | Minhajus Sunnah",

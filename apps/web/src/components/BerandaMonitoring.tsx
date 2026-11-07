@@ -7,7 +7,7 @@ import RincianAktivitas from "@/components/RincianAktivitas";
 import BannerMotivasi from "@/components/BannerMotivasi";
 import InformasiPondok from "@/components/InformasiPondok";
 import { Ikon } from "@/components/Ikon";
-import { cariDiBeranda, modulBeranda } from "@/lib/beranda";
+import { cariDiBeranda, menuUtamaBeranda, gambarMenu } from "@/lib/beranda";
 import type { ProfilLogin } from "@/lib/sesi";
 import type { Santri } from "@/lib/data/santri";
 
@@ -52,7 +52,7 @@ export default function BerandaMonitoring({
 }: Props) {
   const [pencarian, setPencarian] = useState("");
   const modul = useMemo(
-    () => modulBeranda(profil?.peran ?? null),
+    () => menuUtamaBeranda(profil?.peran ?? null),
     [profil?.peran],
   );
   const hasil = useMemo(
@@ -226,7 +226,7 @@ export default function BerandaMonitoring({
           </div>
           <div className="beranda-menu" data-jumlah={modul.length}>
             {memuatProfil
-              ? Array.from({ length: 6 }, (_, i) => (
+              ? Array.from({ length: 8 }, (_, i) => (
                   <div
                     key={i}
                     className="beranda-menu-skeleton"
@@ -244,7 +244,7 @@ export default function BerandaMonitoring({
                     <span className="beranda-menu-lingkaran">
                       <img
                         className="beranda-menu-gambar"
-                        src={`/images/menu/${m.modul === "laporan" ? "rekap" : m.modul}.webp`}
+                        src={gambarMenu(m)}
                         alt=""
                         width={72}
                         height={72}
@@ -261,7 +261,7 @@ export default function BerandaMonitoring({
           </div>
         </section>
 
-        <BannerMotivasi />
+        <BannerMotivasi admin={profil?.peran === "admin"} />
         {profil && <InformasiPondok ringkas peran={profil.peran} />}
         <div className="beranda-pelengkap">{children}</div>
         {profil && (

@@ -27,6 +27,7 @@ export interface InformasiPondok {
   tema: TemaInformasi;
   gambar_path: string | null;
   gambar_url?: string;
+  dihapus_pada?: string | null;
   sasaran?: SasaranInformasi;
   sasaran_peran?: string | null;
   sasaran_id?: string | null;
@@ -53,7 +54,7 @@ export type IsianInformasi = Pick<
     >
   >;
 const KOLOM =
-  "id,judul,isi,kategori,status,tanggal,created_at,updated_at,tema,gambar_path,sasaran,sasaran_peran,sasaran_id,disematkan,berakhir_pada,wajib_konfirmasi,revisi";
+  "id,judul,isi,kategori,status,tanggal,created_at,updated_at,tema,gambar_path,sasaran,sasaran_peran,sasaran_id,disematkan,berakhir_pada,wajib_konfirmasi,revisi,dihapus_pada";
 export function validasiInformasi(v: IsianInformasi): IsianInformasi {
   const judul = v.judul.trim(),
     isi = v.isi.trim();
@@ -120,7 +121,13 @@ export async function ambilInformasi({
   filter = SEMUA_PERIODE,
   halaman = 0,
   ringkas = false,
-}: { filter?: FilterPeriode; halaman?: number; ringkas?: boolean } = {}) {
+  arsip = false,
+}: {
+  filter?: FilterPeriode;
+  halaman?: number;
+  ringkas?: boolean;
+  arsip?: boolean;
+} = {}) {
   const b = batasPeriode(filter);
   if (!supabaseTerhubung()) return { data: [] as InformasiPondok[], jumlah: 0 };
   const batas = ringkas ? 3 : 20;
@@ -130,6 +137,7 @@ export async function ambilInformasi({
     .order("disematkan", { ascending: false })
     .order("tanggal", { ascending: false })
     .order("created_at", { ascending: false });
+  q = arsip ? q.not("dihapus_pada", "is", null) : q.is("dihapus_pada", null);
   if (ringkas) q = q.eq("status", "terbit");
   if (b) q = q.gte("tanggal", b.mulai).lte("tanggal", b.selesai);
   const { data, error, count } = await q.range(

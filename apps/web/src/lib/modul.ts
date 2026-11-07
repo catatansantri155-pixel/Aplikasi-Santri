@@ -13,7 +13,8 @@ export interface InfoModul {
   href: string;
   label: string;
   keterangan: string;
-  modul: Exclude<KunciModul, "beranda" | "menu" | "akun">;
+  modul: KunciModul;
+  gambar?: string;
   ikon: NamaIkon;
   warna: WarnaTint;
 }
