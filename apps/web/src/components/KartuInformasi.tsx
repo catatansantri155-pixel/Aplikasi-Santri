@@ -79,7 +79,10 @@ export default function KartuInformasi({
         )}
         <div className="informasi-aksi">
           {(ringkas || tautanDetail) && (
-            <Link href={`/informasi/${b.id}`}>
+            <Link
+              href={`/informasi/${b.id}`}
+              className="aksi-ringkas aksi-ringkas-teks"
+            >
               {ringkas
                 ? "Baca selengkapnya"
                 : onUbah
@@ -87,6 +90,7 @@ export default function KartuInformasi({
                   : b.wajib_konfirmasi
                     ? "Baca & konfirmasi"
                     : "Buka informasi"}
+              <Ikon nama="chevron-kanan" ukuran={16} />
             </Link>
           )}
           {onHapus && (
@@ -111,7 +115,14 @@ export default function KartuInformasi({
             </button>
           )}
           {bergambar && (
-            <a href={b.gambar_url} target="_blank" rel="noopener noreferrer">
+            <a
+              className="aksi-ringkas aksi-ringkas-netral"
+              href={b.gambar_url}
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label={`Lihat gambar utuh: ${b.judul} (tab baru)`}
+            >
+              <Ikon nama="mata" ukuran={16} />
               Lihat gambar utuh
             </a>
           )}

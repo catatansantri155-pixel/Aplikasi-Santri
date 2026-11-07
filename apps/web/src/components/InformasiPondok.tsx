@@ -1,4 +1,5 @@
 "use client";
+import { Ikon } from "@/components/Ikon";
 import { arsipPondok } from "@/lib/data/pondok-layanan";
 import PenerimaInformasi from "@/components/PenerimaInformasi";
 import { useEffect, useState, type FormEvent } from "react";
@@ -205,14 +206,20 @@ export default function InformasiPondok({
     <section
       className={`informasi-pondok${ringkas ? " informasi-ringkas" : ""}`}
       aria-label="Informasi terbaru dari pondok"
+      data-panduan="informasi"
     >
       <div className="beranda-kepala-seksi">
         <h2>
           {ringkas ? "Informasi Terbaru dari Pondok" : "Informasi Pondok"}
         </h2>
         {ringkas ? (
-          <Link href="/informasi">
-            {admin ? "Kelola / semua" : "Lihat semua"}
+          <Link
+            href="/informasi"
+            className="aksi-ringkas"
+            data-panduan="kelola-informasi"
+          >
+            <Ikon nama={admin ? "pengaturan" : "catatan"} ukuran={16} />
+            {admin ? "Kelola" : "Semua info"}
           </Link>
         ) : admin ? (
           <button
@@ -541,9 +548,13 @@ export default function InformasiPondok({
             ringkas={ringkas}
             tautanDetail
             sibuk={menyimpan}
-            onHapus={admin && !arsip ? () => void hapusInfo(b) : undefined}
+            onHapus={
+              !ringkas && admin && !arsip ? () => void hapusInfo(b) : undefined
+            }
             onPulihkan={
-              admin && arsip ? () => void hapusInfo(b, true) : undefined
+              !ringkas && admin && arsip
+                ? () => void hapusInfo(b, true)
+                : undefined
             }
             onUbah={
               !ringkas && admin && !arsip && !menyimpan

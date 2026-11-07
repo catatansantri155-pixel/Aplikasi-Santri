@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import type { ReactNode } from "react";
+import AksesPwa from "@/components/AksesPwa";
 import Kerangka from "@/components/Kerangka";
 import "./globals.css";
 import "./ui.css";
@@ -15,11 +16,17 @@ import "./perizinan.css";
 import "./keuangan.css";
 import "./layanan.css";
 import "./pondok-layanan.css";
+import "./panduan-pwa.css";
 
 export const metadata: Metadata = {
   title: "Monitoring Santri | Minhajus Sunnah",
   applicationName: "Monitoring Santri",
   manifest: "/manifest.webmanifest",
+  appleWebApp: {
+    capable: true,
+    title: "Monitoring Santri",
+    statusBarStyle: "default",
+  },
   icons: {
     icon: [
       { url: "/brand/logo-32.png", sizes: "32x32", type: "image/png" },
@@ -71,7 +78,9 @@ export default function RootLayout({ children }: { children: ReactNode }) {
         />
       </head>
       <body>
-        <Kerangka>{children}</Kerangka>
+        <AksesPwa>
+          <Kerangka>{children}</Kerangka>
+        </AksesPwa>
       </body>
     </html>
   );

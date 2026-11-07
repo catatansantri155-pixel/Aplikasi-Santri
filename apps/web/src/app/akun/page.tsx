@@ -133,6 +133,12 @@ function BagianLainnya() {
     <>
       <h2 className="judul-bagian">Lainnya</h2>
       <section className="kartu">
+        <Link href="/?panduan=ulang" className="tautan-baris">
+          Panduan penggunaan
+          <span className="baris-kanan">
+            <Ikon nama="chevron-kanan" ukuran={16} />
+          </span>
+        </Link>
         <Link href="/sambutan" className="tautan-baris">
           Lihat perkenalan aplikasi
           <span className="baris-kanan">

@@ -1,7 +1,6 @@
 "use client";
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { Ikon } from "@/components/Ikon";
 import { supabaseTerhubung } from "@/lib/data/santri";
 import { ambilBanner, PONDOK_BERUBAH } from "@/lib/data/pondok-layanan";
 export const BANNER_MOTIVASI = [
@@ -131,16 +130,6 @@ export default function BannerMotivasi({ admin = false }: { admin?: boolean }) {
           loading="lazy"
         />
       </div>
-      {admin && (
-        <Link
-          href="/banner"
-          className="banner-kelola"
-          aria-label="Kelola banner beranda"
-          title="Kelola banner"
-        >
-          <Ikon nama="pena" ukuran={17} />
-        </Link>
-      )}
       {slides.length > 1 && (
         <div className="banner-kontrol">
           <div

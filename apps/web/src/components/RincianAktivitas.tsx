@@ -41,7 +41,8 @@ export default function RincianAktivitas({
   const angka = (n: number) => n.toLocaleString("id-ID");
   return (
     <section
-      className="beranda-aktivitas-terakhir aktivitas-panel"
+      className={`beranda-aktivitas-terakhir aktivitas-panel${wali ? " aktivitas-wali" : ""}`}
+      data-panduan="aktivitas"
       aria-labelledby="judul-rincian-aktivitas"
     >
       <div className="aktivitas-kepala">
@@ -83,10 +84,10 @@ export default function RincianAktivitas({
                 <Ikon nama="santri" ukuran={23} />
                 {wali ? "Anak tertaut" : "Santri aktif"}
               </dt>
-              <dd>{angka(statistik.santri)}</dd>
-              <span>
+              <dd className="aktivitas-jumlah">{angka(statistik.santri)}</dd>
+              <dd className="aktivitas-keterangan">
                 {wali ? "Terhubung dengan akun Anda" : "Dalam data santri Anda"}
-              </span>
+              </dd>
             </div>
             {!wali && (
               <div className="aktivitas-olahraga">

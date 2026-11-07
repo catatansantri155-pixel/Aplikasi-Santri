@@ -67,7 +67,11 @@ export default function Kerangka({ children }: { children: ReactNode }) {
           </span>
         </div>
         <p className="sidebar-keterangan">RUANG KERJA</p>
-        <nav className="nav-samping" aria-label="Navigasi utama">
+        <nav
+          data-panduan="navigasi-pc"
+          className="nav-samping"
+          aria-label="Navigasi utama"
+        >
           <NavTautan />
         </nav>
         <InfoPengguna varian="samping" />
@@ -97,7 +101,11 @@ export default function Kerangka({ children }: { children: ReactNode }) {
           {children}
         </main>
 
-        <nav className="nav-bawah" aria-label="Navigasi bawah">
+        <nav
+          data-panduan="navigasi-mobile"
+          className="nav-bawah"
+          aria-label="Navigasi bawah"
+        >
           <div className="nav-bawah-dalam">
             <NavBawah />
           </div>

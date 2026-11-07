@@ -92,7 +92,7 @@ assert.throws(() =>
   }),
 );
 assert.ok(!render(<Banner />).includes("Kelola banner beranda"));
-assert.ok(render(<Banner admin />).includes('href="/banner"'));
+assert.ok(!render(<Banner admin />).includes('href="/banner"'));
 const b: InformasiPondok = {
   id: "id",
   judul: "Informasi <aman>",

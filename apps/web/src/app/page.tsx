@@ -245,7 +245,7 @@ export default function HalamanBeranda() {
         <section aria-labelledby="judul-setoran-terbaru">
           <div className="beranda-kepala-seksi">
             <h2 id="judul-setoran-terbaru">Setoran Terakhir</h2>
-            <Link href="/hifzh?tab=riwayat">
+            <Link href="/hifzh?tab=riwayat" className="aksi-ringkas">
               Lihat semua <Ikon nama="chevron-kanan" ukuran={14} />
             </Link>
           </div>

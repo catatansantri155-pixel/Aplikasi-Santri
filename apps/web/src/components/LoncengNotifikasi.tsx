@@ -110,6 +110,7 @@ export default function LoncengNotifikasi() {
     >
       <button
         ref={tombol}
+        data-panduan="notifikasi"
         type="button"
         className="lonceng-tombol"
         title="Notifikasi"
