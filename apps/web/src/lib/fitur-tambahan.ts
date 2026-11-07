@@ -1,12 +1,30 @@
 import { bolehAksesModul, type KunciModul } from "@/lib/akses";
 import type { Peran } from "@/lib/peran";
-/** Fitur baru didaftarkan di sini, bukan pada daftar Menu Utama beranda. */
+/** Katalog layanan tambahan; pilihan beranda diatur terpisah sesuai peran. */
 const FITUR: {
   href: string;
   label: string;
   gambar: string;
   akses: KunciModul;
 }[] = [
+  {
+    href: "/kalender",
+    label: "Kalender",
+    gambar: "kalender",
+    akses: "kalender",
+  },
+  {
+    href: "/kesehatan",
+    label: "Kesehatan",
+    gambar: "kesehatan",
+    akses: "kesehatan",
+  },
+  {
+    href: "/banner",
+    label: "Kelola Banner",
+    gambar: "informasi",
+    akses: "admin",
+  },
   {
     href: "/keuangan",
     label: "Keuangan / SPP",

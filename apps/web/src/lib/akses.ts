@@ -31,6 +31,8 @@ import { PERAN, SEMUA_PERAN, type Peran } from "@/lib/peran";
 
 /** Kunci modul yang dipakai navigasi, kartu beranda, dan penjaga. */
 export type KunciModul =
+  | "kalender"
+  | "kesehatan"
   | "keuangan"
   | "perizinan"
   | "beranda"
@@ -70,6 +72,8 @@ export type KunciModul =
  */
 export const PETA_AKSES_MODUL: Record<KunciModul, Peran[]> = {
   // Pengajuan oleh wali; keputusan dan keluar/kembali oleh admin/musyrif. RLS tetap wajib.
+  kalender: [...SEMUA_PERAN],
+  kesehatan: [PERAN.ADMIN, PERAN.MUSYRIF, PERAN.WALI],
   keuangan: [PERAN.ADMIN, PERAN.WALI],
   perizinan: [PERAN.ADMIN, PERAN.MUSYRIF, PERAN.WALI],
   beranda: [...SEMUA_PERAN],
@@ -210,6 +214,9 @@ export function modulDariPath(pathname: string): KunciModul | null {
     return "perizinan";
   if (pathname === "/keuangan" || pathname.startsWith("/keuangan/"))
     return "keuangan";
+  if (pathname === "/kalender") return "kalender";
+  if (pathname === "/kesehatan") return "kesehatan";
+  if (pathname === "/banner") return "admin";
   if (pathname === "/") return "beranda";
   if (pathname === "/santri" || pathname.startsWith("/santri/")) {
     return "santri";

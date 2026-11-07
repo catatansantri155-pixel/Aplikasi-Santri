@@ -66,7 +66,12 @@ for (const [role, menu] of Object.entries(expected)) {
     />,
   );
   assert.ok(
-    !html.includes('href="/akun"'),
+    !html
+      .slice(
+        html.indexOf('class="beranda-profil"'),
+        html.indexOf('class="beranda-cari"'),
+      )
+      .includes('href="/akun"'),
     "Tidak ada akun duplikat di header",
   );
   assert.ok(

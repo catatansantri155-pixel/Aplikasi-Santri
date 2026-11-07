@@ -1,4 +1,5 @@
 "use client";
+import { Ikon } from "@/components/Ikon";
 import Link from "next/link";
 import { useState } from "react";
 import type { InformasiPondok } from "@/lib/data/informasi";
@@ -7,11 +8,17 @@ export default function KartuInformasi({
   ringkas = false,
   tautanDetail = false,
   onUbah,
+  onHapus,
+  onPulihkan,
+  sibuk = false,
 }: {
   data: InformasiPondok;
   ringkas?: boolean;
   tautanDetail?: boolean;
   onUbah?: () => void;
+  onHapus?: () => void;
+  onPulihkan?: () => void;
+  sibuk?: boolean;
 }) {
   const [gambarGagal, setGambarGagal] = useState(false);
   const bergambar = Boolean(b.gambar_url) && !gambarGagal;
@@ -81,6 +88,27 @@ export default function KartuInformasi({
                     ? "Baca & konfirmasi"
                     : "Buka informasi"}
             </Link>
+          )}
+          {onHapus && (
+            <button
+              type="button"
+              className="tombol tombol-kecil tombol-sekunder info-hapus"
+              disabled={sibuk}
+              onClick={onHapus}
+            >
+              <Ikon nama="hapus" ukuran={16} />
+              Hapus
+            </button>
+          )}
+          {onPulihkan && (
+            <button
+              type="button"
+              className="tombol tombol-kecil tombol-sekunder"
+              disabled={sibuk}
+              onClick={onPulihkan}
+            >
+              Pulihkan sebagai draf
+            </button>
           )}
           {bergambar && (
             <a href={b.gambar_url} target="_blank" rel="noopener noreferrer">
