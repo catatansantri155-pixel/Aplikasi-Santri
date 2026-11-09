@@ -14,11 +14,9 @@
  * Halaman TIDAK boleh membaca tabel / data contoh secara langsung;
  * selalu lewat fungsi di file ini.
  */
+import { semuaBaris } from "@/lib/data/halaman";
 import { buatKlienBrowser } from "@/lib/supabase/client";
-import {
-  KELAS_CONTOH,
-  SANTRI_CONTOH,
-} from "@/lib/contoh/santri-contoh";
+import { KELAS_CONTOH, SANTRI_CONTOH } from "@/lib/contoh/santri-contoh";
 
 /** True bila env Supabase belum terisi → aplikasi berjalan dalam mode contoh. */
 export function supabaseTerhubung(): boolean {
@@ -100,14 +98,14 @@ export async function ambilDaftarSantri(): Promise<HasilSantri<Santri[]>> {
     return { data: santriContohKeSantri(), sumberContoh: true };
   }
   const supabase = buatKlienBrowser();
-  const { data, error } = await supabase
-    .from("santri")
-    .select(PILIHAN_SANTRI)
-    .eq("status_aktif", true)
-    .order("nama", { ascending: true });
-  if (error) {
-    throw new Error(`Gagal membaca daftar santri: ${error.message}`);
-  }
+  const data = await semuaBaris<BarisSantriDb>(() =>
+    supabase
+      .from("santri")
+      .select(PILIHAN_SANTRI, { count: "exact" })
+      .eq("status_aktif", true)
+      .order("nama")
+      .order("id"),
+  );
   return {
     data: (data as unknown as BarisSantriDb[]).map(barisDbKeSantri),
     sumberContoh: false,
@@ -119,7 +117,10 @@ export async function ambilSantriPerKelas(): Promise<
   HasilSantri<{ kelas: KelasRingkasan; santri: Santri[] }[]>
 > {
   const hasil = await ambilDaftarSantri();
-  const kelompok = new Map<number, { kelas: KelasRingkasan; santri: Santri[] }>();
+  const kelompok = new Map<
+    number,
+    { kelas: KelasRingkasan; santri: Santri[] }
+  >();
   for (const s of hasil.data) {
     const kunci = s.kelasTingkat;
     if (!kelompok.has(kunci)) {
@@ -131,7 +132,9 @@ export async function ambilSantriPerKelas(): Promise<
     kelompok.get(kunci)?.santri.push(s);
   }
   return {
-    data: [...kelompok.values()].sort((a, b) => a.kelas.tingkat - b.kelas.tingkat),
+    data: [...kelompok.values()].sort(
+      (a, b) => a.kelas.tingkat - b.kelas.tingkat,
+    ),
     sumberContoh: hasil.sumberContoh,
   };
 }

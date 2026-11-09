@@ -1,0 +1,72 @@
+-- Operator only. No email is sent; auth fixtures and all mutations are rolled back.
+begin;
+select set_config('qa.admin',(select id::text from profiles where peran='admin'limit 1),true);
+select set_config('qa.wali',(select id::text from profiles where peran='wali'limit 1),true);
+select set_config('qa.child',gen_random_uuid()::text,true);
+select set_config('qa.foreign',gen_random_uuid()::text,true);
+select set_config('qa.sem1',gen_random_uuid()::text,true);
+select set_config('qa.sem2',gen_random_uuid()::text,true);
+select set_config('qa.att',gen_random_uuid()::text,true);
+insert into santri(id,nama,nama_ayah_wali,kelas_id)values(current_setting('qa.child')::uuid,'__audit_fixed_child__','Fixture',(select id from kelas order by tingkat limit 1)),(current_setting('qa.foreign')::uuid,'__audit_fixed_foreign__','Fixture',(select id from kelas order by tingkat limit 1));
+insert into wali_santri(profile_id,santri_id)values(current_setting('qa.wali')::uuid,current_setting('qa.child')::uuid);
+insert into semester(id,nama,jenis,tahun_ajaran,tanggal_mulai,tanggal_selesai)values(current_setting('qa.sem1')::uuid,'__audit_sem1__','gasal',current_setting('qa.sem1'),'1901-01-01','1901-06-30'),(current_setting('qa.sem2')::uuid,'__audit_sem2__','genap',current_setting('qa.sem1'),'1901-07-01','1901-12-31');
+insert into hifzh_setoran(santri_id,tanggal_masehi,tanggal_hijriah,jenis,halaman,surat,ayat_dari,ayat_sampai,penyimak_id)select current_setting('qa.child')::uuid,(now()at time zone 'Asia/Jakarta')::date,'Fixture','BR',1,'Al-Fatihah',1,2,current_setting('qa.admin')::uuid from generate_series(1,150);
+insert into hifzh_setoran(santri_id,tanggal_masehi,tanggal_hijriah,jenis,halaman,surat,ayat_dari,ayat_sampai,penyimak_id)select current_setting('qa.foreign')::uuid,(now()at time zone 'Asia/Jakarta')::date,'Fixture','BR',1,'Al-Fatihah',1,2,current_setting('qa.admin')::uuid from generate_series(1,30);
+insert into kehadiran(santri_id,tanggal,sesi_jenis,status,pengisi_id)select current_setting('qa.child')::uuid,'1901-01-01'::date+n,'hifzh','hadir',current_setting('qa.admin')::uuid from generate_series(1,90)n;
+insert into kehadiran(id,santri_id,tanggal,sesi_jenis,status,pengisi_id)values(current_setting('qa.att')::uuid,current_setting('qa.child')::uuid,(now()at time zone 'Asia/Jakarta')::date,'hifzh','hadir',current_setting('qa.admin')::uuid);
+insert into catatan_musyrif(santri_id,pelapor_id,pelapor_nama,kategori,isi,tanggal)select current_setting('qa.child')::uuid,current_setting('qa.admin')::uuid,'Fixture','adab','__audit_fixed_note__',(now()at time zone 'Asia/Jakarta')::date from generate_series(1,75);
+insert into hifzh_ujian(santri_id,semester_id,juz,halaman,rg,kk,kb,penguji_id)values(current_setting('qa.child')::uuid,current_setting('qa.sem1')::uuid,1,2,0,0,0,current_setting('qa.admin')::uuid),(current_setting('qa.child')::uuid,current_setting('qa.sem2')::uuid,1,2,0,0,5,current_setting('qa.admin')::uuid);
+select set_config('request.jwt.claim.sub',current_setting('qa.admin'),true);
+set local role authenticated;
+do $$declare r jsonb;begin
+ r=public.statistik_beranda();
+ if(r->>'setoran')::bigint<>(select count(*)from hifzh_setoran where tanggal_masehi=(now()at time zone 'Asia/Jakarta')::date)then raise exception 'Count admin salah';end if;
+ if(r->>'catatan')::bigint<75 then raise exception 'Count catatan terpotong';end if;
+ perform public.revisi_kehadiran(current_setting('qa.att')::uuid,'izin','__audit_fixed_revision__');
+ if(select count(*)from kehadiran_log_revisi where kehadiran_id=current_setting('qa.att')::uuid)<>1 then raise exception 'Audit revisi hilang';end if;
+end$$;
+reset role;
+select set_config('app.sedang_revisi','',true);
+update profiles set peran='pengajar_hifzh'where id=current_setting('qa.admin')::uuid;
+set local role authenticated;
+do $$begin
+ begin update kehadiran set sesi_jenis='diniyyah'where id=current_setting('qa.att')::uuid;raise exception 'Mutasi sesi lolos';exception when insufficient_privilege then null;end;
+ begin update kehadiran set tanggal='1902-01-01'where id=current_setting('qa.att')::uuid;raise exception 'Mutasi tanggal lolos';exception when insufficient_privilege then null;end;
+ begin update kehadiran set santri_id=current_setting('qa.foreign')::uuid where id=current_setting('qa.att')::uuid;raise exception 'Mutasi santri lolos';exception when insufficient_privilege then null;end;
+ begin update kehadiran set status='hadir'where id=current_setting('qa.att')::uuid;raise exception 'Mutasi status lolos';exception when insufficient_privilege then null;end;
+ if(select count(*)from hifzh_ujian where santri_id=current_setting('qa.child')::uuid and semester_id=current_setting('qa.sem1')::uuid)<>1 then raise exception 'Data semester salah';end if;
+end$$;
+reset role;
+select set_config('request.jwt.claim.sub',current_setting('qa.wali'),true);
+set local role authenticated;
+do $$declare r jsonb;begin
+ r=public.statistik_beranda();
+ if(r->'anak'->current_setting('qa.child')->>'setoran')::int<>150 or(r->'anak'->current_setting('qa.child')->>'kehadiran')::int<>91 then raise exception 'Hitungan wali terpotong';end if;
+ if r->'anak' ? current_setting('qa.foreign')then raise exception 'Statistik anak lain bocor';end if;
+end$$;
+reset role;
+-- Verified self-service account: role metadata from the client cannot grant admin.
+select set_config('qa.new_user',gen_random_uuid()::text,true);
+insert into auth.users(id,email,email_confirmed_at,raw_user_meta_data,raw_app_meta_data)values(current_setting('qa.new_user')::uuid,current_setting('qa.new_user')||'@invalid.test',now(),'{"nama":"Wali Fixture","peran":"admin"}','{}');
+select set_config('request.jwt.claim.sub',current_setting('qa.new_user'),true);
+set local role authenticated;
+do $$begin
+ if not public.pastikan_profil_wali()or not public.pastikan_profil_wali()then raise exception 'Provisioning gagal';end if;
+ if(select peran from profiles where id=auth.uid())<>'wali'then raise exception 'Metadata menaikkan peran';end if;
+end$$;
+reset role;
+select set_config('qa.confirm',gen_random_uuid()::text,true);
+insert into auth.users(id,email,raw_user_meta_data)values(current_setting('qa.confirm')::uuid,current_setting('qa.confirm')||'@invalid.test','{"nama":"Konfirmasi Fixture"}');
+update auth.users set email_confirmed_at=now()where id=current_setting('qa.confirm')::uuid;
+do $$begin if not exists(select 1 from profiles where id=current_setting('qa.confirm')::uuid and peran='wali')then raise exception 'Trigger konfirmasi gagal';end if;end$$;
+select set_config('qa.staff',gen_random_uuid()::text,true);
+insert into auth.users(id,email,email_confirmed_at,raw_app_meta_data)values(current_setting('qa.staff')::uuid,current_setting('qa.staff')||'@invalid.test',now(),'{"profil_dikelola_admin":true}');
+select set_config('request.jwt.claim.sub',current_setting('qa.staff'),true);
+set local role authenticated;
+do $$begin if public.pastikan_profil_wali()then raise exception 'Staf tertunda diubah menjadi wali';end if;end$$;
+reset role;
+set local role anon;
+do $$begin begin perform public.statistik_beranda();raise exception 'Anon membaca hitungan';exception when insufficient_privilege then null;end;end$$;
+reset role;
+rollback;
+select 'PASS: data uji dibatalkan; identitas kehadiran, semester, profil server dan hitungan penuh terverifikasi.' hasil;

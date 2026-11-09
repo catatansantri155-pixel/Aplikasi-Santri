@@ -10,6 +10,11 @@ import { PenandaMuat, Putaran } from "@/components/Muat";
  * ≥ 11 = G (Goncang). Jumlah setoran sekali majelis: 2 lembar.
  */
 import { useEffect, useMemo, useState } from "react";
+import {
+  ambilSemesterAdmin,
+  type SemesterLengkap,
+  statusSemester,
+} from "@/lib/data/admin";
 import { LABEL_HASIL_UJIAN, hasilUjian, kbKonversi } from "@/lib/hifzh";
 import {
   ambilUjianSemester,
@@ -43,8 +48,36 @@ export default function BagianUjian({
   daftarSantri,
   sumber,
 }: PropertiBagianUjian) {
+  const [semesters, setSemesters] = useState<SemesterLengkap[]>([]);
+  const [semesterId, setSemesterId] = useState("");
+  const [ulang, setUlang] = useState(0);
+  useEffect(() => {
+    let aktif = true;
+    ambilSemesterAdmin()
+      .then((r) => {
+        if (aktif) {
+          setSemesters(r.data);
+          setSemesterId((lama) =>
+            r.data.some((x) => x.id === lama)
+              ? lama
+              : ((
+                  r.data.find((x) => statusSemester(x) === "berjalan") ??
+                  r.data[0]
+                )?.id ?? ""),
+          );
+        }
+      })
+      .catch(() => {
+        if (aktif)
+          setRalat("Daftar semester belum dapat dimuat. Coba muat ulang.");
+      });
+    return () => {
+      aktif = false;
+    };
+  }, [ulang]);
   const [santriId, setSantriId] = useState("");
   const [baris, setBaris] = useState<BarisUjianHifzh[]>([]);
+  const [gagalMuat, setGagalMuat] = useState(false);
   const [memuat, setMemuat] = useState(false);
 
   const [juz, setJuz] = useState("");
@@ -62,15 +95,24 @@ export default function BagianUjian({
   const santriTerpilih = daftarSantri.find((s) => s.id === santriId) ?? null;
 
   useEffect(() => {
-    if (!santriTerpilih) {
+    if (!santriTerpilih || !semesterId) {
       setBaris([]);
       return;
     }
     let batal = false;
     setMemuat(true);
-    ambilUjianSemester(santriTerpilih.id)
+    setGagalMuat(false);
+    setBaris([]);
+    setRalat(null);
+    ambilUjianSemester(santriTerpilih.id, semesterId)
       .then((hasil) => {
         if (!batal) setBaris(hasil.data);
+      })
+      .catch(() => {
+        if (!batal) {
+          setGagalMuat(true);
+          setRalat("Tabel ujian belum dapat dimuat. Coba lagi.");
+        }
       })
       .finally(() => {
         if (!batal) setMemuat(false);
@@ -78,7 +120,7 @@ export default function BagianUjian({
     return () => {
       batal = true;
     };
-  }, [santriTerpilih]);
+  }, [santriTerpilih, semesterId, ulang]);
 
   // Pratinjau hasil LIVE untuk baris yang sedang diisi.
   const rgN = Math.max(0, keAngka(rg));
@@ -107,6 +149,10 @@ export default function BagianUjian({
     e.preventDefault();
     setRalat(null);
     setPesan(null);
+    if (!semesterId) {
+      setRalat("Pilih semester terlebih dahulu.");
+      return;
+    }
     if (!santriTerpilih) {
       setRalat("Pilih santri dulu sebelum menyimpan baris ujian.");
       return;
@@ -132,8 +178,12 @@ export default function BagianUjian({
     const memperbarui = baris.some((b) => b.juz === juzN);
     setMengirim(true);
     try {
-      const hasilSimpan = await simpanBarisUjian(masukan);
-      const barisBaru: BarisUjianHifzh = {
+      const hasilSimpan = await simpanBarisUjian(
+        masukan,
+        semesterId,
+        barisJuzIni?.id,
+      );
+      const barisBaru: BarisUjianHifzh = hasilSimpan.data ?? {
         id: `lokal-ujian-${santriTerpilih.id}-${juzN}`,
         ...masukan,
         hasil: hasilUjian(masukan.rg, masukan.kk, masukan.kb),
@@ -169,10 +219,52 @@ export default function BagianUjian({
 
   return (
     <div>
+      <label style={{ ...gayaLabel, maxWidth: 420, marginBottom: 16 }}>
+        Semester ujian
+        <select
+          disabled={mengirim}
+          value={semesterId}
+          onChange={(e) => {
+            setSemesterId(e.target.value);
+            setJuz("");
+            setHalaman("");
+            setRg("0");
+            setKk("0");
+            setKb("0");
+            setPesan(null);
+          }}
+          style={gayaMasukan}
+        >
+          <option value="">Pilih semester…</option>
+          {semesters.map((x) => (
+            <option key={x.id} value={x.id}>
+              {x.nama} · {x.tahunAjaran}
+            </option>
+          ))}
+        </select>
+      </label>
+      {!semesters.length && (
+        <p className="catatan-kaki">
+          Belum ada semester tersedia. Admin dapat menambahkannya di Panel
+          Admin.
+        </p>
+      )}
+      {ralat && (
+        <p className="pesan-galat" role="alert">
+          {ralat}{" "}
+          <button
+            className="tombol tombol-sekunder"
+            onClick={() => setUlang((x) => x + 1)}
+          >
+            Coba lagi
+          </button>
+        </p>
+      )}
       <label style={{ ...gayaLabel, maxWidth: 420, marginBottom: 12 }}>
         Santri yang Diuji
         <select
           value={santriId}
+          disabled={mengirim}
           onChange={(e) => setSantriId(e.target.value)}
           style={gayaMasukan}
         >
@@ -339,11 +431,6 @@ export default function BagianUjian({
           </label>
         </div>
 
-        {ralat && (
-          <p role="alert" style={{ margin: 0, color: "#c22826", fontSize: 14 }}>
-            {ralat}
-          </p>
-        )}
         {pesan && (
           <p
             role="status"
@@ -382,9 +469,12 @@ export default function BagianUjian({
         <button
           type="submit"
           className="tombol"
-          disabled={mengirim || !santriTerpilih}
+          disabled={
+            mengirim || memuat || gagalMuat || !santriTerpilih || !semesterId
+          }
         >
-          {mengirim && <Putaran />} {mengirim
+          {mengirim && <Putaran />}{" "}
+          {mengirim
             ? "Menyimpan…"
             : barisJuzIni
               ? `Perbarui Juz ${barisJuzIni.juz}`

@@ -166,14 +166,14 @@ export async function POST(request: NextRequest) {
       password: kataSandiSementara,
       email_confirm: true,
       user_metadata: { nama },
+      app_metadata: { profil_dikelola_admin: true },
     });
   if (galatBuat || !dibuat?.user) {
     return NextResponse.json(
       {
-        error:
-          galatBuat?.message?.includes("already")
-            ? "Surel ini sudah terdaftar sebagai akun."
-            : "Gagal membuat akun di layanan autentikasi.",
+        error: galatBuat?.message?.includes("already")
+          ? "Surel ini sudah terdaftar sebagai akun."
+          : "Gagal membuat akun di layanan autentikasi.",
       },
       { status: 400 },
     );
@@ -192,8 +192,5 @@ export async function POST(request: NextRequest) {
     );
   }
 
-  return NextResponse.json(
-    { email, kataSandiSementara },
-    { status: 201 },
-  );
+  return NextResponse.json({ email, kataSandiSementara }, { status: 201 });
 }

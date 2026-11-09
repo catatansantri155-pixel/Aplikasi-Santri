@@ -23,6 +23,7 @@ export default function AksesPwa({ children }: { children: ReactNode }) {
     [sibuk, setSibuk] = useState(false),
     [pesan, setPesan] = useState("");
   const permintaan = useRef<PermintaanPasang | null>(null);
+  const petunjukDialog = useRef<HTMLDialogElement>(null);
   useEffect(() => {
     if (!aktif) return;
     const mode = window.matchMedia("(display-mode: standalone)"),
@@ -89,10 +90,10 @@ export default function AksesPwa({ children }: { children: ReactNode }) {
       setPesan(
         hasil.outcome === "accepted"
           ? "Selesaikan pemasangan, lalu buka Monitoring Santri dari ikon aplikasi."
-          : "Pemasangan belum selesai. Anda dapat memasangnya melalui menu browser sesuai petunjuk di atas.",
+          : "Pemasangan belum selesai. Anda dapat memasangnya melalui menu browser pada Cara memasang.",
       );
     } catch {
-      setPesan("Gunakan menu pemasangan browser sesuai petunjuk di atas.");
+      setPesan("Gunakan menu browser pada Cara memasang.");
     } finally {
       setSibuk(false);
     }
@@ -114,62 +115,82 @@ export default function AksesPwa({ children }: { children: ReactNode }) {
           <p role="status">Menyiapkan aplikasi…</p>
         ) : (
           <>
-            <img
-              className="pwa-ilustrasi"
-              src="/images/santri-study-hero.webp"
-              alt="Ruang mengaji dengan rehal dan Al-Qur’an"
-              width={220}
-              height={220}
-            />
-            <span className="pwa-label">AKSES MELALUI APLIKASI</span>
-            <h1 id="pwa-judul">
-              Pasang sekali.
-              <br />
-              Buka lebih mudah.
-            </h1>
-            <p>
-              Pasang Monitoring Santri untuk melanjutkan. Setelah terpasang,
-              masuk melalui ikon aplikasi di perangkat Anda.
-            </p>
-            <ol
-              className="pwa-langkah"
-              aria-label={`Cara memasang di ${petunjuk?.platform ?? "perangkat Anda"}`}
+            <div className="pwa-komposisi">
+              <img
+                className="pwa-ilustrasi"
+                src="/images/santri-study-hero.webp"
+                alt="Ruang mengaji dengan rehal dan Al-Qur’an"
+                width={220}
+                height={220}
+              />
+              <div className="pwa-isi">
+                <span className="pwa-label">MONITORING SANTRI</span>
+                <h1 id="pwa-judul">
+                  Satu aplikasi.
+                  <br />
+                  Dekat dengan pondok.
+                </h1>
+                <p>Hafalan, kehadiran, dan kabar anak dalam satu tempat.</p>
+                <button
+                  className="tombol pwa-pasang"
+                  onClick={() =>
+                    siap ? void pasang() : petunjukDialog.current?.showModal()
+                  }
+                  disabled={sibuk}
+                >
+                  <Ikon nama="masuk" ukuran={20} />
+                  {sibuk ? "Membuka pemasangan…" : "Pasang sekarang"}
+                </button>
+                <button
+                  className="pwa-muat-ulang"
+                  onClick={() => petunjukDialog.current?.showModal()}
+                >
+                  <Ikon nama="peringatan" ukuran={16} /> Cara memasang
+                </button>
+                {pesan && (
+                  <p className="pwa-pesan" role="status">
+                    {pesan}
+                  </p>
+                )}
+                <p className="pwa-catatan">
+                  Sudah terpasang? Buka dari ikon Monitoring Santri.
+                </p>
+              </div>
+            </div>
+            <dialog
+              ref={petunjukDialog}
+              className="pwa-dialog"
+              aria-labelledby="judul-pasang-manual"
             >
-              {petunjuk?.langkah.map((l, i) => (
-                <li key={l}>
-                  <span>{i + 1}</span>
-                  <p>{l}</p>
-                </li>
-              ))}
-            </ol>
-            {siap && (
-              <button
-                className="tombol pwa-pasang"
-                onClick={() => void pasang()}
-                disabled={sibuk}
-              >
-                <Ikon nama="masuk" ukuran={20} />
-                {sibuk ? "Membuka pemasangan…" : "Pasang aplikasi"}
-              </button>
-            )}
-            {pesan && (
-              <p className="pwa-pesan" role="status">
-                {pesan}
+              <span className="pwa-label">{petunjuk?.platform}</span>
+              <h2 id="judul-pasang-manual">Pasang Monitoring Santri</h2>
+              <ol className="pwa-langkah">
+                {petunjuk?.langkah.map((l, i) => (
+                  <li key={l}>
+                    <span>{i + 1}</span>
+                    <p>{l}</p>
+                  </li>
+                ))}
+              </ol>
+              <p className="catatan-kaki">
+                Dari WhatsApp atau Telegram, pilih Buka di browser terlebih
+                dahulu. Gunakan browser yang mendukung pemasangan.
               </p>
-            )}
-            <p className="pwa-catatan">
-              Sudah terpasang? Buka dari ikon Monitoring Santri. Jika link
-              dibuka dari WhatsApp atau Telegram, pilih Buka di browser terlebih
-              dahulu. Jika browser ini tidak mendukung pemasangan, gunakan
-              browser yang disebutkan di atas.
-            </p>
-            <button
-              className="pwa-muat-ulang"
-              onClick={() => window.location.reload()}
-              disabled={sibuk}
-            >
-              <Ikon nama="muat-ulang" ukuran={16} /> Muat ulang petunjuk
-            </button>
+              <div className="pwa-dialog-aksi">
+                <button
+                  className="tombol tombol-sekunder"
+                  onClick={() => petunjukDialog.current?.close()}
+                >
+                  Kembali
+                </button>
+                <button
+                  className="tombol tombol-sekunder"
+                  onClick={() => window.location.reload()}
+                >
+                  <Ikon nama="muat-ulang" ukuran={16} /> Muat ulang
+                </button>
+              </div>
+            </dialog>
           </>
         )}
       </section>

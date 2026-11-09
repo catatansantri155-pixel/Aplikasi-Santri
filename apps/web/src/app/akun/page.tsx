@@ -194,8 +194,8 @@ function IsiAkun() {
     acara.preventDefault();
     setPesanSandi(null);
     setSandiSukses(false);
-    if (sandiBaru.length < 6) {
-      setPesanSandi("Kata sandi baru minimal 6 karakter.");
+    if (sandiBaru.length < 10) {
+      setPesanSandi("Kata sandi baru minimal 10 karakter.");
       return;
     }
     if (sandiBaru !== konfirmasiBaru) {
@@ -351,7 +351,8 @@ function IsiAkun() {
                 </p>
               )}
               <button type="submit" className="tombol" disabled={prosesSandi}>
-                {prosesSandi && <Putaran />} {prosesSandi ? "Menyimpan…" : "Simpan kata sandi baru"}
+                {prosesSandi && <Putaran />}{" "}
+                {prosesSandi ? "Menyimpan…" : "Simpan kata sandi baru"}
               </button>
             </form>
           </section>
@@ -364,7 +365,8 @@ function IsiAkun() {
             onClick={tanganiKeluar}
             disabled={prosesKeluar}
           >
-            {prosesKeluar && <Putaran />} {prosesKeluar ? "Memproses…" : "Keluar"}
+            {prosesKeluar && <Putaran />}{" "}
+            {prosesKeluar ? "Memproses…" : "Keluar"}
           </button>
         </>
       )}

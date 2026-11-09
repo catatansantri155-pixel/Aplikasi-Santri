@@ -84,7 +84,10 @@ export function formatTanggalRingkas(tanggal: Date = new Date()): string {
 
 /** ISO lokal hari ini (YYYY-MM-DD) tanpa geser zona waktu UTC. */
 export function tanggalIsoHariIni(): string {
-  const d = new Date();
-  const dua = (n: number) => String(n).padStart(2, "0");
-  return `${d.getFullYear()}-${dua(d.getMonth() + 1)}-${dua(d.getDate())}`;
+  return new Intl.DateTimeFormat("en-CA", {
+    timeZone: "Asia/Jakarta",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).format(new Date());
 }
