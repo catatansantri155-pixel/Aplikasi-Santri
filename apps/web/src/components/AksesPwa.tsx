@@ -122,10 +122,10 @@ export default function AksesPwa({ children }: { children: ReactNode }) {
             <div className="pwa-komposisi">
               <img
                 className="pwa-ilustrasi"
-                src="/images/santri-study-hero.webp"
-                alt="Ruang mengaji dengan rehal dan Al-Qur’an"
-                width={220}
-                height={220}
+                src="/images/pasang-hero.webp"
+                alt="Ilustrasi 3D pondok pesantren berkubah hijau dengan Al-Qur’an di atas rehal dan tumpukan kitab"
+                width={1000}
+                height={988}
               />
               <div className="pwa-isi">
                 <span className="pwa-label">MONITORING SANTRI</span>
@@ -142,7 +142,6 @@ export default function AksesPwa({ children }: { children: ReactNode }) {
                   }
                   disabled={sibuk}
                 >
-                  <Ikon nama="masuk" ukuran={20} />
                   {sibuk ? "Membuka pemasangan…" : "Pasang sekarang"}
                 </button>
                 <button
