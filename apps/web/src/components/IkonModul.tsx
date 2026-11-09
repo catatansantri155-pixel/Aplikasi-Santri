@@ -25,14 +25,7 @@ export default function IkonModul({
   const gambar = IKON_MODUL_GAMBAR[modul];
   if (gambar) {
     return (
-      // eslint-disable-next-line @next/next/no-img-element
-      <img
-        className="ikon-gambar"
-        src={gambar}
-        alt=""
-        width={56}
-        height={56}
-      />
+      <img className="ikon-gambar" src={gambar} alt="" width={56} height={56} />
     );
   }
   return <LingkaranIkon nama={ikon} warna={warna} ukuran={24} besar />;

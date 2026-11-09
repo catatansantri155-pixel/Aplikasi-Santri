@@ -1,5 +1,5 @@
 "use client";
-import { Putaran } from "@/components/Muat";
+import { PenandaMuat, Putaran } from "@/components/Muat";
 import { useEffect, useRef, useState, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import { ambilDaftarSantri, type Santri } from "@/lib/data/santri";
@@ -69,7 +69,7 @@ export default function FormPerizinan({
     terkunci.current = true;
     setSibuk(true);
     setGalat("");
-    let baru: string | null = null;
+    let baru: string;
     try {
       const f = new FormData(e.currentTarget);
       if (!kunci.current) kunci.current = crypto.randomUUID();
@@ -246,7 +246,7 @@ export default function FormPerizinan({
               gambar.
             </small>
           </label>
-          {kompres && <p role="status">Menyiapkan gambar…</p>}
+          {kompres && <PenandaMuat teks="Menyiapkan gambar…" />}
           {fileGalat && (
             <p className="pesan-galat" role="alert">
               {fileGalat}
@@ -286,13 +286,18 @@ export default function FormPerizinan({
               className="tombol tombol-utama"
               disabled={kompres || !!fileGalat || !anak.length}
             >
-              {sibuk && <Putaran />} {sibuk
+              {sibuk && <Putaran />}{" "}
+              {sibuk
                 ? "Menyimpan…"
                 : izin
                   ? "Kirim perbaikan"
                   : "Kirim pengajuan"}
             </button>
-            <button type="button" className="tombol tombol-sekunder" onClick={onTutup}>
+            <button
+              type="button"
+              className="tombol tombol-sekunder"
+              onClick={onTutup}
+            >
               Batal
             </button>
           </div>

@@ -11,7 +11,6 @@ export default function Logo({
   style?: CSSProperties;
 }) {
   return (
-    // eslint-disable-next-line @next/next/no-img-element
     <img
       src="/brand/minhajus-sunnah.webp"
       width={ukuran}

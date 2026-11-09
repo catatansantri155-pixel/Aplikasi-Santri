@@ -8,7 +8,7 @@ export default function VisualAkses({
     <div className={`akses-visual${ringkas ? " akses-visual--ringkas" : ""}`}>
       <span className="akses-orbit akses-orbit--satu" aria-hidden="true" />
       <span className="akses-orbit akses-orbit--dua" aria-hidden="true" />
-      {/* eslint-disable-next-line @next/next/no-img-element */}
+      {}
       <img
         src="/images/akses-3d.webp"
         width={480}

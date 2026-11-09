@@ -74,7 +74,7 @@ function tanggalHariIni(): string {
 }
 
 /** Label ringkas tanggal untuk baris konteks filter di HP. */
-function formatTanggalRingkas(tanggalIso: string): string {
+function _formatTanggalRingkas(tanggalIso: string): string {
   const cocok = /^(\d{4})-(\d{2})-(\d{2})$/.exec(tanggalIso);
   if (!cocok) return tanggalIso;
   const tanggal = new Date(
@@ -576,7 +576,8 @@ function IsiHalamanKehadiran() {
               onClick={tanganiSimpan}
               disabled={sedangMenyimpan || jumlahAkanDisimpan === 0}
             >
-              {sedangMenyimpan && <Putaran />} {sedangMenyimpan
+              {sedangMenyimpan && <Putaran />}{" "}
+              {sedangMenyimpan
                 ? "Menyimpan…"
                 : `Simpan ${jumlahAkanDisimpan} kehadiran · Kelas ${tingkat}`}
             </button>
@@ -650,7 +651,8 @@ function IsiHalamanKehadiran() {
               onClick={tanganiRevisi}
               disabled={sedangRevisi || !revisiId || !revisiAlasan.trim()}
             >
-              {sedangRevisi && <Putaran />} {sedangRevisi ? "Mengajukan…" : "Ajukan revisi"}
+              {sedangRevisi && <Putaran />}{" "}
+              {sedangRevisi ? "Mengajukan…" : "Ajukan revisi"}
             </button>
           </div>
           {pesanRevisi && (

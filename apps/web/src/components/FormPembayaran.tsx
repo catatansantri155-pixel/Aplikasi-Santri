@@ -1,5 +1,5 @@
 "use client";
-import { Putaran } from "@/components/Muat";
+import { PenandaMuat, Putaran } from "@/components/Muat";
 import { useEffect, useRef, useState, type FormEvent } from "react";
 import {
   angkaRupiah,
@@ -184,7 +184,7 @@ export default function FormPembayaran({
               Pastikan nominal dan tanggal tetap terbaca.
             </small>
           </label>
-          {kompres && <p role="status">Menyiapkan gambar…</p>}
+          {kompres && <PenandaMuat teks="Menyiapkan gambar…" />}
           {fileGalat && (
             <p className="pesan-galat izin-lebar" role="alert">
               {fileGalat}
@@ -215,7 +215,8 @@ export default function FormPembayaran({
               className="tombol tombol-utama"
               disabled={kompres || !!fileGalat || tersedia < 1}
             >
-              {sibuk && <Putaran />} {sibuk
+              {sibuk && <Putaran />}{" "}
+              {sibuk
                 ? "Menyimpan…"
                 : wali
                   ? "Kirim bukti pembayaran"

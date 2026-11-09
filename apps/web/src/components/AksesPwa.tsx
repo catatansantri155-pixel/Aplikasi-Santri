@@ -6,6 +6,7 @@ import {
   type PermintaanPasang,
 } from "@/lib/pwa";
 import { usePathname } from "next/navigation";
+import { PenandaMuat } from "@/components/Muat";
 import Logo from "@/components/Logo";
 import { Ikon } from "@/components/Ikon";
 
@@ -99,7 +100,10 @@ export default function AksesPwa({ children }: { children: ReactNode }) {
     }
   }
   // Tautan pemulihan sandi harus dapat diselesaikan pada browser pembuka surel.
-  if (status === "aplikasi" || pathname === "/atur-sandi")
+  if (
+    status === "aplikasi" ||
+    ["/atur-sandi", "/konfirmasi-email"].includes(pathname)
+  )
     return <>{children}</>;
   return (
     <main className="pwa-gerbang">
@@ -112,7 +116,7 @@ export default function AksesPwa({ children }: { children: ReactNode }) {
           </span>
         </div>
         {status === "periksa" ? (
-          <p role="status">Menyiapkan aplikasi…</p>
+          <PenandaMuat teks="Menyiapkan aplikasi…" />
         ) : (
           <>
             <div className="pwa-komposisi">

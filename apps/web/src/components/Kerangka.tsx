@@ -22,6 +22,7 @@ const PATH_TANPA_KERANGKA = [
   "/daftar",
   "/lupa-sandi",
   "/atur-sandi",
+  "/konfirmasi-email",
 ];
 
 export default function Kerangka({ children }: { children: ReactNode }) {

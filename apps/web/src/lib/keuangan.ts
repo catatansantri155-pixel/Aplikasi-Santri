@@ -22,7 +22,11 @@ export const STATUS_PEMBAYARAN = {
 };
 export type StatusPembayaran = keyof typeof STATUS_PEMBAYARAN;
 export type AksiKeuangan =
-  "terima" | "tolak" | "tarik" | "koreksi" | "batalkan_tagihan";
+  | "terima"
+  | "tolak"
+  | "tarik"
+  | "koreksi"
+  | "batalkan_tagihan";
 export const LABEL_AKSI: Record<AksiKeuangan, string> = {
   terima: "Terima pembayaran",
   tolak: "Tolak bukti",
@@ -128,6 +132,6 @@ export function progresPelunasan(tagihan: number, terbayar: number) {
 }
 export function selCsv(v: unknown) {
   let s = String(v ?? "");
-  if (/^(?:\s*[=+@\-]|[\t\r\n])/.test(s)) s = "'" + s;
+  if (/^(?:\s*[=+@-]|[\t\r\n])/.test(s)) s = "'" + s;
   return '"' + s.replaceAll('"', '""') + '"';
 }
