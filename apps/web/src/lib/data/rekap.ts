@@ -27,6 +27,7 @@
  * Halaman TIDAK boleh membaca view / gudang contoh secara langsung;
  * selalu lewat fungsi di file ini.
  */
+import { semuaBaris } from "@/lib/data/halaman";
 import { buatKlienBrowser } from "@/lib/supabase/client";
 import {
   ambilDaftarSantri,
@@ -34,10 +35,7 @@ import {
   type HasilSantri,
   type Santri,
 } from "@/lib/data/santri";
-import {
-  ambilSetoranTerakhir,
-  type SetoranHifzh,
-} from "@/lib/data/hifzh";
+import { ambilSetoranTerakhir, type SetoranHifzh } from "@/lib/data/hifzh";
 import { semuaKehadiranContoh } from "@/lib/contoh/kehadiran-contoh";
 import type { StatusKehadiran } from "@/lib/data/kehadiran";
 import type { JenisSetoran } from "@/lib/hifzh";
@@ -289,16 +287,17 @@ export async function ambilRekapPekanan(): Promise<
   }
 
   const supabase = buatKlienBrowser();
-  const { data, error } = await supabase
-    .from("rekap_kehadiran_pekanan")
-    .select(
-      "santri_id, santri_nama, kelas_id, pekan_mulai, jumlah_hadir, jumlah_sakit, jumlah_izin, jumlah_alpa, total_sesi",
-    )
-    .order("pekan_mulai", { ascending: false })
-    .order("santri_nama", { ascending: true });
-  if (error) {
-    throw new Error(`Gagal membaca rekap pekanan: ${error.message}`);
-  }
+  const data = await semuaBaris<Record<string, unknown>>(() =>
+    supabase
+      .from("rekap_kehadiran_pekanan")
+      .select(
+        "santri_id, santri_nama, kelas_id, pekan_mulai, jumlah_hadir, jumlah_sakit, jumlah_izin, jumlah_alpa, total_sesi",
+        { count: "exact" },
+      )
+      .order("pekan_mulai", { ascending: false })
+      .order("santri_nama", { ascending: true })
+      .order("santri_id"),
+  );
   const barisDb = (data ?? []) as Array<Record<string, unknown>>;
   return {
     data: barisDb.map((b) => {
@@ -373,15 +372,17 @@ export async function ambilRekapSemester(): Promise<
   }
 
   const supabase = buatKlienBrowser();
-  const { data, error } = await supabase
-    .from("rekap_kehadiran_semester")
-    .select(
-      "semester_id, semester_nama, semester_jenis, santri_id, santri_nama, kelas_id, jumlah_hadir, jumlah_sakit, jumlah_izin, jumlah_alpa, total_sesi",
-    )
-    .order("santri_nama", { ascending: true });
-  if (error) {
-    throw new Error(`Gagal membaca rekap semesteran: ${error.message}`);
-  }
+  const data = await semuaBaris<Record<string, unknown>>(() =>
+    supabase
+      .from("rekap_kehadiran_semester")
+      .select(
+        "semester_id, semester_nama, semester_jenis, santri_id, santri_nama, kelas_id, jumlah_hadir, jumlah_sakit, jumlah_izin, jumlah_alpa, total_sesi",
+        { count: "exact" },
+      )
+      .order("santri_nama", { ascending: true })
+      .order("semester_id")
+      .order("santri_id"),
+  );
   const barisDb = (data ?? []) as Array<Record<string, unknown>>;
   return {
     data: barisDb.map((b) => {
@@ -505,42 +506,37 @@ export async function ambilAgregatGrafikHifzh(): Promise<
   try {
     const supabase = buatKlienBrowser();
     const [mingguan, bulanan] = await Promise.all([
-      supabase
-        .from("grafik_hifzh_mingguan")
-        .select(
-          "pekan_mulai, jenis, jumlah_setoran, total_halaman, jumlah_l, jumlah_u",
-        )
-        .order("pekan_mulai", { ascending: true }),
-      supabase
-        .from("grafik_hifzh_bulanan")
-        .select(
-          "bulan_mulai, jenis, jumlah_setoran, total_halaman, jumlah_l, jumlah_u",
-        )
-        .order("bulan_mulai", { ascending: true }),
+      semuaBaris<BarisGrafikDb>(() =>
+        supabase
+          .from("grafik_hifzh_mingguan")
+          .select(
+            "pekan_mulai,jenis,jumlah_setoran,total_halaman,jumlah_l,jumlah_u",
+            { count: "exact" },
+          )
+          .order("pekan_mulai")
+          .order("jenis"),
+      ),
+      semuaBaris<BarisGrafikDb>(() =>
+        supabase
+          .from("grafik_hifzh_bulanan")
+          .select(
+            "bulan_mulai,jenis,jumlah_setoran,total_halaman,jumlah_l,jumlah_u",
+            { count: "exact" },
+          )
+          .order("bulan_mulai")
+          .order("jenis"),
+      ),
     ]);
-    if (mingguan.error) throw mingguan.error;
-    if (bulanan.error) throw bulanan.error;
     return {
       data: {
-        mingguan: jumlahkanBarisView(
-          (mingguan.data ?? []) as unknown as BarisGrafikDb[],
-          "pekan_mulai",
-        ),
-        bulanan: jumlahkanBarisView(
-          (bulanan.data ?? []) as unknown as BarisGrafikDb[],
-          "bulan_mulai",
-        ),
+        mingguan: jumlahkanBarisView(mingguan, "pekan_mulai"),
+        bulanan: jumlahkanBarisView(bulanan, "bulan_mulai"),
       },
       sumberContoh: false,
     };
-  } catch (ralat) {
-    // Meniru pola lib/data/hifzh.ts: halaman tetap bisa ditinjau selama
-    // pembangunan bertahap walau view belum tersedia di database.
-    console.warn(
-      "[rekap] Gagal membaca view grafik hifzh, memakai agregasi setoran setempat:",
-      ralat,
+  } catch {
+    throw new Error(
+      "Grafik Hifzh belum dapat dimuat. Periksa koneksi dan coba lagi.",
     );
-    const { agregat, sumberContoh } = await agregatCadangan();
-    return { data: agregat, sumberContoh };
   }
 }

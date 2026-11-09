@@ -1,5 +1,6 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
+import { Ikon } from "@/components/Ikon";
 import AvatarInisial from "@/components/AvatarInisial";
 import {
   ambilFotoProfil,
@@ -116,9 +117,9 @@ export default function FotoProfil({ id, nama }: { id: string; nama: string }) {
         </div>
         <div className="foto-profil-kontrol">
           <label
-            className={`tombol tombol-sekunder foto-profil-pilih${proses ? " foto-profil-sibuk" : ""}`}
+            className={`tombol tombol-sekunder aksi-media foto-profil-pilih${proses ? " foto-profil-sibuk" : ""}`}
           >
-            Pilih foto
+            <Ikon nama="gambar" ukuran={18} /> Pilih foto
             <input
               type="file"
               accept="image/jpeg,image/png,image/webp"
@@ -140,15 +141,15 @@ export default function FotoProfil({ id, nama }: { id: string; nama: string }) {
                 KB
               </span>
               <button
-                className="tombol"
+                className="tombol aksi-media"
                 type="button"
                 disabled={proses}
                 onClick={() => void simpan()}
               >
-                Simpan foto
+                <Ikon nama="centang" ukuran={18} /> Simpan foto
               </button>
               <button
-                className="tombol tombol-sekunder"
+                className="tombol tombol-sekunder aksi-media"
                 type="button"
                 disabled={proses}
                 onClick={() => setBlob(null)}
@@ -159,12 +160,12 @@ export default function FotoProfil({ id, nama }: { id: string; nama: string }) {
           )}
           {!blob && url && (
             <button
-              className="foto-profil-hapus"
+              className="tombol tombol-sekunder aksi-media aksi-media-bahaya foto-profil-hapus"
               type="button"
               disabled={proses}
               onClick={() => void hapus()}
             >
-              Hapus foto
+              <Ikon nama="hapus" ukuran={18} /> Hapus foto
             </button>
           )}
         </div>

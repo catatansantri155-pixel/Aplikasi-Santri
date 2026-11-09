@@ -11,13 +11,15 @@
  *   dan nilai di bawah ini BUKAN data nyata.
  * - Setiap fungsi mengembalikan bendera `sumber` ("supabase" | "contoh")
  *   supaya halaman bisa menampilkan penanda sumber datanya dengan jujur.
- * - Bila kueri Supabase gagal (mis. migrasi belum dijalankan), fungsi
- *   baca jatuh kembali ke data contoh dan mencatat peringatan di konsol,
- *   agar halaman tetap bisa ditinjau selama masa pembangunan bertahap.
+ * - Kegagalan baca produksi menghasilkan galat; data contoh hanya digunakan
+ *   saat konfigurasi backend memang belum tersedia.
  *
  * File ini TIDAK memakai src/lib/contoh/ (milik jalur lain).
  */
 
+import { semuaBaris } from "@/lib/data/halaman";
+import { ambilSemesterAdmin } from "@/lib/data/admin";
+import { tanggalIsoHariIni } from "@/lib/tanggal";
 import { buatKlienBrowser } from "@/lib/supabase/client";
 import {
   hasilUjian,
@@ -84,6 +86,7 @@ export interface SetoranBaru {
 
 /** Satu baris tes semester per juz (cermin tabel hifzh_ujian). */
 export interface BarisUjianHifzh {
+  semesterId?: string;
   id: string;
   santriId: string;
   juz: number;
@@ -108,6 +111,7 @@ export interface HasilSimpan {
   sumber: SumberData;
   /** true hanya bila benar-benar tertulis ke database Supabase. */
   tersimpanKeDatabase: boolean;
+  data?: BarisUjianHifzh;
 }
 
 /** Nama penyimak pada data contoh & paraf terkunci mode contoh. */
@@ -122,16 +126,40 @@ export function envSupabaseTerisi(): boolean {
 }
 
 /* =====================================================================
-   DATA CONTOH FIKTIF (hanya dipakai bila env belum terisi / kueri gagal)
+   DATA CONTOH FIKTIF (hanya dipakai bila env belum terisi)
    ===================================================================== */
 
 const SANTRI_CONTOH: SantriRingkas[] = [
-  { id: "d0000000-0000-4000-8000-000000000001", nama: "Fulan Alif (Contoh)", kelasTingkat: 1 },
-  { id: "d0000000-0000-4000-8000-000000000002", nama: "Fulan Bima (Contoh)", kelasTingkat: 1 },
-  { id: "d0000000-0000-4000-8000-000000000003", nama: "Fulan Candra (Contoh)", kelasTingkat: 2 },
-  { id: "d0000000-0000-4000-8000-000000000004", nama: "Fulan Danu (Contoh)", kelasTingkat: 2 },
-  { id: "d0000000-0000-4000-8000-000000000005", nama: "Fulan Eko (Contoh)", kelasTingkat: 3 },
-  { id: "d0000000-0000-4000-8000-000000000006", nama: "Fulan Fajar (Contoh)", kelasTingkat: 3 },
+  {
+    id: "d0000000-0000-4000-8000-000000000001",
+    nama: "Fulan Alif (Contoh)",
+    kelasTingkat: 1,
+  },
+  {
+    id: "d0000000-0000-4000-8000-000000000002",
+    nama: "Fulan Bima (Contoh)",
+    kelasTingkat: 1,
+  },
+  {
+    id: "d0000000-0000-4000-8000-000000000003",
+    nama: "Fulan Candra (Contoh)",
+    kelasTingkat: 2,
+  },
+  {
+    id: "d0000000-0000-4000-8000-000000000004",
+    nama: "Fulan Danu (Contoh)",
+    kelasTingkat: 2,
+  },
+  {
+    id: "d0000000-0000-4000-8000-000000000005",
+    nama: "Fulan Eko (Contoh)",
+    kelasTingkat: 3,
+  },
+  {
+    id: "d0000000-0000-4000-8000-000000000006",
+    nama: "Fulan Fajar (Contoh)",
+    kelasTingkat: 3,
+  },
 ];
 
 const SETORAN_CONTOH: SetoranHifzh[] = [
@@ -229,7 +257,8 @@ const SETORAN_CONTOH: SetoranHifzh[] = [
     rg: 0,
     kk: 0,
     kb: 4,
-    catatanRincian: "Ayat 7–9: empat lafazh tidak terbaca setelah diingatkan 3x.",
+    catatanRincian:
+      "Ayat 7–9: empat lafazh tidak terbaca setelah diingatkan 3x.",
     nilaiHuruf: "U",
     penyimakId: null,
     penyimakNama: NAMA_PENYIMAK_CONTOH,
@@ -243,11 +272,56 @@ for (const s of SETORAN_CONTOH) {
 }
 
 const UJIAN_CONTOH: BarisUjianHifzh[] = [
-  { id: "contoh-ujian-1", santriId: "d0000000-0000-4000-8000-000000000001", juz: 1, halaman: 20, rg: 0, kk: 0, kb: 0, hasil: "M" },
-  { id: "contoh-ujian-2", santriId: "d0000000-0000-4000-8000-000000000001", juz: 2, halaman: 21, rg: 9, kk: 0, kb: 0, hasil: "BS" },
-  { id: "contoh-ujian-3", santriId: "d0000000-0000-4000-8000-000000000001", juz: 3, halaman: 20, rg: 27, kk: 0, kb: 0, hasil: "B" },
-  { id: "contoh-ujian-4", santriId: "d0000000-0000-4000-8000-000000000003", juz: 1, halaman: 20, rg: 0, kk: 0, kb: 2, hasil: "BS" },
-  { id: "contoh-ujian-5", santriId: "d0000000-0000-4000-8000-000000000003", juz: 2, halaman: 21, rg: 0, kk: 3, kb: 5, hasil: "C" },
+  {
+    id: "contoh-ujian-1",
+    santriId: "d0000000-0000-4000-8000-000000000001",
+    juz: 1,
+    halaman: 20,
+    rg: 0,
+    kk: 0,
+    kb: 0,
+    hasil: "M",
+  },
+  {
+    id: "contoh-ujian-2",
+    santriId: "d0000000-0000-4000-8000-000000000001",
+    juz: 2,
+    halaman: 21,
+    rg: 9,
+    kk: 0,
+    kb: 0,
+    hasil: "BS",
+  },
+  {
+    id: "contoh-ujian-3",
+    santriId: "d0000000-0000-4000-8000-000000000001",
+    juz: 3,
+    halaman: 20,
+    rg: 27,
+    kk: 0,
+    kb: 0,
+    hasil: "B",
+  },
+  {
+    id: "contoh-ujian-4",
+    santriId: "d0000000-0000-4000-8000-000000000003",
+    juz: 1,
+    halaman: 20,
+    rg: 0,
+    kk: 0,
+    kb: 2,
+    hasil: "BS",
+  },
+  {
+    id: "contoh-ujian-5",
+    santriId: "d0000000-0000-4000-8000-000000000003",
+    juz: 2,
+    halaman: 21,
+    rg: 0,
+    kk: 3,
+    kb: 5,
+    hasil: "C",
+  },
 ];
 
 // Hasil contoh harus selalu cocok dengan fungsi resmi.
@@ -266,12 +340,14 @@ export async function ambilDaftarSantri(): Promise<HasilMuat<SantriRingkas[]>> {
   }
   try {
     const supabase = buatKlienBrowser();
-    const { data, error } = await supabase
-      .from("santri")
-      .select("id, nama, kelas:kelas_id ( tingkat )")
-      .eq("status_aktif", true)
-      .order("nama", { ascending: true });
-    if (error) throw error;
+    const data = await semuaBaris<Record<string, unknown>>(() =>
+      supabase
+        .from("santri")
+        .select("id,nama,kelas:kelas_id(tingkat)", { count: "exact" })
+        .eq("status_aktif", true)
+        .order("nama")
+        .order("id"),
+    );
     const baris = (data ?? []) as unknown as Array<{
       id: string;
       nama: string;
@@ -285,9 +361,10 @@ export async function ambilDaftarSantri(): Promise<HasilMuat<SantriRingkas[]>> {
         kelasTingkat: b.kelas?.tingkat ?? null,
       })),
     };
-  } catch (ralat) {
-    console.warn("[hifzh] Gagal membaca daftar santri, memakai data contoh:", ralat);
-    return { sumber: "contoh", data: SANTRI_CONTOH };
+  } catch {
+    throw new Error(
+      "Data Hifzh belum dapat dimuat. Periksa koneksi atau masuk kembali, lalu coba lagi.",
+    );
   }
 }
 
@@ -311,9 +388,10 @@ export async function ambilSetoranTerakhir(
     if (error) throw error;
     const baris = (data ?? []) as unknown as Array<Record<string, unknown>>;
     return { sumber: "supabase", data: baris.map(petakanSetoran) };
-  } catch (ralat) {
-    console.warn("[hifzh] Gagal membaca setoran, memakai data contoh:", ralat);
-    return { sumber: "contoh", data: SETORAN_CONTOH.slice(0, batas) };
+  } catch {
+    throw new Error(
+      "Data Hifzh belum dapat dimuat. Periksa koneksi atau masuk kembali, lalu coba lagi.",
+    );
   }
 }
 
@@ -351,24 +429,17 @@ export async function ambilSetoranSantri(
     if (error) throw error;
     const baris = (data ?? []) as unknown as Array<Record<string, unknown>>;
     return { sumber: "supabase", data: baris.map(petakanSetoran) };
-  } catch (ralat) {
-    console.warn(
-      "[hifzh] Gagal membaca setoran santri, memakai data contoh:",
-      ralat,
+  } catch {
+    throw new Error(
+      "Data Hifzh belum dapat dimuat. Periksa koneksi atau masuk kembali, lalu coba lagi.",
     );
-    return {
-      sumber: "contoh",
-      data: SETORAN_CONTOH.filter((s) => s.santriId === santriId).slice(
-        0,
-        batas,
-      ),
-    };
   }
 }
 
 /** Baris tes semester (per juz) untuk satu santri. */
 export async function ambilUjianSemester(
   santriId: string,
+  semesterId?: string,
 ): Promise<HasilMuat<BarisUjianHifzh[]>> {
   if (!envSupabaseTerisi()) {
     return {
@@ -380,23 +451,27 @@ export async function ambilUjianSemester(
   }
   try {
     const supabase = buatKlienBrowser();
-    // CATATAN TAHAP 2: semester aktif belum ditentukan modul lain, jadi
-    // sementara tampilkan baris dari semester terakhir yang ada untuk
-    // santri ini. Penentuan semester aktif diputuskan di tahap integrasi.
+    if (!semesterId) {
+      const daftar = await ambilSemesterAdmin();
+      const hari = tanggalIsoHariIni();
+      semesterId = daftar.data.find(
+        (x) => x.tanggalMulai <= hari && x.tanggalSelesai >= hari,
+      )?.id;
+      if (!semesterId) return { sumber: "supabase", data: [] };
+    }
     const { data, error } = await supabase
       .from("hifzh_ujian")
-      .select("id, santri_id, juz, halaman, rg, kk, kb, hasil")
+      .select("id, santri_id, semester_id, juz, halaman, rg, kk, kb, hasil")
       .eq("santri_id", santriId)
+      .eq("semester_id", semesterId)
       .order("juz", { ascending: true });
     if (error) throw error;
     const baris = (data ?? []) as unknown as Array<Record<string, unknown>>;
     return { sumber: "supabase", data: baris.map(petakanUjian) };
-  } catch (ralat) {
-    console.warn("[hifzh] Gagal membaca ujian, memakai data contoh:", ralat);
-    return {
-      sumber: "contoh",
-      data: UJIAN_CONTOH.filter((u) => u.santriId === santriId),
-    };
+  } catch {
+    throw new Error(
+      "Data Hifzh belum dapat dimuat. Periksa koneksi atau masuk kembali, lalu coba lagi.",
+    );
   }
 }
 
@@ -520,44 +595,67 @@ export async function hapusSetoran(id: string): Promise<HasilSimpan> {
   return { sumber: "supabase", tersimpanKeDatabase: true };
 }
 
-/**
- * Simpan baris ujian per juz.
- * Mode Supabase membutuhkan semester_id; penentuan semester aktif belum
- * diputuskan modul lain, jadi untuk sekarang fungsi ini hanya aktif di
- * mode contoh (baris ditambahkan halaman ke keadaan lokalnya). Lihat
- * catatan di ambilUjianSemester().
- */
+/** Simpan nilai pada semester yang dipilih, memakai ID server ketika memperbarui. */
 export async function simpanBarisUjian(
   masukan: BarisUjianBaru,
   semesterId?: string,
+  id?: string,
 ): Promise<HasilSimpan> {
-  if (!envSupabaseTerisi()) {
+  if (!semesterId) throw new Error("Pilih semester ujian terlebih dahulu.");
+  if (
+    !Number.isInteger(masukan.juz) ||
+    masukan.juz < 1 ||
+    masukan.juz > 30 ||
+    !Number.isInteger(masukan.halaman) ||
+    masukan.halaman < 1 ||
+    [masukan.rg, masukan.kk, masukan.kb].some(
+      (x) => !Number.isInteger(x) || x < 0,
+    )
+  )
+    throw new Error("Periksa juz, halaman, dan jumlah kesalahan.");
+  if (!envSupabaseTerisi())
     return { sumber: "contoh", tersimpanKeDatabase: false };
-  }
-  if (!semesterId) {
-    throw new Error(
-      "Semester aktif belum ditentukan; baris ujian belum bisa disimpan ke database.",
-    );
-  }
-  const supabase = buatKlienBrowser();
+  const db = buatKlienBrowser();
   const {
     data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) {
-    throw new Error("Sesi login tidak ditemukan; baris ujian tidak disimpan.");
-  }
-  const { error } = await supabase.from("hifzh_ujian").insert({
-    santri_id: masukan.santriId,
-    semester_id: semesterId,
+  } = await db.auth.getUser();
+  if (!user) throw new Error("Masuk kembali sebelum menyimpan ujian.");
+  const nilai = {
     juz: masukan.juz,
     halaman: masukan.halaman,
     rg: masukan.rg,
     kk: masukan.kk,
     kb: masukan.kb,
-    penguji_id: user.id,
-  });
-  if (error) throw error;
-  return { sumber: "supabase", tersimpanKeDatabase: true };
+  };
+  const q = id
+    ? db
+        .from("hifzh_ujian")
+        .update(nilai)
+        .eq("id", id)
+        .eq("santri_id", masukan.santriId)
+        .eq("semester_id", semesterId)
+    : db
+        .from("hifzh_ujian")
+        .insert({
+          ...nilai,
+          santri_id: masukan.santriId,
+          semester_id: semesterId,
+          penguji_id: user.id,
+        });
+  const { data, error } = await q
+    .select("id,santri_id,semester_id,juz,halaman,rg,kk,kb,hasil")
+    .single();
+  if (error)
+    throw new Error(
+      error.code === "23505"
+        ? "Juz ini baru saja diisi. Muat ulang sebelum memperbarui."
+        : "Ujian belum tersimpan. Periksa akses penguji dan muat ulang sebelum mencoba lagi.",
+    );
+  return {
+    sumber: "supabase",
+    tersimpanKeDatabase: true,
+    data: petakanUjian(data),
+  };
 }
 
 /* =====================================================================
@@ -610,6 +708,7 @@ function petakanUjian(baris: Record<string, unknown>): BarisUjianHifzh {
   return {
     id: String(baris.id),
     santriId: String(baris.santri_id),
+    semesterId: String(baris.semester_id ?? ""),
     juz: Number(baris.juz ?? 0),
     halaman: Number(baris.halaman ?? 0),
     rg,

@@ -5,6 +5,7 @@ import Link from "next/link";
 import BerandaMonitoring, {
   type StatistikBeranda,
 } from "@/components/BerandaMonitoring";
+import { ambilStatistikBeranda } from "@/lib/data/beranda";
 import AvatarInisial from "@/components/AvatarInisial";
 import { Ikon } from "@/components/Ikon";
 import {
@@ -99,13 +100,14 @@ export default function HalamanBeranda() {
         const wali = profil?.peran === "wali";
         // Nama santri untuk pencarian berasal dari respons ber-RLS ini,
         // bukan daftar global tambahan atau panggilan dengan hak admin.
-        const [daftar, setoran, catatan, hasilSemester, olahraga] =
+        const [daftar, setoran, catatan, hasilSemester, olahraga, ringkasan] =
           await Promise.all([
             ambilDaftarSantri(),
             ambilSetoranTerakhir(100),
             ambilCatatanTerbaru(50),
             ambilSemesterAdmin().catch(() => null),
             wali ? Promise.resolve(null) : ambilDaftarSesi().catch(() => null),
+            modeContoh ? Promise.resolve(null) : ambilStatistikBeranda(),
           ]);
         if (!aktif) return;
         if (
@@ -123,7 +125,9 @@ export default function HalamanBeranda() {
             (s) => s.tanggal >= pekan.mulai && s.tanggal <= pekan.selesai,
           ).length ?? 0;
         let kehadiran = 0;
-        if (wali) {
+        if (wali && !modeContoh && ringkasan) {
+          setRingkasanAnak(ringkasan.anak);
+        } else if (wali) {
           const riwayat = await Promise.all(
             daftar.data.map((s) => ambilRiwayatKehadiranSantri(s.id)),
           );
@@ -138,7 +142,7 @@ export default function HalamanBeranda() {
             };
           });
           setRingkasanAnak(anak);
-        } else {
+        } else if (modeContoh) {
           const [hifzh, diniyyah] = await Promise.all([
             ambilKehadiran(hariIni, "hifzh"),
             ambilKehadiran(hariIni, "diniyyah"),
@@ -148,17 +152,19 @@ export default function HalamanBeranda() {
         if (!aktif) return;
         setSetoranTerbaru(setoran.data.slice(0, 4));
         setCatatanTerbaru(catatan.data[0] ?? null);
-        setStatistik({
-          santri: daftar.data.length,
-          kehadiran,
-          setoran: wali
-            ? setoran.data.length
-            : setoran.data.filter((s) => s.tanggalMasehi === hariIni).length,
-          catatan: wali
-            ? catatan.data.length
-            : catatan.data.filter((c) => c.tanggal === hariIni).length,
-          olahraga: olahragaPekanIni,
-        });
+        setStatistik(
+          ringkasan ?? {
+            santri: daftar.data.length,
+            kehadiran,
+            setoran: wali
+              ? setoran.data.length
+              : setoran.data.filter((s) => s.tanggalMasehi === hariIni).length,
+            catatan: wali
+              ? catatan.data.length
+              : catatan.data.filter((c) => c.tanggal === hariIni).length,
+            olahraga: olahragaPekanIni,
+          },
+        );
         setSemester(
           hasilSemester?.data.find((s) => statusSemester(s) === "berjalan") ??
             null,

@@ -120,6 +120,23 @@ async function main() {
     document.querySelector('.pwa-gerbang button[aria-label="Tutup"]'),
     null,
   );
+  assert.equal(
+    document.querySelector(".pwa-pasang")?.textContent?.trim(),
+    "Pasang sekarang",
+  );
+  await act(async () =>
+    (document.querySelector(".pwa-pasang") as HTMLButtonElement).click(),
+  );
+  assert.ok(document.querySelector("dialog[open]"));
+  await act(async () =>
+    (
+      Array.from(document.querySelectorAll("dialog button")).find(
+        (b) => b.textContent === "Kembali",
+      ) as HTMLButtonElement
+    ).click(),
+  );
+  assert.equal(document.querySelector("dialog[open]"), null);
+  assert.ok(document.querySelector(".pwa-gerbang"));
   let prompts = 0;
   const event = new dom.window.Event("beforeinstallprompt", {
     cancelable: true,

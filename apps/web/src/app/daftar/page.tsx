@@ -38,7 +38,7 @@ function pesanGalatDaftar(pesanMentah: string): string {
     return "Surel ini sudah terdaftar. Silakan masuk lewat halaman login, atau gunakan lupa kata sandi bila lupa sandinya.";
   }
   if (/password.*(short|least|weak)/i.test(pesanMentah)) {
-    return "Kata sandi terlalu pendek atau terlalu lemah. Gunakan minimal 6 karakter dengan campuran huruf dan angka.";
+    return "Kata sandi terlalu pendek atau terlalu lemah. Gunakan minimal 10 karakter dengan campuran huruf dan angka.";
   }
   if (/invalid.*email|email.*invalid/i.test(pesanMentah)) {
     return "Alamat surel tidak valid. Periksa kembali penulisannya.";
@@ -72,8 +72,8 @@ export default function HalamanDaftar() {
       setGalat("Nama wali wajib diisi.");
       return;
     }
-    if (kataSandi.length < 6) {
-      setGalat("Kata sandi minimal 6 karakter.");
+    if (kataSandi.length < 10) {
+      setGalat("Kata sandi minimal 10 karakter.");
       return;
     }
     if (kataSandi !== konfirmasi) {
@@ -97,10 +97,10 @@ export default function HalamanDaftar() {
       }
       if (data.session && data.user) {
         // Jalur (a): sesi langsung aktif → buat profil wali sekarang.
-        const { error: galatProfil } = await supabase
-          .from("profiles")
-          .insert({ id: data.user.id, peran: "wali", nama: nama.trim() });
-        if (galatProfil) {
+        const { data: profilSiap, error: galatProfil } = await supabase.rpc(
+          "pastikan_profil_wali",
+        );
+        if (galatProfil || profilSiap !== true) {
           setGalat(
             "Akun terdaftar, tetapi profil wali belum dapat dibuat. Silakan masuk lewat halaman login; bila akses belum tampil, hubungi admin.",
           );
@@ -236,7 +236,8 @@ export default function HalamanDaftar() {
                 className="tombol tombol-besar tombol-penuh"
                 disabled={mengirim}
               >
-                {mengirim && <Putaran />} {mengirim ? "Memproses…" : "Buat akun wali"}
+                {mengirim && <Putaran />}{" "}
+                {mengirim ? "Memproses…" : "Buat akun wali"}
               </button>
             </form>
             <p className="catatan-kaki" style={{ textAlign: "center" }}>

@@ -125,68 +125,15 @@ export function sambutanSudahSelesai(): boolean {
   }
 }
 
-/**
- * Lengkapi profil wali dari penanda pendaftaran tertunda.
- *
- * Dipanggil halaman login SETELAH sesi berhasil dan baris profiles
- * belum ditemukan: bila penanda `santri.daftarWali` ada, sisipkan
- * profiles (id = pengguna sesi, peran 'wali', nama dari penanda) —
- * diizinkan RLS oleh kebijakan profiles_tambah_wali_sendiri pada
- * migrasi 0006 (pengguna hanya bisa menyisipkan profil MILIK SENDIRI
- * berperan wali; peran lain tidak bisa dibuat dari jalur ini).
- *
- * Mengembalikan true bila profil berhasil dibuat (penanda dihapus).
- * Penanda SENGAJA dipertahankan bila sisipan gagal karena sebab lain
- * (mis. migrasi 0006 belum dijalankan) agar bisa dicoba lagi pada
- * masuk berikutnya; penanda dihapus bila profil ternyata sudah ada.
- */
+/** Lengkapi profil dari sesi terverifikasi di server; tidak bergantung penanda perangkat. */
 export async function cobaLengkapiProfilWaliTertunda(): Promise<boolean> {
   if (!supabaseTerhubung()) return false;
-  let namaTertunda: string | null = null;
+  const { data, error } = await buatKlienBrowser().rpc("pastikan_profil_wali");
+  if (error || data !== true) return false;
   try {
-    const mentah = localStorage.getItem(KUNCI_DAFTAR_WALI_TERTUNDA);
-    if (!mentah) return false;
-    const data = JSON.parse(mentah) as { nama?: unknown };
-    if (typeof data.nama === "string" && data.nama.trim().length > 0) {
-      namaTertunda = data.nama.trim();
-    }
+    localStorage.removeItem(KUNCI_DAFTAR_WALI_TERTUNDA);
   } catch {
-    return false;
+    /* Opsional, bukan syarat profil. */
   }
-  if (!namaTertunda) return false;
-
-  const supabase = buatKlienBrowser();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) return false;
-
-  const { error } = await supabase.from("profiles").insert({
-    id: user.id,
-    peran: "wali",
-    nama: namaTertunda,
-  });
-  if (!error) {
-    try {
-      localStorage.removeItem(KUNCI_DAFTAR_WALI_TERTUNDA);
-    } catch {
-      // Penanda gagal dihapus tidak menghalangi alur masuk.
-    }
-    return true;
-  }
-  // 23505 = langgar unik: profil sudah ada (mis. dibuat admin lebih
-  // dulu) — penanda tidak lagi diperlukan.
-  if ((error as { code?: string }).code === "23505") {
-    try {
-      localStorage.removeItem(KUNCI_DAFTAR_WALI_TERTUNDA);
-    } catch {
-      // Abaikan — lihat catatan di atas.
-    }
-  } else {
-    console.warn(
-      "[sesi] Gagal melengkapi profil wali tertunda:",
-      error.message,
-    );
-  }
-  return false;
+  return true;
 }

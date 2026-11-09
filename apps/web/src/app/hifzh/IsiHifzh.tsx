@@ -127,6 +127,7 @@ export default function IsiHalamanHifzh({ tab }: { tab: TabHifzh }) {
   const [eKb, setEKb] = useState("0");
   const [eCatatan, setECatatan] = useState("");
   const [eTugas, setETugas] = useState("");
+  const [galatMuat, setGalatMuat] = useState("");
   const [pesanAksi, setPesanAksi] = useState<string | null>(null);
   const [sibukAksi, setSibukAksi] = useState(false);
 
@@ -152,6 +153,15 @@ export default function IsiHalamanHifzh({ tab }: { tab: TabHifzh }) {
             setPeranMasuk(profil.peran);
             setIdMasuk(profil.id);
           }
+        }
+      })
+      .catch(() => {
+        if (!batal) {
+          setDaftarSantri([]);
+          setSetoran([]);
+          setGalatMuat(
+            "Data Hifzh belum dapat dimuat. Periksa koneksi atau masuk kembali.",
+          );
         }
       })
       .finally(() => {
@@ -301,6 +311,18 @@ export default function IsiHalamanHifzh({ tab }: { tab: TabHifzh }) {
     }
   }
 
+  if (galatMuat)
+    return (
+      <section className="pesan-galat" role="alert">
+        {galatMuat}
+        <button
+          className="tombol tombol-sekunder"
+          onClick={() => window.location.reload()}
+        >
+          Coba lagi
+        </button>
+      </section>
+    );
   const kataCari = cariRiwayat.trim().toLocaleLowerCase("id-ID");
   const setoranTampil = setoran.filter((s) =>
     `${s.santriNama} ${s.surat} ${s.jenis}`
@@ -638,7 +660,8 @@ export default function IsiHalamanHifzh({ tab }: { tab: TabHifzh }) {
                               onClick={() => void tanganiSimpanUbahSetoran(s)}
                               disabled={sibukAksi}
                             >
-                              {sibukAksi && <Putaran />} {sibukAksi ? "Menyimpan…" : "Simpan perubahan"}
+                              {sibukAksi && <Putaran />}{" "}
+                              {sibukAksi ? "Menyimpan…" : "Simpan perubahan"}
                             </button>
                             <button
                               type="button"

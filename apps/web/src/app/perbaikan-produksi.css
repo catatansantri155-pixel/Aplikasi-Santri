@@ -1,0 +1,246 @@
+/* Lapisan terakhir: akses awal ringkas dan satu bahasa visual aksi media. */
+.pwa-gerbang {
+  padding: 20px;
+  min-height: 100svh;
+  box-sizing: border-box;
+}
+.pwa-kartu {
+  width: min(860px, 100%);
+  max-width: 860px;
+  padding: 28px;
+}
+.pwa-komposisi {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.15fr);
+  align-items: center;
+  gap: 32px;
+  margin-top: 20px;
+}
+.pwa-komposisi .pwa-ilustrasi {
+  width: 100%;
+  max-width: 290px;
+  height: auto;
+  margin: 0 auto;
+}
+.pwa-isi {
+  min-width: 0;
+}
+.pwa-isi h1 {
+  font-size: clamp(25px, 3vw, 34px);
+  margin: 10px 0 12px;
+  line-height: 1.25;
+}
+.pwa-isi > p {
+  font-size: 13px;
+  line-height: 1.7;
+  color: var(--teks-redup);
+  margin: 0 0 18px;
+}
+.pwa-isi .pwa-pasang {
+  min-height: 48px;
+  border-radius: 14px;
+  box-shadow: 0 6px 16px #145ec125;
+  font-weight: 700;
+}
+.pwa-isi .pwa-muat-ulang {
+  width: 100%;
+  margin-top: 4px;
+}
+.pwa-isi .pwa-catatan {
+  font-size: 11px;
+  text-align: center;
+  margin: 10px 0 0;
+  padding: 0;
+  border: 0;
+}
+.pwa-isi .pwa-pesan {
+  padding: 10px;
+  border-radius: 12px;
+  background: var(--hijau-muda);
+  font-size: 12px;
+  margin-top: 10px;
+}
+.pwa-dialog {
+  width: min(440px, calc(100% - 32px));
+  max-height: 85svh;
+  box-sizing: border-box;
+  overflow: auto;
+  border: 1px solid var(--garis);
+  border-radius: 22px;
+  padding: 24px;
+  background: var(--permukaan);
+  color: var(--teks);
+  box-shadow: 0 24px 80px #061a2440;
+}
+.pwa-dialog::backdrop {
+  background: #102c3c99;
+  backdrop-filter: blur(5px);
+}
+.pwa-dialog h2 {
+  font-size: 21px;
+  line-height: 1.4;
+  margin: 12px 0;
+}
+.pwa-dialog-aksi {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-top: 20px;
+  justify-content: flex-end;
+}
+.aksi-media,
+.foto-profil-kontrol .aksi-media,
+.informasi-aksi > a.aksi-media {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 44px;
+  padding: 10px 15px;
+  border: 1px solid var(--garis);
+  border-radius: 12px;
+  font: inherit;
+  font-size: 12px;
+  font-weight: 650;
+  line-height: 1.4;
+  text-decoration: none;
+  cursor: pointer;
+  transition:
+    background 0.15s,
+    box-shadow 0.15s,
+    transform 0.15s;
+  box-sizing: border-box;
+}
+.foto-profil-kontrol .aksi-media:not(.tombol-utama) {
+  box-shadow: 0 2px 5px #092b4010;
+}
+.foto-profil-kontrol .aksi-media:hover:not(:disabled),
+.informasi-aksi > a.aksi-media:hover {
+  box-shadow: 0 4px 12px #092b401a;
+  transform: translateY(-1px);
+}
+.aksi-media svg {
+  flex: none;
+}
+.aksi-media:disabled,
+.aksi-media.foto-profil-sibuk {
+  cursor: wait;
+  opacity: 0.55;
+  transform: none;
+}
+.foto-profil-kontrol .aksi-media-bahaya {
+  color: #a32e43;
+  background: #fff1f3;
+  border-color: #edced5;
+  text-decoration: none;
+}
+[data-tema="gelap"] .foto-profil-kontrol .aksi-media-bahaya {
+  color: #ffb8c5;
+  background: #40242e;
+  border-color: #6c3d4b;
+}
+input[type="file"]::file-selector-button {
+  font: inherit;
+  font-size: 12px;
+  font-weight: 650;
+  min-height: 44px;
+  padding: 9px 14px;
+  margin-right: 12px;
+  border-radius: 12px;
+  border: 1px solid var(--garis);
+  background: var(--hijau-muda);
+  color: var(--hijau-kop);
+  cursor: pointer;
+}
+@media (max-width: 640px) {
+  .pwa-gerbang {
+    padding: 16px;
+  }
+  .pwa-kartu {
+    padding: 22px;
+    max-width: 420px;
+    border-radius: 24px;
+  }
+  .pwa-komposisi {
+    grid-template-columns: 1fr;
+    gap: 12px;
+    margin-top: 12px;
+  }
+  .pwa-komposisi .pwa-ilustrasi {
+    width: clamp(90px, 22svh, 150px);
+  }
+  .pwa-isi {
+    text-align: center;
+  }
+  .pwa-isi h1 {
+    font-size: 27px;
+    margin: 8px 0;
+  }
+  .pwa-isi > p {
+    font-size: 12px;
+    margin-bottom: 14px;
+  }
+  .pwa-identitas strong {
+    font-size: 14px;
+  }
+  .pwa-identitas small {
+    font-size: 10px;
+  }
+  .pwa-label {
+    font-size: 9px;
+  }
+  .pwa-isi .pwa-catatan {
+    font-size: 10px;
+    margin-top: 6px;
+  }
+  .pwa-isi .pwa-muat-ulang {
+    min-height: 40px;
+  }
+  .foto-profil-baris {
+    align-items: center;
+    gap: 16px;
+  }
+  .foto-profil-kontrol {
+    gap: 8px;
+    flex: 1;
+    min-width: 0;
+  }
+  .foto-profil-kontrol .aksi-media {
+    padding: 10px 12px;
+  }
+}
+@media (max-height: 660px) {
+  .pwa-kartu {
+    padding: 18px;
+  }
+  .pwa-komposisi {
+    gap: 10px;
+    margin-top: 10px;
+  }
+  .pwa-komposisi .pwa-ilustrasi {
+    max-height: 100px;
+    width: auto;
+  }
+  .pwa-isi h1 {
+    font-size: 25px;
+  }
+  .pwa-isi > p {
+    margin-bottom: 10px;
+  }
+  .pwa-identitas img {
+    max-height: 36px;
+  }
+}
+@media (max-height: 420px) and (min-width: 641px) {
+  .pwa-komposisi .pwa-ilustrasi {
+    max-height: 180px;
+  }
+  .pwa-komposisi {
+    margin-top: 4px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .aksi-media {
+    transition: none;
+  }
+}

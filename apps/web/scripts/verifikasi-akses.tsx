@@ -98,7 +98,9 @@ function authLogic(source: string) {
     tokens.push(scanner.getTokenText());
   return JSON.stringify(tokens);
 }
-for (const page of ["login", "daftar", "lupa-sandi", "atur-sandi"]) {
+// These unchanged flows retain their regression snapshot. Signup/password changes
+// are covered by the audit suite and server tests instead of comparing old code.
+for (const page of ["login", "lupa-sandi"]) {
   const path = `src/app/${page}/page.tsx`;
   const old = execFileSync("git", ["show", `HEAD:apps/web/${path}`], {
     encoding: "utf8",
@@ -110,5 +112,5 @@ for (const page of ["login", "daftar", "lupa-sandi", "atur-sandi"]) {
   );
 }
 console.log(
-  "Lulus: 5 halaman akses, logo tunggal, ilustrasi, kolom login/daftar, lima slide, ikon aplikasi, dan logika autentikasi tidak berubah.",
+  "Lulus: 5 halaman akses, logo tunggal, ilustrasi, kolom login/daftar, lima slide, ikon aplikasi, dan regresi login/pemulihan.",
 );

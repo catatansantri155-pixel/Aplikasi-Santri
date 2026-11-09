@@ -51,8 +51,8 @@ export default function HalamanAturSandi() {
   async function tanganiKirim(acara: FormEvent<HTMLFormElement>) {
     acara.preventDefault();
     setGalat(null);
-    if (kataSandi.length < 6) {
-      setGalat("Kata sandi baru minimal 6 karakter.");
+    if (kataSandi.length < 10) {
+      setGalat("Kata sandi baru minimal 10 karakter.");
       return;
     }
     if (kataSandi !== konfirmasi) {
@@ -142,7 +142,8 @@ export default function HalamanAturSandi() {
               className="tombol tombol-besar tombol-penuh"
               disabled={mengirim}
             >
-              {mengirim && <Putaran />} {mengirim ? "Memproses…" : "Simpan kata sandi baru"}
+              {mengirim && <Putaran />}{" "}
+              {mengirim ? "Memproses…" : "Simpan kata sandi baru"}
             </button>
           </form>
         )}

@@ -116,13 +116,13 @@ export default function KartuInformasi({
           )}
           {bergambar && (
             <a
-              className="aksi-ringkas aksi-ringkas-netral"
+              className="aksi-ringkas aksi-ringkas-netral aksi-media"
               href={b.gambar_url}
               target="_blank"
               rel="noopener noreferrer"
               aria-label={`Lihat gambar utuh: ${b.judul} (tab baru)`}
             >
-              <Ikon nama="mata" ukuran={16} />
+              <Ikon nama="gambar" ukuran={18} />
               Lihat gambar utuh
             </a>
           )}

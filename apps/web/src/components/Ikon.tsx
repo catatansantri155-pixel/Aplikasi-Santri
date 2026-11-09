@@ -12,6 +12,7 @@
 import type { ReactNode } from "react";
 
 export type NamaIkon =
+  | "gambar"
   | "muat-ulang"
   | "lonceng"
   | "beranda"
@@ -49,6 +50,13 @@ export type NamaIkon =
   | "pengaturan";
 
 const JALUR: Record<NamaIkon, ReactNode> = {
+  gambar: (
+    <>
+      <rect x="3" y="3" width="18" height="18" rx="4" />
+      <circle cx="8.5" cy="8.5" r="1.5" />
+      <path d="m4 17 5-5 4 4 3-3 5 5" />
+    </>
+  ),
   "muat-ulang": (
     <>
       <path d="M20 7v5h-5M4 17v-5h5" />
