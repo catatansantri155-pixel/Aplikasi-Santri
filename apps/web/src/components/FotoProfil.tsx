@@ -102,7 +102,7 @@ export default function FotoProfil({ id, nama }: { id: string; nama: string }) {
         <div className="foto-profil-preview">
           {preview || url ? (
             <>
-              {/* eslint-disable-next-line @next/next/no-img-element */}
+              {}
               <img
                 src={preview ?? url!}
                 alt="Pratinjau foto profil"

@@ -29,7 +29,7 @@ export default function KartuInformasi({
     >
       {bergambar && (
         <div className="informasi-sampul">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
+          {}
           <img
             src={b.gambar_url}
             alt={b.judul}

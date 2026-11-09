@@ -153,17 +153,26 @@ export default function HalamanBeranda() {
         setSetoranTerbaru(setoran.data.slice(0, 4));
         setCatatanTerbaru(catatan.data[0] ?? null);
         setStatistik(
-          ringkasan ?? {
-            santri: daftar.data.length,
-            kehadiran,
-            setoran: wali
-              ? setoran.data.length
-              : setoran.data.filter((s) => s.tanggalMasehi === hariIni).length,
-            catatan: wali
-              ? catatan.data.length
-              : catatan.data.filter((c) => c.tanggal === hariIni).length,
-            olahraga: olahragaPekanIni,
-          },
+          ringkasan
+            ? {
+                santri: ringkasan.santri,
+                setoran: ringkasan.setoran,
+                kehadiran: ringkasan.kehadiran,
+                catatan: ringkasan.catatan,
+                olahraga: ringkasan.olahraga,
+              }
+            : {
+                santri: daftar.data.length,
+                kehadiran,
+                setoran: wali
+                  ? setoran.data.length
+                  : setoran.data.filter((s) => s.tanggalMasehi === hariIni)
+                      .length,
+                catatan: wali
+                  ? catatan.data.length
+                  : catatan.data.filter((c) => c.tanggal === hariIni).length,
+                olahraga: olahragaPekanIni,
+              },
         );
         setSemester(
           hasilSemester?.data.find((s) => statusSemester(s) === "berjalan") ??

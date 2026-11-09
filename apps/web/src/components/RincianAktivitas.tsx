@@ -1,5 +1,6 @@
 "use client";
 import type { CSSProperties } from "react";
+import { PenandaMuat } from "@/components/Muat";
 import { Ikon } from "@/components/Ikon";
 import type { StatistikBeranda } from "@/components/BerandaMonitoring";
 export default function RincianAktivitas({
@@ -34,7 +35,13 @@ export default function RincianAktivitas({
   ];
   const tersedia =
     statistik !== null &&
-    Object.values(statistik).every((n) => Number.isFinite(n) && n >= 0);
+    [
+      statistik.santri,
+      statistik.setoran,
+      statistik.kehadiran,
+      statistik.catatan,
+      statistik.olahraga,
+    ].every((n) => Number.isFinite(n) && n >= 0);
   const maks = tersedia
     ? Math.max(2, Math.ceil(Math.max(...baris.map((b) => b.nilai!)) / 2) * 2)
     : 1;
@@ -62,7 +69,7 @@ export default function RincianAktivitas({
       </p>
       {memuat ? (
         <div className="aktivitas-memuat" role="status">
-          Memuat rincian aktivitas…
+          <PenandaMuat teks="Memuat rincian aktivitas…" />
           <div aria-hidden="true">
             <i />
             <i />
@@ -72,7 +79,11 @@ export default function RincianAktivitas({
       ) : galat || !tersedia ? (
         <div className="beranda-galat" role="status">
           <span>Rincian belum dapat dimuat.</span>
-          <button type="button" onClick={onMuatUlang}>
+          <button
+            className="tombol tombol-sekunder aksi-media"
+            type="button"
+            onClick={onMuatUlang}
+          >
             Coba lagi
           </button>
         </div>

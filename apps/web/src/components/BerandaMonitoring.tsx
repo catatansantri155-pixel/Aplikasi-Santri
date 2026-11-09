@@ -202,7 +202,7 @@ export default function BerandaMonitoring({
               </Link>
             )}
           </div>
-          {/* eslint-disable-next-line @next/next/no-img-element */}
+          {}
           <img
             className="beranda-ilustrasi"
             src="/images/santri-study-hero.webp"
@@ -265,7 +265,7 @@ export default function BerandaMonitoring({
                     data-panduan={`menu:${m.href}`}
                   >
                     {/* Gambar 3D asli dari versi sebelumnya; label menjadi nama aksesibel. */}
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    {}
                     <span className="beranda-menu-lingkaran">
                       <img
                         className="beranda-menu-gambar"

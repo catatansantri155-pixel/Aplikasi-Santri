@@ -1,7 +1,8 @@
 "use client";
-import { PenandaMuat, Putaran } from "@/components/Muat";
+import { RangkaKartu, Putaran } from "@/components/Muat";
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import { Ikon } from "@/components/Ikon";
 import KartuInformasi from "@/components/KartuInformasi";
 import {
   ambilDetailInformasi,
@@ -91,16 +92,23 @@ export default function DetailInformasi({ id }: { id: string }) {
   }
   return (
     <section className="detail-informasi">
-      <Link className="detail-kembali" href="/informasi">
-        Kembali ke informasi pondok
+      <Link
+        className="tombol tombol-sekunder aksi-media detail-kembali"
+        href="/informasi"
+      >
+        <Ikon nama="panah-kiri" ukuran={18} /> Kembali ke informasi pondok
       </Link>
       <h1 className="judul-halaman">Informasi pondok</h1>
       {memuat ? (
-        <PenandaMuat teks="Memuat informasi…" />
+        <RangkaKartu />
       ) : galat ? (
         <p className="pesan-galat" role="alert">
           {galat}{" "}
-          <button type="button" onClick={() => setUlang((n) => n + 1)}>
+          <button
+            className="tombol tombol-sekunder aksi-media"
+            type="button"
+            onClick={() => setUlang((n) => n + 1)}
+          >
             Coba lagi
           </button>
         </p>
@@ -140,7 +148,8 @@ export default function DetailInformasi({ id }: { id: string }) {
                       disabled={menyimpan}
                       onClick={() => void konfirmasi()}
                     >
-                      {menyimpan && <Putaran />} {menyimpan
+                      {menyimpan && <Putaran />}{" "}
+                      {menyimpan
                         ? "Menyimpan…"
                         : "Saya sudah membaca dan memahami"}
                     </button>
@@ -154,7 +163,11 @@ export default function DetailInformasi({ id }: { id: string }) {
           {galatBaca && (
             <p className="pesan-galat" role="alert">
               {galatBaca}{" "}
-              <button type="button" onClick={() => setUlang((n) => n + 1)}>
+              <button
+                className="tombol tombol-sekunder aksi-media"
+                type="button"
+                onClick={() => setUlang((n) => n + 1)}
+              >
                 Muat ulang informasi
               </button>
             </p>
@@ -170,12 +183,22 @@ export default function DetailInformasi({ id }: { id: string }) {
               ) : (
                 <p className="catatan-kaki">
                   Ringkasan belum tersedia.{" "}
-                  <button type="button" onClick={() => setUlang((n) => n + 1)}>
+                  <button
+                    className="tombol tombol-sekunder aksi-media"
+                    type="button"
+                    onClick={() => setUlang((n) => n + 1)}
+                  >
                     Muat ulang
                   </button>
                 </p>
               )}
-              <Link href="/informasi">Kelola informasi</Link>
+              <Link
+                className="tombol tombol-sekunder aksi-media"
+                href="/informasi"
+              >
+                <Ikon nama="pengaturan" ukuran={18} />
+                Kelola informasi
+              </Link>
             </div>
           )}
         </>

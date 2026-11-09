@@ -244,3 +244,27 @@ input[type="file"]::file-selector-button {
     transition: none;
   }
 }
+
+.detail-informasi .detail-kembali {
+  margin-bottom: 18px;
+  text-decoration: none;
+}
+.informasi-konfirmasi > .aksi-media {
+  margin-top: 12px;
+}
+.email-konfirmasi {
+  max-width: 480px;
+  display: grid;
+  gap: 16px;
+}
+.email-konfirmasi h1,
+.email-konfirmasi p {
+  margin: 0;
+}
+.email-konfirmasi p {
+  line-height: 1.7;
+}
+.email-konfirmasi .tombol {
+  width: 100%;
+  justify-content: center;
+}

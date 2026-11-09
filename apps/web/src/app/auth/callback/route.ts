@@ -22,6 +22,8 @@ export async function GET(request: NextRequest) {
   const code = searchParams.get("code");
   const tujuan = tujuanAman(searchParams.get("next"));
 
+  if (!code)
+    return NextResponse.redirect(`${origin}/login?auth=tautan-tidak-valid`);
   if (code) {
     const supabase = await buatKlienServer();
     const { error } = await supabase.auth.exchangeCodeForSession(code);

@@ -13,7 +13,7 @@ import {
 import { kompresLampiran } from "@/lib/lampiran-izin";
 import { supabaseTerhubung } from "@/lib/data/santri";
 export default function KelolaBanner() {
-  const [halaman,setHalaman]=useState(0);
+  const [halaman, setHalaman] = useState(0);
   const [data, setData] = useState<BannerPondok[]>([]),
     [arsip, setArsip] = useState(false),
     [muat, setMuat] = useState(true),
@@ -241,7 +241,7 @@ export default function KelolaBanner() {
                   maksimal 10 MB, diperkecil utuh menjadi WebP ≤400 KB.
                 </small>
               </label>
-              {kompres && <p role="status">Menyiapkan gambar…</p>}
+              {kompres && <PenandaMuat teks="Menyiapkan gambar…" />}
               {fileGalat && (
                 <p className="pesan-galat izin-lebar" role="alert">
                   {fileGalat}
@@ -265,7 +265,8 @@ export default function KelolaBanner() {
                   className="tombol tombol-utama"
                   disabled={kompres || !!fileGalat}
                 >
-                  {sibuk && <Putaran />} {sibuk ? "Menyimpan…" : "Simpan banner"}
+                  {sibuk && <Putaran />}{" "}
+                  {sibuk ? "Menyimpan…" : "Simpan banner"}
                 </button>
                 <button type="button" onClick={() => setEditor(undefined)}>
                   Batal
@@ -293,7 +294,7 @@ export default function KelolaBanner() {
             value={arsip ? "arsip" : "aktif"}
             onChange={(e) => {
               setArsip(e.target.value === "arsip");
-                setHalaman(0);
+              setHalaman(0);
               setEditor(undefined);
             }}
           >
@@ -303,8 +304,8 @@ export default function KelolaBanner() {
         </label>
         <p className="izin-petunjuk">
           Urutan terkecil tampil lebih dahulu. Maksimal 20 banner nonarsip;
-          daftar kelola menampilkan 20 banner per halaman.
-          Banner diputar otomatis dan hanya menampilkan gambar.
+          daftar kelola menampilkan 20 banner per halaman. Banner diputar
+          otomatis dan hanya menampilkan gambar.
         </p>
         {muat && <PenandaMuat teks="Memuat banner…" />}
         {editor === undefined && galat && (
@@ -316,7 +317,7 @@ export default function KelolaBanner() {
           <p>Belum ada banner pada pilihan ini.</p>
         )}
         <div className="pondok-daftar">
-          {data.slice(0,20).map((b) => (
+          {data.slice(0, 20).map((b) => (
             <article className="pondok-kartu" key={b.id}>
               {b.gambar_url && (
                 <img
@@ -347,7 +348,21 @@ export default function KelolaBanner() {
             </article>
           ))}
         </div>
-        <nav className="izin-paginasi" aria-label="Halaman banner"><button disabled={muat||halaman===0} onClick={()=>setHalaman(v=>v-1)}>Sebelumnya</button><span>Halaman {halaman+1}</span><button disabled={muat||data.length<=20} onClick={()=>setHalaman(v=>v+1)}>Berikutnya</button></nav>
+        <nav className="izin-paginasi" aria-label="Halaman banner">
+          <button
+            disabled={muat || halaman === 0}
+            onClick={() => setHalaman((v) => v - 1)}
+          >
+            Sebelumnya
+          </button>
+          <span>Halaman {halaman + 1}</span>
+          <button
+            disabled={muat || data.length <= 20}
+            onClick={() => setHalaman((v) => v + 1)}
+          >
+            Berikutnya
+          </button>
+        </nav>
       </section>
     </div>
   );

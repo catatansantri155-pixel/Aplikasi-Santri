@@ -39,7 +39,7 @@ export default function AvatarProfil({
       className={`avatar-inisial avatar-inisial--${ukuran} avatar-foto`}
       aria-hidden="true"
     >
-      {/* eslint-disable-next-line @next/next/no-img-element */}
+      {}
       <img src={url} alt="" onError={() => setUrl(null)} />
     </span>
   );

@@ -55,3 +55,12 @@ assert.ok(
 console.log(
   "Lulus: skala batang akurat, nol tidak diberi tinggi/angka palsu, state memuat/gagal, wali, tanpa accordion.",
 );
+
+// A live statistics response includes child metadata as well as numeric counts.
+const payload = { ...data, anak: { anakA: { setoran: 8, kehadiran: 4 } } };
+for (const isWali of [true, false]) {
+  const h = render(<Rincian {...props} statistik={payload} wali={isWali} />);
+  assert.ok(
+    h.includes("aktivitas-track") && !h.includes("Rincian belum dapat dimuat"),
+  );
+}

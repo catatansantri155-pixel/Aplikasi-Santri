@@ -1,5 +1,5 @@
 "use client";
-import { Putaran } from "@/components/Muat";
+import { PenandaMuat, Putaran } from "@/components/Muat";
 
 /**
  * Halaman Atur Kata Sandi Baru — tujuan akhir alur lupa sandi
@@ -96,7 +96,7 @@ export default function HalamanAturSandi() {
         )}
 
         {keadaan === "memeriksa" && (
-          <p className="catatan-kaki">Memeriksa tautan Anda…</p>
+          <PenandaMuat teks="Memeriksa tautan Anda…" />
         )}
 
         {keadaan === "tanpa-sesi" && (

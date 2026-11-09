@@ -79,7 +79,9 @@ export default function KalenderPondok() {
   let days: string[] = [];
   try {
     days = hariKalender(bulan);
-  } catch {}
+  } catch {
+    /* Bulan tidak valid ditampilkan sebagai kalender kosong. */
+  }
   const tampil = hari ? data.filter((d) => agendaPadaHari(d, hari)) : data;
   function buka(a: Agenda | null) {
     key.current = a?.kunci ?? crypto.randomUUID();
@@ -249,7 +251,8 @@ export default function KalenderPondok() {
               )}
               <div className="izin-tindakan izin-lebar">
                 <button type="submit" className="tombol tombol-utama">
-                  {sibuk && <Putaran />} {sibuk ? "Menyimpan…" : "Simpan agenda"}
+                  {sibuk && <Putaran />}{" "}
+                  {sibuk ? "Menyimpan…" : "Simpan agenda"}
                 </button>
                 <button type="button" onClick={() => setEditor(undefined)}>
                   Batal

@@ -26,6 +26,43 @@ try {
       "utf8",
     ),
   );
+  await db.exec(
+    fs.readFileSync(
+      new URL("./matriks_lima_peran.sql", import.meta.url),
+      "utf8",
+    ),
+  );
+  // Physical backup/restore rehearsal with synthetic data only, into a NEW engine.
+  await db.exec(
+    `insert into santri(id,nama,nama_ayah_wali,kelas_id)values('33333333-3333-4333-8333-333333333333','Backup Fixture','Fixture',(select id from kelas limit 1));insert into wali_santri(profile_id,santri_id)values('22222222-2222-4222-8222-222222222222','33333333-3333-4333-8333-333333333333');`,
+  );
+  const dump = await db.dumpDataDir();
+  const restored = new PGlite({ loadDataDir: dump });
+  try {
+    const original = await db.query(
+      `select md5(string_agg(id::text||nama,''order by id))hash from santri`,
+    );
+    const copy = await restored.query(
+      `select md5(string_agg(id::text||nama,''order by id))hash from santri`,
+    );
+    if (original.rows[0].hash !== copy.rows[0].hash)
+      throw Error("Checksum restored data differs");
+    await restored.exec(
+      `begin;select set_config('request.jwt.claim.sub','22222222-2222-4222-8222-222222222222',true);set local role authenticated;do $$begin if(select count(*)from santri)<>1 then raise exception 'Restored RLS failed';end if;if public.apakah_admin()then raise exception 'Restored role escalated';end if;end$$;rollback;`,
+    );
+    await restored.exec(
+      fs.readFileSync(
+        new URL("./matriks_lima_peran.sql", import.meta.url),
+        "utf8",
+      ),
+    );
+    console.log(
+      "PASS: synthetic physical backup restored into new engine, checksum/RLS/five-role matrix verified. Not a production Auth/Storage backup.",
+    );
+  } finally {
+    await restored.close();
+  }
+  console.log("PASS: matriks lima peran produksi pada RLS.");
   console.log(
     "PASS: migrasi asli, identitas kehadiran terkunci, profil terverifikasi idempoten, dua semester, hitungan > batas lama dan RLS wali.",
   );

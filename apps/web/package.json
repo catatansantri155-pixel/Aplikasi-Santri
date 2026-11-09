@@ -1,1 +1,40 @@
-{"dependencies":{"@supabase/ssr":"^0.7.0","@supabase/supabase-js":"^2.81.1","next":"^16.0.1","react":"^19.2.0","react-dom":"^19.2.0"},"devDependencies":{"@opennextjs/cloudflare":"^1.20.15","@types/node":"^24.9.2","@types/react":"^19.2.2","@types/react-dom":"^19.2.0","jsdom":"31.0.0","typescript":"^5.9.3","wrangler":"^4.156.1"},"name":"aplikasi-santri-web","private":true,"scripts":{"build":"next build","build:cf":"opennextjs-cloudflare build","cf-typegen":"wrangler types --env-interface CloudflareEnv cloudflare-env.d.ts","deploy":"opennextjs-cloudflare build && opennextjs-cloudflare deploy","dev":"next dev","lint":"next lint","preview":"opennextjs-cloudflare build && opennextjs-cloudflare preview","start":"next start","typecheck":"tsc --noEmit"},"version":"0.1.0"}
+{
+  "dependencies": {
+    "@supabase/ssr": "0.7.0",
+    "@supabase/supabase-js": "2.118.0",
+    "next": "16.4.5",
+    "react": "19.3.1",
+    "react-dom": "19.3.1"
+  },
+  "devDependencies": {
+    "@eslint/js": "10.0.1",
+    "@next/eslint-plugin-next": "16.4.3",
+    "@opennextjs/cloudflare": "1.20.16",
+    "@types/node": "24.19.2",
+    "@types/react": "19.3.0",
+    "@types/react-dom": "19.3.0",
+    "eslint": "10.14.0",
+    "jsdom": "31.0.0",
+    "typescript": "5.9.3",
+    "typescript-eslint": "8.72.1",
+    "wrangler": "4.156.1"
+  },
+  "name": "aplikasi-santri-web",
+  "private": true,
+  "scripts": {
+    "build": "next build",
+    "build:cf": "opennextjs-cloudflare build",
+    "cf-typegen": "wrangler types --env-interface CloudflareEnv cloudflare-env.d.ts",
+    "deploy": "opennextjs-cloudflare build && opennextjs-cloudflare deploy",
+    "dev": "next dev",
+    "lint": "eslint src",
+    "preview": "opennextjs-cloudflare build && opennextjs-cloudflare preview",
+    "start": "next start",
+    "typecheck": "tsc --noEmit"
+  },
+  "version": "0.1.0",
+  "overrides": {
+    "glob": "14.0.4",
+    "minimatch": "11.0.5"
+  }
+}
