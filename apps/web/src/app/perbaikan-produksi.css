@@ -11,14 +11,14 @@
 }
 .pwa-komposisi {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(0, 1.15fr);
+  grid-template-columns: minmax(0, 1.05fr) minmax(0, 1fr);
   align-items: center;
   gap: 32px;
   margin-top: 20px;
 }
 .pwa-komposisi .pwa-ilustrasi {
   width: 100%;
-  max-width: 290px;
+  max-width: 400px;
   height: auto;
   margin: 0 auto;
 }
@@ -167,7 +167,7 @@ input[type="file"]::file-selector-button {
     margin-top: 12px;
   }
   .pwa-komposisi .pwa-ilustrasi {
-    width: clamp(90px, 22svh, 150px);
+    width: min(72vw, 260px);
   }
   .pwa-isi {
     text-align: center;
@@ -218,7 +218,7 @@ input[type="file"]::file-selector-button {
     margin-top: 10px;
   }
   .pwa-komposisi .pwa-ilustrasi {
-    max-height: 100px;
+    max-height: 150px;
     width: auto;
   }
   .pwa-isi h1 {
@@ -233,7 +233,7 @@ input[type="file"]::file-selector-button {
 }
 @media (max-height: 420px) and (min-width: 641px) {
   .pwa-komposisi .pwa-ilustrasi {
-    max-height: 180px;
+    max-height: 220px;
   }
   .pwa-komposisi {
     margin-top: 4px;
